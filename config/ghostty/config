@@ -1,8 +1,5 @@
-# Ghostty configuration
-# https://ghostty.org/docs/config
-
-font-size = 13
-theme = "catppuccin-mocha"
-window-padding-x = 8
-window-padding-y = 8
-background-opacity = 0.95
+# term = xterm-256color
+theme = Catppuccin Mocha
+font-family = "Hack Nerd Font Mono"
+font-size = "15"
+macos-option-as-alt = true

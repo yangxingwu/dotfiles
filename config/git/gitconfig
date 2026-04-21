@@ -1,24 +1,6 @@
 [core]
-	autocrlf = input
-	editor = nvim
-
-[init]
-	defaultBranch = main
-
-[pull]
-	rebase = true
-
-[push]
-	autoSetupRemote = true
-
-[diff]
-	tool = nvimdiff
-
-[merge]
-	tool = nvimdiff
-
-[alias]
-	st = status
-	co = checkout
-	br = branch
-	lg = log --oneline --graph --decorate --all
+	hooksPath = ~/.git-hooks
+	quotepath = false
+[user]
+	name = yangxingwu
+	email = xingwu.yang@gmail.com
