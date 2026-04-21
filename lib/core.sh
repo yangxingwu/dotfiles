@@ -59,7 +59,10 @@ core::backup() {
     return 0
   fi
 
-  mkdir -p "$(dirname "${backup_path}")"
+  if ! mkdir -p "$(dirname "${backup_path}")"; then
+    core::log ERROR "Failed to create backup directory for: ${target}"
+    return 1
+  fi
   if ! mv "${target}" "${backup_path}"; then
     core::log ERROR "Failed to backup: ${target}"
     return 1
