@@ -47,6 +47,10 @@ core::backup() {
   local timestamp
   timestamp="$(date +%Y%m%d-%H%M%S)"
   local backup_dir="${HOME}/.dotfiles-backup/${timestamp}"
+  if [[ "${target}" != "${HOME}"/* ]]; then
+    core::log ERROR "Backup target must be under HOME: ${target}"
+    return 1
+  fi
   local relative="${target#"${HOME}/"}"
   local backup_path="${backup_dir}/${relative}"
 
@@ -56,7 +60,10 @@ core::backup() {
   fi
 
   mkdir -p "$(dirname "${backup_path}")"
-  mv "${target}" "${backup_path}"
+  if ! mv "${target}" "${backup_path}"; then
+    core::log ERROR "Failed to backup: ${target}"
+    return 1
+  fi
   core::log INFO "Backed up: ${target} → ${backup_path}"
 }
 
@@ -78,8 +85,14 @@ core::symlink() {
     return 0
   fi
 
-  mkdir -p "$(dirname "${target}")"
-  ln -sf "${abs_src}" "${target}"
+  if ! mkdir -p "$(dirname "${target}")"; then
+    core::log ERROR "Failed to create parent dirs for: ${target}"
+    return 1
+  fi
+  if ! ln -sf "${abs_src}" "${target}"; then
+    core::log ERROR "Failed to create symlink: ${target}"
+    return 1
+  fi
   core::log INFO "Linked: ${target} → ${abs_src}"
 }
 
