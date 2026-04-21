@@ -64,6 +64,7 @@ uninstall::run_module() {
 
   if [[ "${MODULE_PLATFORM}" != "all" ]] \
     && [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
+    core::log INFO "Skipping ${MODULE_NAME} (platform: ${MODULE_PLATFORM})"
     return 0
   fi
 
@@ -74,7 +75,7 @@ uninstall::run_module() {
     target="${link_entry##*:}"
 
     if [[ -L "${target}" ]]; then
-      if [[ "${DRY_RUN:-0}" == "1" ]]; then
+      if [[ "${DRY_RUN}" == "1" ]]; then
         core::log DRY "Would remove symlink: ${target}"
       else
         rm "${target}"
