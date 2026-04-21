@@ -6,12 +6,12 @@ set -euo pipefail
 IFS=$'\n\t'
 
 MODULE_NAME="nvim"
-MODULE_DESC="Neovim editor configuration (LazyVim)"
+MODULE_DESC="Neovim editor (config managed separately at yangxingwu/neovim-lua-config)"
 MODULE_PLATFORM="all"
 
-LINKS=(
-  "config/nvim:${HOME}/.config/nvim"
-)
+# Config is maintained in a separate repo: git@github.com:yangxingwu/neovim-lua-config.git
+# This module only installs the neovim package; no symlinks are managed here.
+LINKS=()
 
 DEPS_MAC=("neovim")
 DEPS_LINUX=("neovim")
