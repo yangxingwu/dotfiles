@@ -35,3 +35,4 @@ detect::pkg_manager() {
 
 [[ -n "${DOTFILES_OS:-}" ]] || detect::os
 [[ -n "${DOTFILES_PKG_MANAGER:-}" ]] || detect::pkg_manager
+export DOTFILES_OS DOTFILES_PKG_MANAGER
