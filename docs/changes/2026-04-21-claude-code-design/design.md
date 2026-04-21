@@ -17,13 +17,37 @@ conventions, and documentation standards.
 ```
 dotfiles/
 ├── CLAUDE.md                        # project overview + architecture decisions
+├── README.md                        # user-facing: install, modules, usage
+├── CONTRIBUTING.md                  # contributor guide (references CLAUDE.md)
+├── LICENSE                          # MIT
 ├── .editorconfig                    # universal editor formatting config
 ├── .shellcheckrc                    # shellcheck lint rules
 ├── .shfmt.toml                      # shfmt formatting config
+├── docs/
+│   ├── modules/
+│   │   ├── nvim.md                  # per-module doc (auto-loaded via rules)
+│   │   ├── tmux.md
+│   │   ├── zsh.md
+│   │   ├── git.md
+│   │   ├── ghostty.md
+│   │   └── kitty.md
+│   └── changes/                     # all change records (brainstorm + small fixes)
+│       ├── 2026-04-21-dotfiles-project-design/
+│       │   ├── design.md
+│       │   └── tasks.md
+│       └── 2026-04-21-claude-code-design/
+│           ├── design.md
+│           └── tasks.md
 └── .claude/
     ├── settings.json                # permissions + hooks
     ├── rules/
-    │   └── shell-style.md           # Claude's shell script behavioural rules
+    │   ├── shell-style.md           # global: shell script behavioural rules (no paths)
+    │   ├── module-nvim.md           # paths: ["modules/nvim.sh","config/nvim/**"]
+    │   ├── module-tmux.md           # paths: ["modules/tmux.sh","config/tmux/**"]
+    │   ├── module-zsh.md            # paths: ["modules/zsh.sh","config/zsh/**"]
+    │   ├── module-git.md            # paths: ["modules/git.sh","config/git/**"]
+    │   ├── module-ghostty.md        # paths: ["modules/ghostty.sh","config/ghostty/**"]
+    │   └── module-kitty.md          # paths: ["modules/kitty.sh","config/kitty/**"]
     ├── commands/
     │   ├── lint.md                  # /lint — run shellcheck on all .sh files
     │   ├── format.md                # /format — run shfmt on all .sh files
@@ -45,11 +69,79 @@ Top-level project instructions for Claude. Contains:
 - Module interface contract (what every module must declare)
 - Key invariants (DRY_RUN, idempotency, no direct brew/apt calls in modules)
 - Documentation workflow (see Workflow section below)
-- Pointer to `.claude/rules/shell-style.md` for shell coding standards
 - Language rule: all code, comments, and documentation must be written in English
 
-Does NOT contain: style rules (those live in `shell-style.md`), formatting rules (those live
-in tooling config files).
+Does NOT contain: style rules (those live in `.claude/rules/shell-style.md`), formatting
+rules (those live in tooling config files), module-specific docs (loaded on demand via
+path-scoped rules).
+
+---
+
+## Project Documentation
+
+### README.md
+
+User-facing. Contains:
+
+- Project summary + what it does
+- Supported platforms (macOS full / Linux minimal)
+- Prerequisites (bash 4+, git)
+- Quick install (one-liner)
+- Module list overview (links to `docs/modules/`)
+- Common flags (`--dry-run`, `--module`)
+- Backup and restore instructions
+
+### CONTRIBUTING.md
+
+Contributor-facing. Contains:
+
+- Dev environment setup (shellcheck, shfmt, Claude Code)
+- Development workflow (two tracks: brainstorm / direct) — references CLAUDE.md, no duplication
+- How to add a new module (use `/new-module`, explains what gets scaffolded)
+- Code style (references `.claude/rules/shell-style.md`)
+- Commit conventions (Conventional Commits)
+- Change documentation requirements (`docs/changes/`)
+
+### LICENSE
+
+Standard MIT license text. Copyright holder: the repository owner.
+
+### docs/modules/<name>.md
+
+One file per module. Created automatically by `/new-module`. Contains:
+
+- Module purpose and what it installs/symlinks
+- Symlink mapping table (source → target)
+- Package dependencies (mac / linux)
+- Platform support (all / mac / linux)
+- Any special setup notes (e.g., post-install steps)
+
+---
+
+## Context Loading: Path-Scoped Rules
+
+Module documentation is loaded on demand via YAML frontmatter in `.claude/rules/`:
+
+```markdown
+---
+paths:
+  - "modules/nvim.sh"
+  - "config/nvim/**"
+---
+
+@docs/modules/nvim.md
+```
+
+When Claude reads or edits any file matching the `paths` list, the corresponding module
+doc is automatically injected into context. Files without a matching rule are unaffected.
+
+Each module gets its own rule file in `.claude/rules/module-<name>.md`. The `/new-module`
+command scaffolds all three files together:
+- `modules/<name>.sh` — module implementation
+- `docs/modules/<name>.md` — module documentation
+- `.claude/rules/module-<name>.md` — path-scoped context rule
+
+`shell-style.md` has no `paths:` frontmatter — it loads globally on every session.
 
 ---
 
