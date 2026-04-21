@@ -87,7 +87,7 @@ preflight::report() {
   printf '%s\n\n' "────────────────────────────────────────────────────────────"
 
   # In dry-run mode there is nothing to back up; auto-skip all conflicting modules.
-  if [[ "${DRY_RUN}" == "1" ]]; then
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
     core::log DRY "Conflicts detected — auto-skipping all conflicting modules (dry-run)"
     preflight::_resolve_skip_all
     return 0
@@ -114,6 +114,8 @@ preflight::report() {
   esac
 }
 
+# preflight::_resolve_backup_all
+# Backs up every conflicting target path using core::backup.
 preflight::_resolve_backup_all() {
   local conflict target
   for conflict in "${_PREFLIGHT_CONFLICTS[@]}"; do
@@ -122,6 +124,8 @@ preflight::_resolve_backup_all() {
   done
 }
 
+# preflight::_resolve_skip_all
+# Adds every conflicting module (deduplicated) to PREFLIGHT_SKIP_MODULES.
 preflight::_resolve_skip_all() {
   local conflict module
   for conflict in "${_PREFLIGHT_CONFLICTS[@]}"; do
@@ -134,6 +138,8 @@ preflight::_resolve_skip_all() {
   core::log WARN "Skipping modules: ${skip_list%, }"
 }
 
+# preflight::_resolve_per_item
+# Prompts the user for each conflicting target individually (backup / skip / quit).
 preflight::_resolve_per_item() {
   local conflict module target choice
   for conflict in "${_PREFLIGHT_CONFLICTS[@]}"; do
