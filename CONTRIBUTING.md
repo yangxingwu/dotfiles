@@ -20,7 +20,7 @@ Install [Claude Code](https://claude.ai/code) for AI-assisted development (recom
 See `CLAUDE.md` for the full workflow. Summary:
 
 **Large changes** (new module, architecture change, refactor):
-1. Run `superpowers:brainstorm` in Claude Code
+1. Run `superpowers:brainstorming` in Claude Code
 2. Design doc + tasks saved to `docs/changes/YYYY-MM-DD-<topic>/`
 3. Implement following the tasks file
 4. Optionally run `/change` for a lightweight summary
