@@ -12,10 +12,10 @@
 	autoSetupRemote = true
 
 [diff]
-	tool = vimdiff
+	tool = nvimdiff
 
 [merge]
-	tool = vimdiff
+	tool = nvimdiff
 
 [alias]
 	st = status
