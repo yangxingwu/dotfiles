@@ -21,12 +21,11 @@ clones the config repo and creates the symlink directly.
 ## Config Repo
 
 ```
-git@github.com:yangxingwu/neovim-lua-config.git  (branch: lazyvimV2)
+git@github.com:yangxingwu/neovim-lua-config.git  (branch: LazyVimV2)
 ```
 
-`post_install` does the following:
-
-1. Clones the repo to `~/.local/share/nvim-config/` if not already present.
-2. Creates `~/.config/nvim → ~/.local/share/nvim-config/` symlink.
+1. Prompts the user for the clone directory (default: `~/.local/share/nvim-config/`).
+2. Clones the repo to the chosen path if not already present.
+3. Creates `~/.config/nvim → <clone-dir>` symlink.
 
 Both steps are idempotent — a second run skips if the clone dir or symlink already exists.
