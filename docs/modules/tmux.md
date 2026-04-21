@@ -1,14 +1,16 @@
 # Module: tmux
 
-tmux terminal multiplexer configuration with true-color support and a local override
-mechanism for machine-specific settings.
+tmux configuration using [oh-my-tmux](https://github.com/gpakosz/.tmux) as the base,
+with a local override file for machine-specific settings.
 
 ## Symlinks
 
 | Source | Target | Platform |
 |---|---|---|
-| `config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` | all |
 | `config/tmux/tmux.conf.local` | `~/.config/tmux/tmux.conf.local` | all |
+
+`~/.config/tmux/tmux.conf` is **not** managed via `LINKS` — it is symlinked by
+`post_install` to point at the oh-my-tmux clone.
 
 ## Dependencies
 
@@ -17,20 +19,21 @@ mechanism for machine-specific settings.
 | macOS | `tmux` |
 | Linux | `tmux` |
 
-## Notes
+## oh-my-tmux
 
-`tmux.conf` sources `tmux.conf.local` at the end, so machine-specific overrides can be
-added to `tmux.conf.local` without touching the shared config.
+```
+https://github.com/gpakosz/.tmux.git
+```
 
-Key settings in `tmux.conf`:
+`post_install` does the following:
 
-- **Prefix**: `C-a` (instead of the default `C-b`)
-- **Escape time**: `set -sg escape-time 10` — prevents the 500 ms Escape delay when
-  running Neovim inside tmux
-- **True color**: `set -g default-terminal "tmux-256color"` and
-  `set -ga terminal-overrides ",xterm-256color:Tc"` — required for Catppuccin and other
-  24-bit colorschemes to render correctly
-- **Mouse**: enabled
-- **Vi keys**: copy mode uses vi key bindings
-- **Window indexing**: starts at 1 (not 0) for keyboard ergonomics
-- **History**: 50 000 lines
+1. Clones oh-my-tmux to `~/.local/share/tmux/oh-my-tmux/` if not already present.
+2. Creates `~/.config/tmux/tmux.conf → ~/.local/share/tmux/oh-my-tmux/.tmux.conf` symlink.
+
+Both steps are idempotent.
+
+## Local overrides
+
+`config/tmux/tmux.conf.local` is symlinked to `~/.config/tmux/tmux.conf.local`.
+oh-my-tmux sources this file automatically, so all machine-specific tweaks go here
+without touching the upstream config.
