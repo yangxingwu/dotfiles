@@ -9,13 +9,15 @@ MODULE_NAME="zsh"
 MODULE_DESC="Zsh shell configuration (sheldon plugins, starship prompt)"
 MODULE_PLATFORM="all"
 
+# NOTE: .zshrc is managed separately; this module only links plugin/prompt configs.
 LINKS=(
   "config/zsh/sheldon/plugins.toml:${HOME}/.config/sheldon/plugins.toml"
   "config/zsh/starship.toml:${HOME}/.config/starship.toml"
 )
 
 DEPS_MAC=("sheldon" "starship")
-DEPS_LINUX=("sheldon" "starship")
+DEPS_LINUX=("zsh" "sheldon" "starship")
 
 pre_install() { :; }
+
 post_install() { :; }

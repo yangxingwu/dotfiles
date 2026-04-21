@@ -20,9 +20,10 @@ DEPS_LINUX=("git")
 pre_install() { :; }
 
 post_install() {
-  # Register the global hooks directory so git uses it by default.
+  # Point git at a shared hooks directory so all repos on this machine
+  # pick up the hooks without needing per-repo configuration.
   if [[ "${DRY_RUN}" == "1" ]]; then
-    core::log DRY "Would run: git config --global core.hooksPath ~/.git-hooks"
+    core::log DRY "Would run: git config --global core.hooksPath ${HOME}/.git-hooks"
     return 0
   fi
   git config --global core.hooksPath "${HOME}/.git-hooks"
