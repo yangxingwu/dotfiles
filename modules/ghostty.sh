@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # modules/ghostty.sh — Ghostty terminal emulator configuration
-# Platform: mac (Ghostty is macOS-only)
+# Platform: mac
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 set -euo pipefail
 IFS=$'\n\t'
