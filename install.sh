@@ -61,6 +61,11 @@ fi
 install::run_module() {
   local module_file="${1}"
 
+  # Reset module state to prevent previous module's variables from bleeding in
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS DEPS_MAC DEPS_LINUX
+  pre_install() { :; }
+  post_install() { :; }
+
   # shellcheck source=/dev/null
   source "${module_file}"
 
@@ -111,9 +116,25 @@ install::run_module() {
 }
 
 # Iterate all module files in alphabetical order
+_found_modules=0
+_target_found=0
 for _module_file in "${DOTFILES_ROOT}/modules"/*.sh; do
   [[ -f "${_module_file}" ]] || continue
+  _found_modules=$((_found_modules + 1))
   install::run_module "${_module_file}"
+  # Track whether --module target was matched (check MODULE_NAME after sourcing)
+  if [[ -n "${TARGET_MODULE}" ]] && [[ "${MODULE_NAME}" == "${TARGET_MODULE}" ]]; then
+    _target_found=1
+  fi
 done
+
+if [[ ${_found_modules} -eq 0 ]]; then
+  core::log WARN "No modules found in ${DOTFILES_ROOT}/modules"
+fi
+
+if [[ -n "${TARGET_MODULE}" ]] && [[ ${_target_found} -eq 0 ]]; then
+  printf 'error: module not found: %s\n' "${TARGET_MODULE}" >&2
+  exit 1
+fi
 
 core::log INFO "Install complete."
