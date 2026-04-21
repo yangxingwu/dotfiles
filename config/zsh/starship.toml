@@ -1,0 +1,16 @@
+# Starship prompt configuration
+# https://starship.rs/config/
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[git_branch]
+symbol = " "
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
