@@ -15,8 +15,8 @@ See `docs/changes/2026-04-21-dotfiles-project-design/design.md` for the full des
 Key invariants:
 - **DRY_RUN**: all destructive operations check `DRY_RUN=1` before executing
 - **Idempotent**: safe to run `install.sh` multiple times
-- **No direct package manager calls in modules**: declare `DEPS_MAC`/`DEPS_LINUX`,
-  let `lib/core.sh` dispatch
+- **No direct package manager calls in modules**: use `core::pkg_install` inside
+  `pre_install` or `install`; never call brew/apt/dnf/pacman directly
 
 ## Module Interface Contract
 
@@ -31,12 +31,12 @@ LINKS=(
   "config/<name>/file:${HOME}/.config/<name>/file"
 )
 
-DEPS_MAC=("<package>")
-DEPS_LINUX=("<package>")
-
-pre_install()  { :; }
-post_install() { :; }
+pre_install()  { :; }   # install dependencies (pkg manager + any special-case tools)
+install()      { :; }   # install the module's main subject
+post_install() { :; }   # post-install configuration and finalisation
 ```
+
+Execution order: `pre_install → install → LINKS → post_install`
 
 ## Development Workflow
 
