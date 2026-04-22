@@ -1,0 +1,6 @@
+# Cargo / Rust — loaded for all shell types (login, interactive, scripts).
+# Guard prevents errors on machines where rustup has not been installed yet.
+[[ -f "${HOME}/.cargo/env" ]] && . "${HOME}/.cargo/env"
+
+# machine-local env (API keys, tool-specific vars, etc.) — never committed
+[[ -f ~/.zshenv.local ]] && source ~/.zshenv.local

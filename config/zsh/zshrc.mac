@@ -1,0 +1,32 @@
+# Homebrew (Apple Silicon)
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# sheldon plugin manager
+eval "$(sheldon source)"
+
+# completion system (after sheldon so fpath is fully populated)
+autoload -Uz compinit && compinit
+
+# history substring search key bindings (after sheldon)
+bindkey "^[[A" history-substring-search-up
+bindkey "^[[B" history-substring-search-down
+
+# Starship prompt
+eval "$(starship init zsh)"
+
+# fzf key bindings (Ctrl+R history search, Ctrl+T file search)
+eval "$(fzf --zsh)"
+
+# ssh wrapper — auto-fills password from ~/.ssh/passwords/<host> via sshpass
+ssh() {
+  local host="${*: -1}"
+  local pass_file="${HOME}/.ssh/passwords/${host}"
+  if [[ -f "${pass_file}" ]]; then
+    sshpass -f "${pass_file}" command ssh "$@"
+  else
+    command ssh "$@"
+  fi
+}
+
+# machine-local overrides (NVM, IDE tools, etc.) — never committed
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

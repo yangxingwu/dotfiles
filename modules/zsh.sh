@@ -9,17 +9,33 @@ MODULE_NAME="zsh"
 MODULE_DESC="Zsh shell configuration (sheldon plugins, starship prompt)"
 MODULE_PLATFORM="all"
 
-# NOTE: .zshrc is managed separately; this module only links plugin/prompt configs.
 LINKS=(
   "config/zsh/sheldon/plugins.toml:${HOME}/.config/sheldon/plugins.toml"
+  "config/zsh/zshenv:${HOME}/.zshenv"
 )
-
-DEPS_MAC=("sheldon" "starship")
-DEPS_LINUX=("zsh" "sheldon" "starship")
 
 pre_install() { :; }
 
+install() {
+  # macOS ships with a system zsh; Linux needs it explicitly.
+  case "$(detect::os)" in
+    mac)   core::pkg_install sheldon starship ;;
+    linux) core::pkg_install zsh sheldon starship ;;
+  esac
+}
+
 post_install() {
+  # Back up existing non-symlink files before taking ownership.
+  # The user can then migrate machine-specific lines to ~/.zshrc.local / ~/.zshenv.local.
+  [[ -f "${HOME}/.zshrc" && ! -L "${HOME}/.zshrc" ]] && core::backup "${HOME}/.zshrc"
+  [[ -f "${HOME}/.zshenv" && ! -L "${HOME}/.zshenv" ]] && core::backup "${HOME}/.zshenv"
+
+  # Symlink platform-specific zshrc.
+  case "$(detect::os)" in
+    mac)   core::symlink "config/zsh/zshrc.mac"   "${HOME}/.zshrc" ;;
+    linux) core::symlink "config/zsh/zshrc.linux" "${HOME}/.zshrc" ;;
+  esac
+
   # Generate starship config from the catppuccin-powerline preset.
   # The preset is the unmodified upstream — no point tracking it in the repo.
   local starship_cfg="${HOME}/.config/starship.toml"
