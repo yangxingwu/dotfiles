@@ -6,6 +6,11 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Idempotent re-source guard — colour constants are readonly and would otherwise
+# abort the script if this file were sourced twice (e.g. from tests).
+[[ -n "${_CORE_SH_LOADED:-}" ]] && return 0
+readonly _CORE_SH_LOADED=1
+
 # ANSI colour codes (used only when stdout is a terminal)
 if [[ -t 1 ]]; then
   readonly _CORE_RESET=$'\033[0m'
@@ -23,20 +28,28 @@ fi
 
 # core::log <level> <message>
 # Levels: INFO WARN ERROR DRY
+# ERROR and WARN are written to stderr so they survive stdout redirection.
 core::log() {
   local level="${1}"
   local message="${2}"
   local prefix
+  local fd=1
 
   case "${level}" in
-    INFO)  prefix="${_CORE_GREEN}[INFO]${_CORE_RESET}" ;;
-    WARN)  prefix="${_CORE_YELLOW}[WARN]${_CORE_RESET}" ;;
-    ERROR) prefix="${_CORE_RED}[ERROR]${_CORE_RESET}" ;;
-    DRY)   prefix="${_CORE_CYAN}[DRY-RUN]${_CORE_RESET}" ;;
-    *)     prefix="[${level}]" ;;
+  INFO) prefix="${_CORE_GREEN}[INFO]${_CORE_RESET}" ;;
+  WARN)
+    prefix="${_CORE_YELLOW}[WARN]${_CORE_RESET}"
+    fd=2
+    ;;
+  ERROR)
+    prefix="${_CORE_RED}[ERROR]${_CORE_RESET}"
+    fd=2
+    ;;
+  DRY) prefix="${_CORE_CYAN}[DRY-RUN]${_CORE_RESET}" ;;
+  *) prefix="[${level}]" ;;
   esac
 
-  printf '%s %s\n' "${prefix}" "${message}"
+  printf '%s %s\n' "${prefix}" "${message}" >&"${fd}"
 }
 
 # core::backup <absolute-path>
@@ -112,42 +125,42 @@ core::pkg_install() {
     fi
 
     case "${DOTFILES_PKG_MANAGER}" in
-      brew)
-        if brew list --formula "${package}" &>/dev/null \
-          || brew list --cask "${package}" &>/dev/null; then
-          core::log INFO "Already installed: ${package}"
-        else
-          brew install "${package}"
-          core::log INFO "Installed: ${package}"
-        fi
-        ;;
-      apt)
-        if dpkg -s "${package}" &>/dev/null; then
-          core::log INFO "Already installed: ${package}"
-        else
-          sudo apt-get install -y "${package}"
-          core::log INFO "Installed: ${package}"
-        fi
-        ;;
-      dnf)
-        if rpm -q "${package}" &>/dev/null; then
-          core::log INFO "Already installed: ${package}"
-        else
-          sudo dnf install -y "${package}"
-          core::log INFO "Installed: ${package}"
-        fi
-        ;;
-      pacman)
-        if pacman -Q "${package}" &>/dev/null; then
-          core::log INFO "Already installed: ${package}"
-        else
-          sudo pacman -S --noconfirm "${package}"
-          core::log INFO "Installed: ${package}"
-        fi
-        ;;
-      *)
-        core::log WARN "Unknown package manager — cannot install: ${package}"
-        ;;
+    brew)
+      if brew list --formula "${package}" &>/dev/null ||
+        brew list --cask "${package}" &>/dev/null; then
+        core::log INFO "Already installed: ${package}"
+      else
+        brew install "${package}"
+        core::log INFO "Installed: ${package}"
+      fi
+      ;;
+    apt)
+      if dpkg -s "${package}" &>/dev/null; then
+        core::log INFO "Already installed: ${package}"
+      else
+        sudo apt-get install -y "${package}"
+        core::log INFO "Installed: ${package}"
+      fi
+      ;;
+    dnf)
+      if rpm -q "${package}" &>/dev/null; then
+        core::log INFO "Already installed: ${package}"
+      else
+        sudo dnf install -y "${package}"
+        core::log INFO "Installed: ${package}"
+      fi
+      ;;
+    pacman)
+      if pacman -Q "${package}" &>/dev/null; then
+        core::log INFO "Already installed: ${package}"
+      else
+        sudo pacman -S --noconfirm "${package}"
+        core::log INFO "Installed: ${package}"
+      fi
+      ;;
+    *)
+      core::log WARN "Unknown package manager — cannot install: ${package}"
+      ;;
     esac
   done
 }

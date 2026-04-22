@@ -22,8 +22,8 @@ preflight::scan_module() {
     source "${module_file}"
 
     # Skip if wrong platform
-    if [[ "${MODULE_PLATFORM}" != "all" ]] \
-      && [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
+    if [[ "${MODULE_PLATFORM}" != "all" ]] &&
+      [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
       return 0
     fi
 
@@ -34,27 +34,42 @@ preflight::scan_module() {
       abs_src="${DOTFILES_ROOT}/${src}"
 
       # Already correctly linked — not a conflict
-      if [[ -L "${target}" ]] \
-        && [[ "$(readlink "${target}")" == "${abs_src}" ]]; then
+      if [[ -L "${target}" ]] &&
+        [[ "$(readlink "${target}")" == "${abs_src}" ]]; then
         continue
       fi
 
       # Conflict: target exists as anything (file, directory, or wrong symlink)
       if [[ -e "${target}" ]] || [[ -L "${target}" ]]; then
+        # shellcheck disable=SC2153  # MODULE_NAME is set by the sourced module
         printf '%s|%s|%s\n' "${MODULE_NAME}" "${src}" "${target}"
       fi
     done
   )
 }
 
-# preflight::scan_all
-# Iterates all modules/*.sh files and collects conflicts into _PREFLIGHT_CONFLICTS.
+# preflight::scan_all [target-module-name]
+# Collects conflicts from all modules into _PREFLIGHT_CONFLICTS. If
+# target-module-name is given, only modules/<target>.sh is scanned. (The
+# filename↔MODULE_NAME invariant is enforced in install::run_module, so
+# filename matching is sufficient here.)
 preflight::scan_all() {
+  local target="${1:-}"
   local modules_dir="${DOTFILES_ROOT}/modules"
   _PREFLIGHT_CONFLICTS=()
 
+  local -a module_files=()
+  if [[ -n "${target}" ]]; then
+    module_files=("${modules_dir}/${target}.sh")
+  else
+    local f
+    for f in "${modules_dir}"/*.sh; do
+      [[ -f "${f}" ]] && module_files+=("${f}")
+    done
+  fi
+
   local module_file conflict
-  for module_file in "${modules_dir}"/*.sh; do
+  for module_file in "${module_files[@]}"; do
     [[ -f "${module_file}" ]] || continue
     while IFS= read -r conflict; do
       [[ -n "${conflict}" ]] && _PREFLIGHT_CONFLICTS+=("${conflict}")
@@ -103,14 +118,17 @@ preflight::report() {
   local choice
   read -r choice
   case "${choice}" in
-    b) preflight::_resolve_backup_all ;;
-    s) preflight::_resolve_skip_all ;;
-    d) preflight::_resolve_per_item ;;
-    q) printf 'Aborted.\n'; exit 0 ;;
-    *)
-      printf 'error: invalid choice\n' >&2
-      exit 1
-      ;;
+  b) preflight::_resolve_backup_all ;;
+  s) preflight::_resolve_skip_all ;;
+  d) preflight::_resolve_per_item ;;
+  q)
+    printf 'Aborted.\n'
+    exit 0
+    ;;
+  *)
+    printf 'error: invalid choice\n' >&2
+    exit 1
+    ;;
   esac
 }
 
@@ -154,13 +172,16 @@ preflight::_resolve_per_item() {
     read -r choice
 
     case "${choice}" in
-      b) core::backup "${target}" ;;
-      s) PREFLIGHT_SKIP_MODULES+=("${module}") ;;
-      q) printf 'Aborted.\n'; exit 0 ;;
-      *)
-        printf 'warn: invalid choice — skipping module %s\n' "${module}" >&2
-        PREFLIGHT_SKIP_MODULES+=("${module}")
-        ;;
+    b) core::backup "${target}" ;;
+    s) PREFLIGHT_SKIP_MODULES+=("${module}") ;;
+    q)
+      printf 'Aborted.\n'
+      exit 0
+      ;;
+    *)
+      printf 'warn: invalid choice — skipping module %s\n' "${module}" >&2
+      PREFLIGHT_SKIP_MODULES+=("${module}")
+      ;;
     esac
   done
 }
