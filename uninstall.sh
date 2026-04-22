@@ -50,8 +50,9 @@ uninstall::run_module() {
   local module_file="${1}"
 
   # Clear module state to prevent bleed-through between modules
-  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS DEPS_MAC DEPS_LINUX
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS
   pre_install() { :; }
+  install() { :; }
   post_install() { :; }
 
   # shellcheck source=/dev/null
