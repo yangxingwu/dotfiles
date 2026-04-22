@@ -12,12 +12,13 @@ with a local override file for machine-specific settings.
 `~/.config/tmux/tmux.conf` is **not** managed via `LINKS` — it is symlinked by
 `post_install` to point at the oh-my-tmux clone.
 
-## Dependencies
+## Module hooks
 
-| Platform | Packages |
+| Hook | Action |
 |---|---|
-| macOS | `tmux` |
-| Linux | `tmux` |
+| `pre_install` | no-op |
+| `install` | `core::pkg_install tmux` (both platforms) |
+| `post_install` | clones oh-my-tmux; symlinks `~/.config/tmux/tmux.conf` |
 
 ## oh-my-tmux
 

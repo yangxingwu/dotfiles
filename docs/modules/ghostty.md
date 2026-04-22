@@ -8,12 +8,13 @@
 |---|---|---|
 | `config/ghostty/config` | `~/.config/ghostty/config` | mac |
 
-## Dependencies
+## Module hooks
 
-| Platform | Packages |
+| Hook | Action |
 |---|---|
-| macOS | — (Ghostty is distributed as a standalone app) |
-| Linux | — (not installed) |
+| `pre_install` | no-op |
+| `install` | no-op — Ghostty is distributed as a standalone app and is installed manually |
+| `post_install` | no-op |
 
 ## Notes
 

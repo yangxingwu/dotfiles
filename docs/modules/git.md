@@ -9,12 +9,13 @@ Git global configuration and a shared hooks directory wired up via `core.hooksPa
 | `config/git/gitconfig` | `~/.gitconfig` | all |
 | `config/git/git-hooks/` | `~/.git-hooks/` | all |
 
-## Dependencies
+## Module hooks
 
-| Platform | Packages |
+| Hook | Action |
 |---|---|
-| macOS | `git` |
-| Linux | `git` |
+| `pre_install` | no-op |
+| `install` | `core::pkg_install git` (both platforms) |
+| `post_install` | runs `git config --global core.hooksPath ~/.git-hooks` |
 
 ## Notes
 
