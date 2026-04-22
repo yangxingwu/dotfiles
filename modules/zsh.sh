@@ -14,11 +14,14 @@ LINKS=(
   "config/zsh/zshenv:${HOME}/.zshenv"
 )
 
-pre_install() { :; }
+pre_install() {
+  # Must run before LINKS so ln -sf doesn't silently overwrite existing files.
+  [[ -f "${HOME}/.zshenv" && ! -L "${HOME}/.zshenv" ]] && core::backup "${HOME}/.zshenv"
+}
 
 install() {
   # macOS ships with a system zsh; Linux needs it explicitly.
-  case "$(detect::os)" in
+  case "${DOTFILES_OS}" in
     mac)   core::pkg_install sheldon starship ;;
     linux) core::pkg_install zsh sheldon starship ;;
   esac
@@ -28,10 +31,9 @@ post_install() {
   # Back up existing non-symlink files before taking ownership.
   # The user can then migrate machine-specific lines to ~/.zshrc.local / ~/.zshenv.local.
   [[ -f "${HOME}/.zshrc" && ! -L "${HOME}/.zshrc" ]] && core::backup "${HOME}/.zshrc"
-  [[ -f "${HOME}/.zshenv" && ! -L "${HOME}/.zshenv" ]] && core::backup "${HOME}/.zshenv"
 
   # Symlink platform-specific zshrc.
-  case "$(detect::os)" in
+  case "${DOTFILES_OS}" in
     mac)   core::symlink "config/zsh/zshrc.mac"   "${HOME}/.zshrc" ;;
     linux) core::symlink "config/zsh/zshrc.linux" "${HOME}/.zshrc" ;;
   esac
