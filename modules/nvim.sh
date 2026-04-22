@@ -39,15 +39,18 @@ pre_install() {
 
 # Install Neovim itself, with a version check and a pkg/source prompt when needed.
 install() {
-  local version minor
+  local version major minor
 
   # Skip if a sufficiently new Neovim is already present.
   if command -v nvim &>/dev/null; then
-    version="$(nvim --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+')"
-    minor="${version#*.}"
-    if [[ -n "${minor}" ]] && (( minor >= _NVIM_MIN_MINOR )); then
-      core::log INFO "Neovim ${version} already installed — skipping"
-      return 0
+    version="$(nvim --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' || true)"
+    if [[ -n "${version}" ]]; then
+      major="${version%.*}"
+      minor="${version#*.}"
+      if (( major > 0 )) || (( minor >= _NVIM_MIN_MINOR )); then
+        core::log INFO "Neovim ${version} already installed and meets minimum version — skipping"
+        return 0
+      fi
     fi
   fi
 
@@ -75,17 +78,18 @@ install() {
 
 # Install Neovim from the system package manager.
 _nvim::install_pkg() {
-  case "${DOTFILES_OS}" in
-    mac) core::pkg_install neovim ;;
-    linux) core::pkg_install neovim ;;
-  esac
+  # Both platforms use the same package name for neovim
+  core::pkg_install neovim
 }
 
 # Build and install Neovim from source at the latest stable tag.
 _nvim::install_src() {
+  # Ensure the build directory is cleaned up on both success and failure.
+  trap 'rm -rf "${_NVIM_BUILD_DIR}"' RETURN
+
   # Remove brew-managed neovim on macOS to avoid PATH conflicts with the source build.
   if [[ "${DOTFILES_OS}" == "mac" ]]; then
-    if brew list neovim &>/dev/null 2>&1; then
+    if command -v brew &>/dev/null && brew list neovim &>/dev/null; then
       brew uninstall neovim
     fi
   fi
@@ -99,12 +103,16 @@ _nvim::install_src() {
   git clone --depth 1 "${_NVIM_SRC_REPO}" "${_NVIM_BUILD_DIR}"
 
   local latest_tag
-  latest_tag="$(cd "${_NVIM_BUILD_DIR}" && git tag --sort=-v:refname | grep -E '^v[0-9]' | head -1)"
+  latest_tag="$(cd "${_NVIM_BUILD_DIR}" && git tag --sort=-v:refname \
+    | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | head -1)"
+  if [[ -z "${latest_tag}" ]]; then
+    core::log ERROR "No stable release tag found in ${_NVIM_SRC_REPO}"
+    return 1
+  fi
   (cd "${_NVIM_BUILD_DIR}" && git checkout "${latest_tag}")
   (cd "${_NVIM_BUILD_DIR}" && make CMAKE_BUILD_TYPE=RelWithDebInfo)
   (cd "${_NVIM_BUILD_DIR}" && sudo make install)
 
-  rm -rf "${_NVIM_BUILD_DIR}"
   core::log INFO "Neovim built and installed from source (${latest_tag})"
 }
 
