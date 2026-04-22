@@ -57,13 +57,15 @@ if [[ -z "${TARGET_MODULE}" ]]; then
 fi
 
 # install::run_module <module-file>
-# Sources the module, checks platform and skip-list, then installs deps + symlinks.
+# Sources the module, checks platform and skip-list, then runs pre_install →
+# install → LINKS → post_install.
 install::run_module() {
   local module_file="${1}"
 
   # Reset module state to prevent previous module's variables from bleeding in
-  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS DEPS_MAC DEPS_LINUX
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS
   pre_install() { :; }
+  install() { :; }
   post_install() { :; }
 
   # shellcheck source=/dev/null
@@ -90,18 +92,9 @@ install::run_module() {
 
   core::log INFO "▶ ${MODULE_NAME} — ${MODULE_DESC}"
 
-  # Install platform-specific dependencies
-  local -a deps=()
-  if [[ "${DOTFILES_OS}" == "mac" ]]; then
-    [[ ${#DEPS_MAC[@]} -gt 0 ]] && deps=("${DEPS_MAC[@]}")
-  else
-    [[ ${#DEPS_LINUX[@]} -gt 0 ]] && deps=("${DEPS_LINUX[@]}")
-  fi
-  for dep in "${deps[@]+"${deps[@]}"}"; do
-    core::pkg_install "${dep}"
-  done
-
   pre_install
+
+  install
 
   local link_entry src target
   for link_entry in "${LINKS[@]+"${LINKS[@]}"}"; do
@@ -115,14 +108,23 @@ install::run_module() {
   core::log INFO "✓ ${MODULE_NAME}"
 }
 
-# Iterate all module files in alphabetical order
+# Modules are loaded in explicit order — dependencies first.
+# rust must precede nvim (cargo is required for tree-sitter-cli).
+_MODULES=(
+  "${DOTFILES_ROOT}/modules/ghostty.sh"
+  "${DOTFILES_ROOT}/modules/git.sh"
+  "${DOTFILES_ROOT}/modules/rust.sh"
+  "${DOTFILES_ROOT}/modules/nvim.sh"
+  "${DOTFILES_ROOT}/modules/tmux.sh"
+  "${DOTFILES_ROOT}/modules/zsh.sh"
+)
+
 _found_modules=0
 _target_found=0
-for _module_file in "${DOTFILES_ROOT}/modules"/*.sh; do
+for _module_file in "${_MODULES[@]}"; do
   [[ -f "${_module_file}" ]] || continue
   _found_modules=$((_found_modules + 1))
   install::run_module "${_module_file}"
-  # Track whether --module target was matched (check MODULE_NAME after sourcing)
   if [[ -n "${TARGET_MODULE}" ]] && [[ "${MODULE_NAME}" == "${TARGET_MODULE}" ]]; then
     _target_found=1
   fi
