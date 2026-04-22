@@ -14,14 +14,15 @@ LINKS=(
   "config/tmux/tmux.conf.local:${HOME}/.config/tmux/tmux.conf.local"
 )
 
-DEPS_MAC=("tmux")
-DEPS_LINUX=("tmux")
-
 readonly _TMUX_REPO="https://github.com/gpakosz/.tmux.git"
 readonly _TMUX_CLONE_DIR="${HOME}/.local/share/tmux/oh-my-tmux"
 readonly _TMUX_LINK="${HOME}/.config/tmux/tmux.conf"
 
 pre_install() { :; }
+
+install() {
+  core::pkg_install tmux
+}
 
 post_install() {
   # Clone oh-my-tmux if not already present.

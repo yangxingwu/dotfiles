@@ -14,10 +14,11 @@ LINKS=(
   "config/git/git-hooks:${HOME}/.git-hooks"
 )
 
-DEPS_MAC=("git")
-DEPS_LINUX=("git")
-
 pre_install() { :; }
+
+install() {
+  core::pkg_install git
+}
 
 post_install() {
   # Point git at a shared hooks directory so all repos on this machine

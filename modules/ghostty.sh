@@ -13,9 +13,8 @@ LINKS=(
   "config/ghostty/config:${HOME}/.config/ghostty/config"
 )
 
-DEPS_MAC=()
-DEPS_LINUX=()
-
 pre_install() { :; }
+
+install() { :; }
 
 post_install() { :; }
