@@ -99,52 +99,55 @@ core::symlink() {
   core::log INFO "Linked: ${target} → ${abs_src}"
 }
 
-# core::pkg_install <package-name>
-# Installs a package via the detected package manager. Skips if already installed.
+# core::pkg_install <package> [package ...]
+# Installs one or more packages via the detected package manager.
+# Skips individual packages that are already installed.
 core::pkg_install() {
-  local package="${1}"
+  local package
 
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    core::log DRY "Would install package: ${package}"
-    return 0
-  fi
+  for package in "$@"; do
+    if [[ "${DRY_RUN:-0}" == "1" ]]; then
+      core::log DRY "Would install package: ${package}"
+      continue
+    fi
 
-  case "${DOTFILES_PKG_MANAGER}" in
-    brew)
-      if brew list --formula "${package}" &>/dev/null \
-        || brew list --cask "${package}" &>/dev/null; then
-        core::log INFO "Already installed: ${package}"
-      else
-        brew install "${package}"
-        core::log INFO "Installed: ${package}"
-      fi
-      ;;
-    apt)
-      if dpkg -s "${package}" &>/dev/null; then
-        core::log INFO "Already installed: ${package}"
-      else
-        sudo apt-get install -y "${package}"
-        core::log INFO "Installed: ${package}"
-      fi
-      ;;
-    dnf)
-      if rpm -q "${package}" &>/dev/null; then
-        core::log INFO "Already installed: ${package}"
-      else
-        sudo dnf install -y "${package}"
-        core::log INFO "Installed: ${package}"
-      fi
-      ;;
-    pacman)
-      if pacman -Q "${package}" &>/dev/null; then
-        core::log INFO "Already installed: ${package}"
-      else
-        sudo pacman -S --noconfirm "${package}"
-        core::log INFO "Installed: ${package}"
-      fi
-      ;;
-    *)
-      core::log WARN "Unknown package manager — cannot install: ${package}"
-      ;;
-  esac
+    case "${DOTFILES_PKG_MANAGER}" in
+      brew)
+        if brew list --formula "${package}" &>/dev/null \
+          || brew list --cask "${package}" &>/dev/null; then
+          core::log INFO "Already installed: ${package}"
+        else
+          brew install "${package}"
+          core::log INFO "Installed: ${package}"
+        fi
+        ;;
+      apt)
+        if dpkg -s "${package}" &>/dev/null; then
+          core::log INFO "Already installed: ${package}"
+        else
+          sudo apt-get install -y "${package}"
+          core::log INFO "Installed: ${package}"
+        fi
+        ;;
+      dnf)
+        if rpm -q "${package}" &>/dev/null; then
+          core::log INFO "Already installed: ${package}"
+        else
+          sudo dnf install -y "${package}"
+          core::log INFO "Installed: ${package}"
+        fi
+        ;;
+      pacman)
+        if pacman -Q "${package}" &>/dev/null; then
+          core::log INFO "Already installed: ${package}"
+        else
+          sudo pacman -S --noconfirm "${package}"
+          core::log INFO "Installed: ${package}"
+        fi
+        ;;
+      *)
+        core::log WARN "Unknown package manager — cannot install: ${package}"
+        ;;
+    esac
+  done
 }
