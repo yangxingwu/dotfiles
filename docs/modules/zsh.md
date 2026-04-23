@@ -8,25 +8,22 @@ and starship prompt.
 | Source | Target | Platform |
 |---|---|---|
 | `config/zsh/sheldon/plugins.toml` | `~/.config/sheldon/plugins.toml` | all |
+| `config/zsh/starship.toml` | `~/.config/starship.toml` | all |
 | `config/zsh/zshenv` | `~/.zshenv` | all |
+| `config/zsh/zshrc.mac` | `~/.zshrc` | mac |
+| `config/zsh/zshrc.linux` | `~/.zshrc` | linux |
 
-## Execution order
+The last two entries are pushed into `LINKS` conditionally based on `${DOTFILES_OS}` at
+module-load time, so only the matching one is active.
 
-```
-pre_install → install → LINKS → post_install
-```
+## Module hooks
 
----
+| Hook | Action |
+|---|---|
+| `install` | `core::pkg_install sheldon starship` (macOS) or `zsh sheldon starship` (Linux) |
+| `uninstall` | no-op |
 
-## pre_install
-
-If `~/.zshenv` is a regular file (not a symlink), `core::backup` is called on it before
-the LINKS phase runs. This prevents `ln -sf` from silently overwriting any existing
-machine-local env configuration.
-
----
-
-## install
+## install()
 
 Installs the shell and prompt toolchain. macOS ships with a system Zsh so it is not
 re-installed; Linux needs it explicitly.
@@ -37,28 +34,6 @@ re-installed; Linux needs it explicitly.
 | Linux | `zsh sheldon starship` |
 
 Platform is detected via `${DOTFILES_OS}`.
-
----
-
-## post_install
-
-1. **Back up existing `.zshrc`**: if `~/.zshrc` is a regular file (not a symlink),
-   `core::backup` is called so the user can migrate machine-specific content to
-   `~/.zshrc.local`.
-
-2. **Symlink platform-specific zshrc**:
-   - macOS → `config/zsh/zshrc.mac`
-   - Linux → `config/zsh/zshrc.linux`
-
-3. **Generate starship config** from the upstream preset (unmodified, not tracked):
-   ```bash
-   starship preset catppuccin-powerline -o ~/.config/starship.toml
-   ```
-   Running `install.sh` again regenerates the file (idempotent).
-
-In `DRY_RUN=1` mode step 3 is logged and the hook returns early.
-
----
 
 ## Config files
 
@@ -89,7 +64,14 @@ macOS interactive shell configuration:
 Linux interactive shell configuration — same as the macOS version minus the Homebrew
 `shellenv` block and the `ssh()` wrapper.
 
----
+### `config/zsh/starship.toml`
+
+Generated once from the upstream `catppuccin-powerline` preset and tracked in the repo.
+To regenerate after an upstream change:
+
+```bash
+starship preset catppuccin-powerline -o config/zsh/starship.toml
+```
 
 ## Local escape hatch
 
@@ -102,8 +84,6 @@ Machine-specific content that must never be committed goes in:
 
 Both files are sourced at the end of their respective managed configs, so they can
 override anything set above them.
-
----
 
 ## sheldon plugin ordering rules
 
