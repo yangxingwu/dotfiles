@@ -33,14 +33,15 @@ See `CLAUDE.md` for the full workflow. Summary:
 
 Use the `/new-module <name>` slash command in Claude Code. It creates:
 
-- `modules/<name>.sh` — module with standard interface (fill in LINKS, DEPS)
+- `modules/<name>.sh` — module with standard interface (fill in LINKS and `install()`)
 - `docs/modules/<name>.md` — documentation template
 - `.claude/rules/module-<name>.md` — path-scoped context rule
 
-Then add the actual config files to `config/<name>/` and run:
+Then add the actual config files to `config/<name>/`, add `<name>` to the `_MODULES`
+array in `install.sh` and `uninstall.sh`, and run:
 
 ```bash
-./install.sh --module <name> --dry-run
+./install.sh
 ```
 
 ## Code Style
