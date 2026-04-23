@@ -28,6 +28,14 @@ uninstall::run_module() {
   # shellcheck source=/dev/null
   source "${module_file}"
 
+  : "${MODULE_NAME:?missing MODULE_NAME in ${module_file}}"
+  : "${MODULE_DESC:?missing MODULE_DESC in ${module_file}}"
+  : "${MODULE_PLATFORM:?missing MODULE_PLATFORM in ${module_file}}"
+  if [[ "${MODULE_NAME}" != "${name}" ]]; then
+    core::log ERROR "MODULE_NAME=${MODULE_NAME} does not match filename ${name}.sh"
+    return 1
+  fi
+
   if [[ "${MODULE_PLATFORM}" != "all" ]] &&
     [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
     core::log INFO "Skipping ${name} (platform: ${MODULE_PLATFORM})"

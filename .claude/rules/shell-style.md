@@ -83,6 +83,10 @@ core::repo_root() {
 }
 ```
 
+Module-local `readonly` constants use an uppercase `_<MOD>_` prefix so they don't
+collide across modules (the orchestrator cannot `unset` `readonly` vars between
+iterations). Examples: `_NVIM_REPO`, `_TMUX_INSTALL_URL`, `_TMUX_CLONE_DIR`.
+
 ---
 
 ## Conditionals
@@ -126,7 +130,11 @@ core::log INFO "Configuring ${MODULE_NAME}"
 printf 'Configuring %s\n' "${MODULE_NAME}"
 ```
 
-Only `lib/core.sh` itself uses direct `printf`.
+Exception: interactive prompts. `core::log` renders a boxed `[INFO]` prefix and a
+trailing newline, which doesn't suit a multi-line question + `read -r` flow. For
+those, use raw `printf '...' >&2` directly (see `modules/nvim.sh`'s pkg-vs-source
+install menu, and `core::symlink`'s conflict prompt in `lib/core.sh`). The
+"no raw printf in modules" rule covers informational log output, not prompts.
 
 ---
 

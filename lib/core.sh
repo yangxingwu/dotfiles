@@ -134,10 +134,10 @@ core::symlink() {
   printf '  [b] backup to ~/.dotfiles-backup/<ts>/ and replace\n' >&2
   printf '  [s] skip this symlink (existing file preserved)\n' >&2
   printf '  [q] quit installer\n' >&2
-  printf 'Choice: ' >&2
 
   local choice
   while :; do
+    printf 'Choice: ' >&2
     read -r choice || {
       core::log ERROR "Cannot read from stdin (not a tty?) — conflict requires interactive resolution"
       exit 1
