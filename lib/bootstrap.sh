@@ -12,12 +12,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Poll interval and ceiling for Xcode CLT install. 15s interval keeps progress
-# logs frequent enough to reassure the user; 30-minute ceiling bounds the wait
-# (typical CLT install completes in 5-15 minutes on a good network).
-_BOOTSTRAP_CLT_POLL_INTERVAL=15
-_BOOTSTRAP_CLT_MAX_WAIT=1800
-
 # macOS only. Install the Xcode Command Line Tools (git, curl, clang, make,
 # etc.) if absent. `xcode-select --install` pops a GUI confirmation dialog and
 # returns immediately while the download runs in the background; we then poll
@@ -25,6 +19,12 @@ _BOOTSTRAP_CLT_MAX_WAIT=1800
 # install API — every automation tool (Homebrew's own installer, Ansible,
 # Chef, nix-darwin) uses the same polling pattern.
 bootstrap::xcode_clt() {
+  # 15s interval keeps progress logs frequent enough to reassure the user;
+  # 30-minute ceiling bounds the wait (typical CLT install completes in
+  # 5-15 minutes on a good network).
+  local poll_interval=15
+  local max_wait=1800
+
   if xcode-select -p &>/dev/null; then
     core::log INFO "Xcode Command Line Tools already installed"
     return 0
@@ -37,14 +37,14 @@ bootstrap::xcode_clt() {
 
   local waited=0
   while ! xcode-select -p &>/dev/null; do
-    if ((waited >= _BOOTSTRAP_CLT_MAX_WAIT)); then
-      core::log ERROR "Xcode CLT install did not complete within ${_BOOTSTRAP_CLT_MAX_WAIT}s"
+    if ((waited >= max_wait)); then
+      core::log ERROR "Xcode CLT install did not complete within ${max_wait}s"
       core::log ERROR "Finish the install via the GUI dialog, then re-run ./install.sh"
       return 1
     fi
-    core::log INFO "Waiting for Xcode CLT install to finish (${waited}s/${_BOOTSTRAP_CLT_MAX_WAIT}s)..."
-    sleep "${_BOOTSTRAP_CLT_POLL_INTERVAL}"
-    waited=$((waited + _BOOTSTRAP_CLT_POLL_INTERVAL))
+    core::log INFO "Waiting for Xcode CLT install to finish (${waited}s/${max_wait}s)..."
+    sleep "${poll_interval}"
+    waited=$((waited + poll_interval))
   done
 
   core::log INFO "Xcode Command Line Tools installed"
