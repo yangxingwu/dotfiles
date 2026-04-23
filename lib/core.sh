@@ -3,25 +3,22 @@
 # Provides: core::log, core::backup, core::symlink, core::pkg_install,
 #           core::check_installed, core::require_version.
 # Requires: DOTFILES_ROOT exported, DOTFILES_PKG_MANAGER set by detect.sh.
+# Safe to source multiple times — function redefinition and plain variable
+# reassignment are idempotent in bash.
 set -euo pipefail
 IFS=$'\n\t'
 
-# Idempotent re-source guard — colour constants are readonly and would otherwise
-# abort the script if this file were sourced twice (e.g. from tests).
-[[ -n "${_CORE_SH_LOADED:-}" ]] && return 0
-readonly _CORE_SH_LOADED=1
-
 # ANSI colour codes (used only when stdout is a terminal)
 if [[ -t 1 ]]; then
-  readonly _CORE_RESET=$'\033[0m'
-  readonly _CORE_GREEN=$'\033[0;32m'
-  readonly _CORE_YELLOW=$'\033[0;33m'
-  readonly _CORE_RED=$'\033[0;31m'
+  _CORE_RESET=$'\033[0m'
+  _CORE_GREEN=$'\033[0;32m'
+  _CORE_YELLOW=$'\033[0;33m'
+  _CORE_RED=$'\033[0;31m'
 else
-  readonly _CORE_RESET=''
-  readonly _CORE_GREEN=''
-  readonly _CORE_YELLOW=''
-  readonly _CORE_RED=''
+  _CORE_RESET=''
+  _CORE_GREEN=''
+  _CORE_YELLOW=''
+  _CORE_RED=''
 fi
 
 # core::log <level> <message>

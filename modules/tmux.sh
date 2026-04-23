@@ -15,8 +15,8 @@ LINKS=(
   "config/tmux/tmux.conf.local:${HOME}/.config/tmux/tmux.conf.local"
 )
 
-readonly _TMUX_INSTALL_URL="https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh"
-readonly _TMUX_CLONE_DIR="${HOME}/.config/tmux/.tmux"
+_TMUX_INSTALL_URL="https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh"
+_TMUX_CLONE_DIR="${HOME}/.config/tmux/.tmux"
 
 install() {
   core::pkg_install tmux

@@ -11,13 +11,13 @@ MODULE_PLATFORM="all"
 
 LINKS=()
 
-readonly _NVIM_SRC_REPO="https://github.com/neovim/neovim.git"
-readonly _NVIM_BUILD_DIR="/tmp/neovim-build-$$"
-readonly _NVIM_MIN_MAJOR=0
-readonly _NVIM_MIN_MINOR=9
-readonly _NVIM_REPO="git@github.com:yangxingwu/neovim-lua-config.git"
-readonly _NVIM_BRANCH="LazyVimV2"
-readonly _NVIM_TARGET="${HOME}/.config/nvim"
+_NVIM_SRC_REPO="https://github.com/neovim/neovim.git"
+_NVIM_BUILD_DIR="/tmp/neovim-build-$$"
+_NVIM_MIN_MAJOR=0
+_NVIM_MIN_MINOR=9
+_NVIM_REPO="git@github.com:yangxingwu/neovim-lua-config.git"
+_NVIM_BRANCH="LazyVimV2"
+_NVIM_TARGET="${HOME}/.config/nvim"
 
 install() {
   # 1. LazyVim runtime dependencies

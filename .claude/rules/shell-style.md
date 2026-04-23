@@ -43,12 +43,18 @@ echo $my_var
 cp $src_file $dst_file
 ```
 
-Declare script-level constants with `readonly`:
+Declare script-level constants with `readonly` **only in entry-point scripts**
+(`install.sh` / `uninstall.sh`) — files that are executed, never sourced:
 
 ```bash
-readonly DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly VERSION="1.0.0"
+readonly DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly _MODULES=(ghostty git rust nvim tmux zsh)
 ```
+
+Do **not** use `readonly` in `lib/*.sh` or `modules/*.sh`. Those files must be
+safe to source multiple times, and a second source of a `readonly` declaration
+aborts the shell under `set -e`. For logical constants in libs/modules, use
+plain assignment with an `ALL_CAPS` name — the name and a comment convey intent.
 
 Declare function-scope variables with `local`:
 
@@ -83,9 +89,11 @@ core::repo_root() {
 }
 ```
 
-Module-local `readonly` constants use an uppercase `_<MOD>_` prefix so they don't
-collide across modules (the orchestrator cannot `unset` `readonly` vars between
-iterations). Examples: `_NVIM_REPO`, `_TMUX_INSTALL_URL`, `_TMUX_CLONE_DIR`.
+Module-local constants use an uppercase `_<MOD>_` prefix so they don't collide
+when multiple modules are sourced into the same shell. Examples: `_NVIM_REPO`,
+`_TMUX_INSTALL_URL`, `_TMUX_CLONE_DIR`. Do **not** declare them `readonly` —
+modules and lib files must be safe to source multiple times, which `readonly`
+breaks.
 
 ---
 
