@@ -12,9 +12,8 @@
 
 | Hook | Action |
 |---|---|
-| `pre_install` | no-op |
 | `install` | no-op — Ghostty is distributed as a standalone app and is installed manually |
-| `post_install` | no-op |
+| `uninstall` | no-op |
 
 ## Notes
 
