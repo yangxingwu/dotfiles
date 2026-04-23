@@ -201,14 +201,6 @@ core::pkg_install() {
         core::log INFO "Installed: ${package}"
       fi
       ;;
-    pacman)
-      if pacman -Q "${package}" &>/dev/null; then
-        core::log INFO "Already installed: ${package}"
-      else
-        sudo pacman -S --noconfirm "${package}"
-        core::log INFO "Installed: ${package}"
-      fi
-      ;;
     *)
       core::log WARN "Unknown package manager — cannot install: ${package}"
       ;;
