@@ -137,7 +137,16 @@ core::symlink() {
   printf 'Choice: ' >&2
 
   local choice
-  read -r choice
+  while :; do
+    read -r choice || {
+      core::log ERROR "Cannot read from stdin (not a tty?) — conflict requires interactive resolution"
+      exit 1
+    }
+    case "${choice}" in
+    b | s | q) break ;;
+    *) core::log WARN "Invalid choice: ${choice}. Enter b, s, or q." ;;
+    esac
+  done
 
   case "${choice}" in
   b)
@@ -157,10 +166,6 @@ core::symlink() {
     ;;
   q)
     core::log ERROR "Aborted by user"
-    exit 1
-    ;;
-  *)
-    core::log ERROR "Invalid choice: ${choice}"
     exit 1
     ;;
   esac
