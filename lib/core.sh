@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # lib/core.sh — Standard library for all modules and the orchestrator.
-# Provides: core::log, core::backup, core::symlink, core::pkg_install.
+# Provides: core::log, core::backup, core::symlink, core::pkg_install,
+#           core::check_installed, core::require_version.
 # Requires: DOTFILES_ROOT exported, DOTFILES_PKG_MANAGER set by detect.sh.
-# DRY_RUN=1 makes all destructive operations no-ops (logged only).
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -17,17 +17,15 @@ if [[ -t 1 ]]; then
   readonly _CORE_GREEN=$'\033[0;32m'
   readonly _CORE_YELLOW=$'\033[0;33m'
   readonly _CORE_RED=$'\033[0;31m'
-  readonly _CORE_CYAN=$'\033[0;36m'
 else
   readonly _CORE_RESET=''
   readonly _CORE_GREEN=''
   readonly _CORE_YELLOW=''
   readonly _CORE_RED=''
-  readonly _CORE_CYAN=''
 fi
 
 # core::log <level> <message>
-# Levels: INFO WARN ERROR DRY
+# Levels: INFO WARN ERROR
 # ERROR and WARN are written to stderr so they survive stdout redirection.
 core::log() {
   local level="${1}"
@@ -45,11 +43,32 @@ core::log() {
     prefix="${_CORE_RED}[ERROR]${_CORE_RESET}"
     fd=2
     ;;
-  DRY) prefix="${_CORE_CYAN}[DRY-RUN]${_CORE_RESET}" ;;
   *) prefix="[${level}]" ;;
   esac
 
   printf '%s %s\n' "${prefix}" "${message}" >&"${fd}"
+}
+
+# core::check_installed <binary>
+# Returns 0 if the binary is on PATH, 1 otherwise. Pure detection, no side effects.
+core::check_installed() {
+  command -v "${1}" &>/dev/null
+}
+
+# core::require_version <binary> <min-major> <min-minor>
+# Returns 0 if `<binary> --version` reports >= min-major.min-minor, 1 otherwise.
+# Parses the first "<digits>.<digits>" substring on the first output line.
+core::require_version() {
+  local bin="${1}" min_major="${2}" min_minor="${3}"
+  local version major minor
+  version="$("${bin}" --version 2>/dev/null | head -1 |
+    grep -oE '[0-9]+\.[0-9]+' || true)"
+  [[ -z "${version}" ]] && return 1
+  major="${version%.*}"
+  minor="${version#*.}"
+  ((major > min_major)) && return 0
+  ((major == min_major)) && ((minor >= min_minor)) && return 0
+  return 1
 }
 
 # core::backup <absolute-path>
@@ -67,11 +86,6 @@ core::backup() {
   local relative="${target#"${HOME}/"}"
   local backup_path="${backup_dir}/${relative}"
 
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    core::log DRY "Would backup: ${target} → ${backup_path}"
-    return 0
-  fi
-
   if ! mkdir -p "$(dirname "${backup_path}")"; then
     core::log ERROR "Failed to create backup directory for: ${target}"
     return 1
@@ -84,32 +98,72 @@ core::backup() {
 }
 
 # core::symlink <repo-relative-src> <absolute-target>
-# Creates symlink target → DOTFILES_ROOT/src. Idempotent: skips if already correct.
+# Creates symlink target → DOTFILES_ROOT/src. On conflict (target exists as a
+# real file, directory, or foreign symlink), prompts the user interactively:
+#   [b] backup existing target to ~/.dotfiles-backup/<ts>/ and replace
+#   [s] skip — do NOT create the symlink; user's file is preserved
+#   [q] quit the installer immediately (exit 1)
+# Idempotent: if target is already the correct symlink, logs and returns 0.
 core::symlink() {
   local src="${1}"
   local target="${2}"
   local abs_src="${DOTFILES_ROOT}/${src}"
 
-  # Already correctly linked — skip silently
+  # Already correctly linked — no-op
   if [[ -L "${target}" ]] && [[ "$(readlink "${target}")" == "${abs_src}" ]]; then
     core::log INFO "Already linked: ${target}"
     return 0
   fi
 
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    core::log DRY "Would symlink: ${target} → ${abs_src}"
+  # Target absent — create parent, link, done
+  if [[ ! -e "${target}" ]] && [[ ! -L "${target}" ]]; then
+    if ! mkdir -p "$(dirname "${target}")"; then
+      core::log ERROR "Failed to create parent dirs for: ${target}"
+      return 1
+    fi
+    if ! ln -sf "${abs_src}" "${target}"; then
+      core::log ERROR "Failed to create symlink: ${target}"
+      return 1
+    fi
+    core::log INFO "Linked: ${target} → ${abs_src}"
     return 0
   fi
 
-  if ! mkdir -p "$(dirname "${target}")"; then
-    core::log ERROR "Failed to create parent dirs for: ${target}"
-    return 1
-  fi
-  if ! ln -sf "${abs_src}" "${target}"; then
-    core::log ERROR "Failed to create symlink: ${target}"
-    return 1
-  fi
-  core::log INFO "Linked: ${target} → ${abs_src}"
+  # Conflict — interactive resolution
+  core::log WARN "Conflict: ${target} exists (not managed by dotfiles)"
+  printf '  [b] backup to ~/.dotfiles-backup/<ts>/ and replace\n' >&2
+  printf '  [s] skip this symlink (existing file preserved)\n' >&2
+  printf '  [q] quit installer\n' >&2
+  printf 'Choice: ' >&2
+
+  local choice
+  read -r choice
+
+  case "${choice}" in
+  b)
+    core::backup "${target}" || return 1
+    if ! mkdir -p "$(dirname "${target}")"; then
+      core::log ERROR "Failed to create parent dirs for: ${target}"
+      return 1
+    fi
+    if ! ln -sf "${abs_src}" "${target}"; then
+      core::log ERROR "Failed to create symlink: ${target}"
+      return 1
+    fi
+    core::log INFO "Linked: ${target} → ${abs_src}"
+    ;;
+  s)
+    core::log WARN "Skipped: ${target} — your file is unchanged, module may be incomplete"
+    ;;
+  q)
+    core::log ERROR "Aborted by user"
+    exit 1
+    ;;
+  *)
+    core::log ERROR "Invalid choice: ${choice}"
+    exit 1
+    ;;
+  esac
 }
 
 # core::pkg_install <package> [package ...]
@@ -119,11 +173,6 @@ core::pkg_install() {
   local package
 
   for package in "$@"; do
-    if [[ "${DRY_RUN:-0}" == "1" ]]; then
-      core::log DRY "Would install package: ${package}"
-      continue
-    fi
-
     case "${DOTFILES_PKG_MANAGER}" in
     brew)
       if brew list --formula "${package}" &>/dev/null ||
