@@ -13,8 +13,5 @@ LINKS=(
   "config/ghostty/config:${HOME}/.config/ghostty/config"
 )
 
-pre_install() { :; }
-
 install() { :; }
-
-post_install() { :; }
+uninstall() { :; }
