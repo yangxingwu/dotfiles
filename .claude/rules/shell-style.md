@@ -68,10 +68,11 @@ All functions use `namespace::name` format matching their source file:
 
 | File | Namespace | Examples |
 |---|---|---|
-| `lib/core.sh` | `core::` | `core::log`, `core::symlink`, `core::backup` |
+| `lib/core.sh` | `core::` | `core::log`, `core::symlink`, `core::check_installed`, `core::require_version` |
 | `lib/detect.sh` | `detect::` | `detect::os`, `detect::pkg_manager` |
-| `lib/preflight.sh` | `preflight::` | `preflight::scan_module`, `preflight::report_and_prompt` |
-| `modules/*.sh` | `module::` | `pre_install`, `post_install` (these are interface hooks) |
+| `install.sh` | `install::` | `install::run_module` |
+| `uninstall.sh` | `uninstall::` | `uninstall::run_module` |
+| `modules/*.sh` | `module::` / `_<mod>::` | `install`, `uninstall` (interface hooks); `_nvim::install_src` (module-local helper) |
 
 One blank line between functions. Comment above each function describing what it does:
 
@@ -185,26 +186,36 @@ do_something
 
 ---
 
-## DRY_RUN Pattern
+## Case Indentation
 
-All destructive operations must check `DRY_RUN` before executing:
+`case` branches sit at the same column as the `case` keyword itself. Bodies that
+span multiple lines (or complex one-liners) are indented one level (2 spaces) under
+the branch label. `.shfmt.toml` has `switch-case-indent = true`; the formatter
+enforces this layout — write code that already matches it.
 
 ```bash
-core::symlink() {
-  local src="$1"
-  local target="$2"
+# Correct — case arms at the same column as `case`/`esac`
+case "${DOTFILES_OS}" in
+  mac) core::pkg_install sheldon starship ;;
+  linux) core::pkg_install zsh sheldon starship ;;
+esac
 
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    core::log INFO "[DRY-RUN] Would symlink ${src} → ${target}"
-    return 0
-  fi
+# Correct — multi-line body indented one level deeper
+case "${level}" in
+  INFO) prefix="[INFO]" ;;
+  WARN)
+    prefix="[WARN]"
+    fd=2
+    ;;
+  *) prefix="[${level}]" ;;
+esac
 
-  ln -sf "${src}" "${target}"
-  core::log INFO "Symlinked ${src} → ${target}"
-}
+# Wrong — arms double-indented or flat
+case "${DOTFILES_OS}" in
+    mac) core::pkg_install sheldon starship ;;
+    linux) core::pkg_install zsh sheldon starship ;;
+esac
 ```
-
-The `DRY_RUN` variable is set by `install.sh` and exported to all sourced scripts.
 
 ---
 
