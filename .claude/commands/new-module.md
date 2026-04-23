@@ -17,20 +17,15 @@ MODULE_PLATFORM="all"   # all | mac | linux
 
 LINKS=()
 
-pre_install() {
-  # Install runtime dependencies before the main install step.
-  # Example: core::pkg_install ripgrep fd
-  :
-}
-
 install() {
-  # Install the main subject of this module.
+  # Install packages, external tools, or clone external repositories.
   # Example: core::pkg_install $ARGUMENTS
   :
 }
 
-post_install() {
-  # Post-install configuration (symlinks, config generation, etc.)
+uninstall() {
+  # Clean up external side effects produced by install().
+  # LINKS symlinks are removed automatically by uninstall.sh — do not touch them here.
   :
 }
 ```
@@ -48,12 +43,12 @@ post_install() {
 |---|---|---|
 | `config/$ARGUMENTS/` | `~/.config/$ARGUMENTS/` | all |
 
-## Dependencies
+## Module hooks
 
-| Platform | Packages |
+| Hook | Action |
 |---|---|
-| macOS | — |
-| Linux | — |
+| `install` | [what install() does] |
+| `uninstall` | [what uninstall() does, or "no-op"] |
 
 ## Notes
 
@@ -73,7 +68,8 @@ paths:
 ```
 
 After creating all three files, remind the user to:
-1. Fill in `MODULE_DESC`, `MODULE_PLATFORM`, `LINKS`, and add `core::pkg_install` calls in `install()` for any packages needed
+1. Fill in `MODULE_DESC`, `MODULE_PLATFORM`, `LINKS`, and add `core::pkg_install` calls
+   in `install()` for any packages needed
 2. Create `config/$ARGUMENTS/` and add the actual config files
-3. Update `docs/modules/$ARGUMENTS.md` with accurate symlink and dependency tables
-4. Run `./install.sh --module $ARGUMENTS --dry-run` to verify the module works
+3. Update `docs/modules/$ARGUMENTS.md` with accurate symlink and hooks tables
+4. Run `./install.sh` to verify the module works end-to-end
