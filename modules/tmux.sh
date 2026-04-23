@@ -9,47 +9,48 @@ MODULE_NAME="tmux"
 MODULE_DESC="tmux configuration (oh-my-tmux base + local overrides)"
 MODULE_PLATFORM="all"
 
-# oh-my-tmux is cloned by post_install; only the local override file is symlinked.
+# tmux.conf.local is our local override; oh-my-tmux sources it automatically.
+# tmux.conf and the upstream clone are created by oh-my-tmux's install.sh.
 LINKS=(
   "config/tmux/tmux.conf.local:${HOME}/.config/tmux/tmux.conf.local"
 )
 
-readonly _TMUX_REPO="https://github.com/gpakosz/.tmux.git"
-readonly _TMUX_CLONE_DIR="${HOME}/.local/share/tmux/oh-my-tmux"
-readonly _TMUX_LINK="${HOME}/.config/tmux/tmux.conf"
-
-pre_install() { :; }
+readonly _TMUX_INSTALL_URL="https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh"
+readonly _TMUX_CLONE_DIR="${HOME}/.config/tmux/.tmux"
 
 install() {
   core::pkg_install tmux
+
+  if [[ -d "${_TMUX_CLONE_DIR}/.git" ]]; then
+    core::log INFO "oh-my-tmux already present — skipping"
+    return 0
+  fi
+
+  # Ensure ~/.config/tmux exists so the installer picks the XDG path,
+  # not the home-directory fallback.
+  mkdir -p "${HOME}/.config/tmux"
+
+  # Official one-liner — clones to ~/.config/tmux/.tmux, creates tmux.conf
+  # symlink, and cp's a starter tmux.conf.local.
+  curl -fsSL "${_TMUX_INSTALL_URL}" | bash
+  core::log INFO "oh-my-tmux installed"
+
+  # Remove upstream's starter tmux.conf.local only if it is a real file
+  # (not already our symlink from a prior run), so LINKS can take over
+  # without a spurious conflict prompt.
+  if [[ -f "${HOME}/.config/tmux/tmux.conf.local" ]] &&
+    [[ ! -L "${HOME}/.config/tmux/tmux.conf.local" ]]; then
+    rm "${HOME}/.config/tmux/tmux.conf.local"
+  fi
 }
 
-post_install() {
-  # Clone oh-my-tmux if not already present.
-  if [[ ! -d "${_TMUX_CLONE_DIR}/.git" ]]; then
-    if [[ "${DRY_RUN:-0}" == "1" ]]; then
-      core::log DRY "Would clone ${_TMUX_REPO} → ${_TMUX_CLONE_DIR}"
-    else
-      git clone --depth 1 "${_TMUX_REPO}" "${_TMUX_CLONE_DIR}"
-      core::log INFO "Cloned oh-my-tmux → ${_TMUX_CLONE_DIR}"
-    fi
-  else
-    core::log INFO "oh-my-tmux already present: ${_TMUX_CLONE_DIR}"
+uninstall() {
+  if [[ -d "${_TMUX_CLONE_DIR}/.git" ]]; then
+    rm -rf "${_TMUX_CLONE_DIR}"
+    core::log INFO "Removed ${_TMUX_CLONE_DIR}"
   fi
-
-  # Symlink ~/.config/tmux/tmux.conf → oh-my-tmux's .tmux.conf.
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    core::log DRY "Would symlink: ${_TMUX_LINK} → ${_TMUX_CLONE_DIR}/.tmux.conf"
-    return 0
+  if [[ -L "${HOME}/.config/tmux/tmux.conf" ]]; then
+    rm "${HOME}/.config/tmux/tmux.conf"
+    core::log INFO "Removed ${HOME}/.config/tmux/tmux.conf"
   fi
-
-  if [[ -L "${_TMUX_LINK}" ]] \
-    && [[ "$(readlink "${_TMUX_LINK}")" == "${_TMUX_CLONE_DIR}/.tmux.conf" ]]; then
-    core::log INFO "Already linked: ${_TMUX_LINK}"
-    return 0
-  fi
-
-  mkdir -p "$(dirname "${_TMUX_LINK}")"
-  ln -sf "${_TMUX_CLONE_DIR}/.tmux.conf" "${_TMUX_LINK}"
-  core::log INFO "Linked: ${_TMUX_LINK} → ${_TMUX_CLONE_DIR}/.tmux.conf"
 }
