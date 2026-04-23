@@ -7,12 +7,12 @@ IFS=$'\n\t'
 
 detect::os() {
   case "$(uname -s)" in
-    Darwin) DOTFILES_OS="mac" ;;
-    Linux)  DOTFILES_OS="linux" ;;
-    *)
-      printf 'error: unsupported OS: %s\n' "$(uname -s)" >&2
-      return 1
-      ;;
+  Darwin) DOTFILES_OS="mac" ;;
+  Linux) DOTFILES_OS="linux" ;;
+  *)
+    printf 'error: unsupported OS: %s\n' "$(uname -s)" >&2
+    return 1
+    ;;
   esac
   export DOTFILES_OS
 }
