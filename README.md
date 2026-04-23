@@ -18,14 +18,14 @@ archive. Re-running is safe: the installer is fully idempotent.
 
 - bash 4+
 - git
+- curl
 
 ## Quick Install
 
 ```bash
 git clone https://github.com/<your-username>/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-./install.sh --dry-run    # preview changes without touching anything
-./install.sh              # apply
+./install.sh
 ```
 
 ## Modules
@@ -34,13 +34,12 @@ cd ~/.dotfiles
 |---|---|---|
 | `git` | all | gitconfig + custom hooks |
 | `zsh` | all | sheldon (plugin manager) + starship (prompt) |
-| `nvim` | all | Neovim configuration (LazyVim) |
-| `tmux` | all | tmux configuration |
+| `nvim` | all | Neovim + LazyVim configuration |
+| `tmux` | all | tmux + oh-my-tmux configuration |
 | `ghostty` | macOS | Ghostty terminal config |
-| `kitty` | macOS | Kitty terminal config |
-| `iterm2` | macOS | iTerm2 preferences |
 
-See [`docs/modules/`](docs/modules/) for per-module details.
+See [`docs/modules/`](docs/modules/) for per-module details. (The `rust` module runs as
+an internal dependency of `nvim`; it is not a user-facing module.)
 
 ## Usage
 
@@ -48,24 +47,20 @@ See [`docs/modules/`](docs/modules/) for per-module details.
 # Install all modules for the current platform
 ./install.sh
 
-# Preview without making changes
-./install.sh --dry-run
-
-# Install a single module
-./install.sh --module nvim
-
-# Preview a single module
-./install.sh --module nvim --dry-run
+# Remove all dotfile symlinks and clean up module side effects
+./uninstall.sh
 ```
 
 ## Conflict Handling
 
-Before making any changes, the installer scans all symlink targets for conflicts.
-If conflicts are found, you choose one resolution strategy for the entire run:
+When `install.sh` tries to create a symlink and the target already exists as a real file
+or a foreign symlink, you get an interactive prompt per conflict:
 
-- **Backup all** — existing files move to `~/.dotfiles-backup/YYYYMMDD-HHMMSS/`
-- **Skip all** — conflicting targets are left untouched (those modules are skipped)
-- **Interactive** — decide each conflict individually
+- **[b] backup** — existing file moves to `~/.dotfiles-backup/YYYYMMDD-HHMMSS/`, symlink created
+- **[s] skip**   — this symlink is not created; your file is preserved (module may end up incomplete)
+- **[q] quit**   — installer exits; fix things and re-run
+
+The installer is idempotent — re-running is always safe.
 
 ## Restoring a Backup
 
@@ -76,6 +71,16 @@ ls ~/.dotfiles-backup/
 # Restore a specific file
 cp -r ~/.dotfiles-backup/20260421-143022/.config/nvim ~/.config/nvim
 ```
+
+## Manual Cleanup After Uninstall
+
+`./uninstall.sh` removes managed symlinks and cleans up each module's external side
+effects (oh-my-tmux clone, LazyVim config, etc.). The following are **not** removed
+automatically — clean up manually if desired:
+
+- Rust toolchain: `rustup self uninstall`
+- Installed packages: uninstall via your package manager
+- Backups: `rm -rf ~/.dotfiles-backup/`
 
 ## Development
 
