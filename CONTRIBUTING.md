@@ -49,7 +49,7 @@ array in `install.sh` and `uninstall.sh`, and run:
 Shell scripts follow `.claude/rules/shell-style.md`. Key rules:
 
 - `set -euo pipefail` + `IFS=$'\n\t'` in every script
-- Namespace all functions: `core::`, `detect::`, `preflight::`, `module::`
+- Namespace all functions: `core::`, `detect::`, `install::`, `uninstall::`, `module::`
 - Use `[[ ]]` not `[ ]`; `printf` not `echo`
 - All user-visible output in modules goes through `core::log`
 
