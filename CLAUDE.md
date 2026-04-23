@@ -10,13 +10,14 @@ archive — it installs packages, creates symlinks, and handles conflicts gracef
 
 ## Architecture
 
-See `docs/changes/2026-04-21-dotfiles-project-design/design.md` for the full design.
+See `docs/changes/2026-04-21-dotfiles-project-design/design.md` for the initial design
+and `docs/changes/2026-04-22-system-optimization/design.md` for the current shape.
 
 Key invariants:
-- **DRY_RUN**: all destructive operations check `DRY_RUN=1` before executing
-- **Idempotent**: safe to run `install.sh` multiple times
+- **Idempotent**: safe to run `install.sh` multiple times; conflicts prompt the user per
+  symlink inside `core::symlink`.
 - **No direct package manager calls in modules**: use `core::pkg_install` inside
-  `pre_install` or `install`; never call brew/apt/dnf/pacman directly
+  `install()`; never call brew/apt/dnf/pacman directly.
 
 ## Module Interface Contract
 
@@ -31,12 +32,15 @@ LINKS=(
   "config/<name>/file:${HOME}/.config/<name>/file"
 )
 
-pre_install()  { :; }   # install dependencies (pkg manager + any special-case tools)
-install()      { :; }   # install the module's main subject
-post_install() { :; }   # post-install configuration and finalisation
+install()   { :; }   # install packages / external tools / clone external repos
+uninstall() { :; }   # clean up install()'s external side effects
 ```
 
-Execution order: `pre_install → install → LINKS → post_install`
+Both hooks are required. Use `{ :; }` when a module has nothing to do.
+
+Execution order:
+- `./install.sh`:   `install() → LINKS`
+- `./uninstall.sh`: `LINKS → uninstall()`
 
 ## Development Workflow
 
