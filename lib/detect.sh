@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # lib/detect.sh — Runtime environment detection.
-# Detects OS and package manager; exports DOTFILES_OS and DOTFILES_PKG_MANAGER.
-# Safe to source multiple times (idempotent variable exports).
+# Defines detect::os and detect::pkg_manager; callers decide when to invoke
+# them (install.sh orchestrates this alongside bootstrap steps). Sourcing
+# this file has zero side effects — it only defines functions.
 #
 # Override knobs:
 #   DOTFILES_OS=<mac|linux>
-#   DOTFILES_PKG_MANAGER=<brew|apt|dnf|pacman>
-# Set either variable before sourcing to skip detection (e.g. linuxbrew users
-# who want brew on Linux: DOTFILES_PKG_MANAGER=brew).
+#   DOTFILES_PKG_MANAGER=<brew|apt|dnf>
+# Set either variable before calling detect::* to skip detection (e.g.
+# linuxbrew users who want brew on Linux: DOTFILES_PKG_MANAGER=brew).
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -41,11 +42,9 @@ detect::pkg_manager() {
       export DOTFILES_PKG_MANAGER="apt"
     elif command -v dnf &>/dev/null; then
       export DOTFILES_PKG_MANAGER="dnf"
-    elif command -v pacman &>/dev/null; then
-      export DOTFILES_PKG_MANAGER="pacman"
     else
       export DOTFILES_PKG_MANAGER="unknown"
-      printf 'warn: no supported package manager found\n' >&2
+      printf 'warn: no supported package manager found on Linux (supported: apt, dnf)\n' >&2
     fi
     ;;
   *)
@@ -53,6 +52,3 @@ detect::pkg_manager() {
     ;;
   esac
 }
-
-[[ -n "${DOTFILES_OS:-}" ]] || detect::os
-[[ -n "${DOTFILES_PKG_MANAGER:-}" ]] || detect::pkg_manager
