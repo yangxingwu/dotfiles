@@ -278,7 +278,7 @@ core::ensure_block() {
 
   if cmp -s "${file}" "${tmp}"; then
     rm -f "${tmp}"
-    core::log INFO "Block '${id}' in ${file} unchanged"
+    core::log INFO "Unchanged block '${id}' in ${file}"
   else
     mv "${tmp}" "${file}"
     core::log INFO "Updated block '${id}' in ${file}"
