@@ -690,7 +690,7 @@ uninstall() {
 # misfires. Idempotent: if the apply key is already present, no-op.
 _sheldon::patch_fpath_for_zsh_completions() {
   local config="${1}"
-  if awk '/^\[plugins\.zsh-completions\]/,/^\[/ { if (/^apply = \["fpath"\]/) f=1 } END { exit !f }' "${config}"; then
+  if awk '/^\[plugins\.zsh-completions\]/ { in_s=1; next } /^\[/ { in_s=0 } in_s && /^apply = \["fpath"\]/ { f=1 } END { exit !f }' "${config}"; then
     return 0
   fi
   local tmp

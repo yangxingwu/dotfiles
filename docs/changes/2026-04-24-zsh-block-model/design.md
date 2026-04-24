@@ -412,7 +412,7 @@ uninstall() {
 _sheldon::patch_fpath_for_zsh_completions() {
   local config="${1}"
   # Already patched — no-op.
-  if awk '/^\[plugins\.zsh-completions\]/,/^\[/ { if (/^apply = \["fpath"\]/) f=1 } END { exit !f }' "${config}"; then
+  if awk '/^\[plugins\.zsh-completions\]/ { in_s=1; next } /^\[/ { in_s=0 } in_s && /^apply = \["fpath"\]/ { f=1 } END { exit !f }' "${config}"; then
     return 0
   fi
   # Insert the apply line directly after the [plugins.zsh-completions] header.
