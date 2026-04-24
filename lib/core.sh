@@ -207,3 +207,77 @@ core::pkg_install() {
     esac
   done
 }
+
+# core::ensure_block <file> <id> <content>
+# Idempotently writes a managed block into <file>. A block is delimited by
+#   # BEGIN dotfiles:<id>
+#   <content>
+#   # END dotfiles:<id>
+# Behaviour:
+# - If <file> does not exist, create it first.
+# - If the block is absent, append it (with a leading blank line if the file
+#   is non-empty) and log "Added block".
+# - If the block exists with identical content, log "unchanged" and leave
+#   the file untouched.
+# - If the block exists with different content, replace content in-place and
+#   log "Updated block".
+# <content> is written verbatim; callers pre-expand any variables they want
+# captured at install-time, and escape "$" to keep shell expansions literal.
+core::ensure_block() {
+  local file="${1}" id="${2}" content="${3}"
+  local begin="# BEGIN dotfiles:${id}"
+  local end="# END dotfiles:${id}"
+
+  [[ -f "${file}" ]] || : >"${file}"
+
+  if ! grep -qxF "${begin}" "${file}"; then
+    if [[ -s "${file}" ]]; then printf '\n' >>"${file}"; fi
+    {
+      printf '%s\n' "${begin}"
+      printf '%s\n' "${content}"
+      printf '%s\n' "${end}"
+    } >>"${file}"
+    core::log INFO "Added block '${id}' to ${file}"
+    return 0
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+  awk -v begin="${begin}" -v end="${end}" -v content="${content}" '
+    $0 == begin { in_block=1; print; print content; next }
+    $0 == end   { in_block=0; print; next }
+    !in_block   { print }
+  ' "${file}" >"${tmp}"
+
+  if cmp -s "${file}" "${tmp}"; then
+    rm -f "${tmp}"
+    core::log INFO "Block '${id}' in ${file} unchanged"
+  else
+    mv "${tmp}" "${file}"
+    core::log INFO "Updated block '${id}' in ${file}"
+  fi
+}
+
+# core::ensure_block_absent <file> <id>
+# Removes the named managed block (and its surrounding markers) from <file>.
+# No-op if <file> does not exist or the block is absent. Used by module
+# uninstall() hooks to clean up shell init blocks.
+core::ensure_block_absent() {
+  local file="${1}" id="${2}"
+  local begin="# BEGIN dotfiles:${id}"
+  local end="# END dotfiles:${id}"
+
+  [[ -f "${file}" ]] || return 0
+  grep -qxF "${begin}" "${file}" || return 0
+
+  local tmp
+  tmp="$(mktemp)"
+  awk -v begin="${begin}" -v end="${end}" '
+    $0 == begin { in_block=1; next }
+    $0 == end   { in_block=0; next }
+    !in_block   { print }
+  ' "${file}" >"${tmp}"
+
+  mv "${tmp}" "${file}"
+  core::log INFO "Removed block '${id}' from ${file}"
+}
