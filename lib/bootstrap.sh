@@ -105,7 +105,7 @@ bootstrap::dev_tools() {
   *)
     core::log ERROR "Unsupported package manager: ${DOTFILES_PKG_MANAGER}"
     core::log ERROR "Supported: brew (macOS), apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
-    exit 1
+    return 1
     ;;
   esac
 
