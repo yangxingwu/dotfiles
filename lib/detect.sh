@@ -37,7 +37,7 @@ detect::os() {
 detect::pkg_manager() {
   case "${DOTFILES_OS}" in
   mac)
-    if command -v brew &>/dev/null; then
+    if command -v brew >/dev/null 2>&1; then
       export DOTFILES_PKG_MANAGER="brew"
     else
       printf 'error: Homebrew not found on macOS\n' >&2
@@ -45,9 +45,9 @@ detect::pkg_manager() {
     fi
     ;;
   linux)
-    if command -v apt-get &>/dev/null; then
+    if command -v apt-get >/dev/null 2>&1; then
       export DOTFILES_PKG_MANAGER="apt"
-    elif command -v dnf &>/dev/null; then
+    elif command -v dnf >/dev/null 2>&1; then
       export DOTFILES_PKG_MANAGER="dnf"
     else
       printf 'error: no supported package manager found on Linux (supported: apt, dnf)\n' >&2

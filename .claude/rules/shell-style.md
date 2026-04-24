@@ -172,12 +172,33 @@ Use `command -v` not `which`. The `which` command is not portable:
 
 ```bash
 # Correct
-if command -v brew &>/dev/null; then ...
+if command -v brew >/dev/null 2>&1; then ...
 
 # Wrong
-if which brew &>/dev/null; then ...
-if type brew &>/dev/null; then ...
+if which brew >/dev/null 2>&1; then ...
+if type brew >/dev/null 2>&1; then ...
 ```
+
+## Redirecting to Discard Output
+
+To silence both stdout and stderr, use `>/dev/null 2>&1`, not the bash-only
+shorthand `&>/dev/null`. The long form is clearer at a glance (two explicit
+redirections rather than a single compact operator) and works in any shell
+without depending on bash-specific syntax.
+
+```bash
+# Correct
+xcode-select -p >/dev/null 2>&1
+command -v brew >/dev/null 2>&1
+
+# Wrong — bash-only shorthand, harder to scan
+xcode-select -p &>/dev/null
+command -v brew &>/dev/null
+```
+
+Note: shfmt's default formatting produces `>/dev/null` (no space) rather than
+`> /dev/null`. The post-edit hook runs `shfmt -w` on every save, so write the
+no-space form to avoid round-trip churn.
 
 ---
 
@@ -254,9 +275,11 @@ for link in "${LINKS[@]}"; do
 ## Formatting
 
 shfmt is applied automatically on every save (via PostToolUse hook). Write code at the
-correct indentation level — shfmt handles the rest. Key shfmt settings (from `.shfmt.toml`):
+correct indentation level — shfmt handles the rest. Effective shfmt behaviour on this
+project (shfmt 3.13+ reading `.editorconfig` with no extra flags):
 
 - indent: 2 spaces
-- binary operators (`&&`, `||`) go at start of next line, not end of current
-- `case` items are indented
-- space before redirections (`> file`, not `>file`)
+- binary operators (`&&`, `||`) at end of line (shfmt default — do not force them to the
+  next line)
+- `case` arms at the same column as `case`/`esac` (shfmt default)
+- redirections without leading space: `>file`, `2>&1`, `>/dev/null 2>&1`

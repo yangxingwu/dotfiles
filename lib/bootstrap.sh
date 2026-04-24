@@ -25,7 +25,7 @@ bootstrap::xcode_clt() {
   local poll_interval=15
   local max_wait=1800
 
-  if xcode-select -p &>/dev/null; then
+  if xcode-select -p >/dev/null 2>&1; then
     core::log INFO "Xcode Command Line Tools already installed"
     return 0
   fi
@@ -33,10 +33,10 @@ bootstrap::xcode_clt() {
   core::log INFO "Triggering Xcode Command Line Tools install (GUI dialog)..."
   # `xcode-select --install` returns non-zero if the dialog is already open
   # or the tools are already present — the poll loop below is the real gate.
-  xcode-select --install &>/dev/null || true
+  xcode-select --install >/dev/null 2>&1 || true
 
   local waited=0
-  while ! xcode-select -p &>/dev/null; do
+  while ! xcode-select -p >/dev/null 2>&1; do
     if ((waited >= max_wait)); then
       core::log ERROR "Xcode CLT install did not complete within ${max_wait}s"
       core::log ERROR "Finish the install via the GUI dialog, then re-run ./install.sh"
@@ -55,7 +55,7 @@ bootstrap::xcode_clt() {
 # Persistent PATH wiring for future shells is handled by the zsh module's
 # zshrc.mac symlink (which already contains `eval "$(brew shellenv)"`).
 bootstrap::homebrew() {
-  if command -v brew &>/dev/null; then
+  if command -v brew >/dev/null 2>&1; then
     core::log INFO "Homebrew already installed"
     return 0
   fi

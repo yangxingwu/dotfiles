@@ -89,7 +89,7 @@ _nvim::install_src() {
 
   # Remove brew-managed neovim on macOS to avoid PATH conflicts with the source build.
   if [[ "${DOTFILES_OS}" == "mac" ]]; then
-    if core::check_installed brew && brew list neovim &>/dev/null; then
+    if core::check_installed brew && brew list neovim >/dev/null 2>&1; then
       brew uninstall neovim
     fi
   fi

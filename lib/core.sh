@@ -49,7 +49,7 @@ core::log() {
 # core::check_installed <binary>
 # Returns 0 if the binary is on PATH, 1 otherwise. Pure detection, no side effects.
 core::check_installed() {
-  command -v "${1}" &>/dev/null
+  command -v "${1}" >/dev/null 2>&1
 }
 
 # core::require_version <binary> <min-major> <min-minor>
@@ -177,8 +177,8 @@ core::pkg_install() {
   for package in "$@"; do
     case "${DOTFILES_PKG_MANAGER}" in
     brew)
-      if brew list --formula "${package}" &>/dev/null ||
-        brew list --cask "${package}" &>/dev/null; then
+      if brew list --formula "${package}" >/dev/null 2>&1 ||
+        brew list --cask "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
       else
         brew install "${package}"
@@ -186,7 +186,7 @@ core::pkg_install() {
       fi
       ;;
     apt)
-      if dpkg -s "${package}" &>/dev/null; then
+      if dpkg -s "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
       else
         sudo apt-get install -y "${package}"
@@ -194,7 +194,7 @@ core::pkg_install() {
       fi
       ;;
     dnf)
-      if rpm -q "${package}" &>/dev/null; then
+      if rpm -q "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
       else
         sudo dnf install -y "${package}"
