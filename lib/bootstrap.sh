@@ -16,23 +16,41 @@ IFS=$'\n\t'
 # already, and touch the three zsh startup files as empty skeletons so later
 # stages can write managed blocks into them.
 #
-# This runs as Stage A of install.sh, before detect::pkg_manager. It cannot
-# depend on DOTFILES_PKG_MANAGER (not set yet) so it dispatches on the raw
-# apt-get / dnf presence, mirroring bootstrap::dev_tools's pattern.
+# This runs as Stage A of install.sh, before detect::pkg_manager. On Linux
+# the zsh install dispatches directly on apt-get / dnf presence since
+# DOTFILES_PKG_MANAGER isn't set yet. On macOS zsh is preinstalled so no
+# package install happens.
 #
 # chsh failures bubble via set -e (hard fail): wrong password or zsh not in
 # /etc/shells will abort the installer; the user fixes the cause and re-runs.
 bootstrap::zsh() {
   if ! command -v zsh >/dev/null 2>&1; then
-    if command -v apt-get >/dev/null 2>&1; then
-      sudo apt-get install -y zsh
-    elif command -v dnf >/dev/null 2>&1; then
-      sudo dnf install -y zsh
-    else
-      core::log ERROR "zsh not found and no supported package manager to install it"
-      core::log ERROR "Supported: brew (mac preinstalled), apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
+    case "${DOTFILES_OS}" in
+    linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y zsh
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y zsh
+      else
+        core::log ERROR "zsh not found and no supported package manager to install it"
+        core::log ERROR "Supported Linux package managers: apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
+        return 1
+      fi
+      ;;
+    mac)
+      # macOS ships zsh preinstalled since Catalina. Reaching this branch
+      # means the system zsh was removed — an unusual state we don't try to
+      # repair automatically (installing brew's zsh here would conflict with
+      # later brew stage).
+      core::log ERROR "zsh not found on macOS; this is unusual (system zsh is preinstalled since Catalina)"
+      core::log ERROR "Install zsh manually (e.g. restore /bin/zsh or brew install zsh) and re-run"
       return 1
-    fi
+      ;;
+    *)
+      core::log ERROR "bootstrap::zsh called with unsupported DOTFILES_OS=${DOTFILES_OS}"
+      return 1
+      ;;
+    esac
     core::log INFO "zsh installed"
   else
     core::log INFO "zsh already installed"
