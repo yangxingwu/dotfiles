@@ -95,10 +95,18 @@ bootstrap::xcode_clt() {
   core::log INFO "Xcode Command Line Tools installed"
 }
 
-# macOS only. Install Homebrew via the official upstream installer, then eval
-# `brew shellenv` so later modules in this install run can call `brew install`.
-# Persistent PATH wiring for future shells is handled by the zsh module's
-# zshrc.mac symlink (which already contains `eval "$(brew shellenv)"`).
+# macOS only. Install Homebrew via the official upstream installer, write a
+# managed "homebrew" block to ~/.zprofile (so brew stays on PATH for future
+# login shells), and eval shellenv for the rest of this install run.
+#
+# This replaces the older approach where ~/.zshrc was expected to symlink
+# zshrc.mac (which contained a hard-coded eval "$(/opt/homebrew/bin/brew
+# shellenv)"). The zshrc.mac symlink is being removed in the same series,
+# so bootstrap owns the persistent brew PATH wiring now.
+#
+# Apple Silicon installs to /opt/homebrew; Intel to /usr/local. A user who
+# migrates machines will see core::ensure_block rewrite the block to match
+# the new prefix on next run.
 bootstrap::homebrew() {
   if command -v brew >/dev/null 2>&1; then
     core::log INFO "Homebrew already installed"
@@ -111,19 +119,29 @@ bootstrap::homebrew() {
   # set NONINTERACTIVE=1.
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-  # Load brew into the current shell's PATH for the rest of this install run.
-  # /opt/homebrew is Apple Silicon; /usr/local is Intel.
+  local brew_prefix
   if [[ -x /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew_prefix=/opt/homebrew
   elif [[ -x /usr/local/bin/brew ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
+    brew_prefix=/usr/local
   else
     core::log ERROR "Homebrew installer completed but brew binary not found"
     core::log ERROR "Checked /opt/homebrew/bin/brew and /usr/local/bin/brew"
     return 1
   fi
 
-  core::log INFO "Homebrew installed and loaded into PATH"
+  # Persist for future login shells. ~/.zprofile was touched by
+  # bootstrap::zsh in Stage A, so it exists. ${brew_prefix} expands at
+  # install-time; the inner $(...) stays literal for zsh to eval at login.
+  core::ensure_block "${HOME}/.zprofile" "homebrew" \
+    "eval \"\$(${brew_prefix}/bin/brew shellenv)\""
+
+  # Activate for the rest of THIS install run — .zprofile only applies to
+  # login shells, but later stages/modules in this same process need brew
+  # on PATH now.
+  eval "$("${brew_prefix}/bin/brew" shellenv)"
+
+  core::log INFO "Homebrew installed; shellenv wired into ~/.zprofile"
 }
 
 # Both platforms. Install the dev tools every module assumes exist.
