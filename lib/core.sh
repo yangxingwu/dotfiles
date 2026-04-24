@@ -97,13 +97,37 @@ core::backup() {
   core::log INFO "Backed up: ${target} → ${backup_path}"
 }
 
+# _core::do_link <abs_src> <target>
+# Shared helper: ensure parent dirs exist, create the symlink, log success.
+# Returns non-zero if either mkdir or ln fails.
+_core::do_link() {
+  local abs_src="${1}" target="${2}"
+  if ! mkdir -p "$(dirname "${target}")"; then
+    core::log ERROR "Failed to create parent dirs for: ${target}"
+    return 1
+  fi
+  if ! ln -sf "${abs_src}" "${target}"; then
+    core::log ERROR "Failed to create symlink: ${target}"
+    return 1
+  fi
+  core::log INFO "Linked: ${target} → ${abs_src}"
+}
+
 # core::symlink <repo-relative-src> <absolute-target>
 # Creates symlink target → DOTFILES_ROOT/src. On conflict (target exists as a
 # real file, directory, or foreign symlink), prompts the user interactively:
 #   [b] backup existing target to ~/.dotfiles-backup/<ts>/ and replace
 #   [s] skip — do NOT create the symlink; user's file is preserved
-#   [q] quit the installer immediately (exit 1)
+#   [q] quit — abort the orchestrator
 # Idempotent: if target is already the correct symlink, logs and returns 0.
+#
+# Returns:
+#   0 — linked (or already correctly linked, or user chose [s]kip)
+#   1 — filesystem failure (mkdir, ln, or backup failed)
+#   2 — stdin not available for interactive prompt (not a TTY)
+#   3 — user chose [q]uit at the conflict prompt
+# Under install.sh's set -e, return codes 1/2/3 all abort the orchestrator;
+# the distinction matters only for callers that want to handle them.
 core::symlink() {
   local src="${1}"
   local target="${2}"
@@ -117,16 +141,8 @@ core::symlink() {
 
   # Target absent — create parent, link, done
   if [[ ! -e "${target}" ]] && [[ ! -L "${target}" ]]; then
-    if ! mkdir -p "$(dirname "${target}")"; then
-      core::log ERROR "Failed to create parent dirs for: ${target}"
-      return 1
-    fi
-    if ! ln -sf "${abs_src}" "${target}"; then
-      core::log ERROR "Failed to create symlink: ${target}"
-      return 1
-    fi
-    core::log INFO "Linked: ${target} → ${abs_src}"
-    return 0
+    _core::do_link "${abs_src}" "${target}"
+    return
   fi
 
   # Conflict — interactive resolution
@@ -140,7 +156,7 @@ core::symlink() {
     printf 'Choice: ' >&2
     read -r choice || {
       core::log ERROR "Cannot read from stdin (not a tty?) — conflict requires interactive resolution"
-      exit 1
+      return 2
     }
     case "${choice}" in
     b | s | q) break ;;
@@ -151,22 +167,14 @@ core::symlink() {
   case "${choice}" in
   b)
     core::backup "${target}" || return 1
-    if ! mkdir -p "$(dirname "${target}")"; then
-      core::log ERROR "Failed to create parent dirs for: ${target}"
-      return 1
-    fi
-    if ! ln -sf "${abs_src}" "${target}"; then
-      core::log ERROR "Failed to create symlink: ${target}"
-      return 1
-    fi
-    core::log INFO "Linked: ${target} → ${abs_src}"
+    _core::do_link "${abs_src}" "${target}"
     ;;
   s)
     core::log WARN "Skipped: ${target} — your file is unchanged, module may be incomplete"
     ;;
   q)
     core::log ERROR "Aborted by user"
-    exit 1
+    return 3
     ;;
   esac
 }
