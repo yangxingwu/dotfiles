@@ -38,6 +38,21 @@ uninstall() { :; }   # clean up install()'s external side effects
 
 Both hooks are required. Use `{ :; }` when a module has nothing to do.
 
+**Hook responsibilities:**
+
+- `install()` runs after bootstrap + `detect::pkg_manager`, so it may assume
+  `DOTFILES_OS` and `DOTFILES_PKG_MANAGER` are both set and that
+  `core::pkg_install` works. Use `core::pkg_install` for packages; never call
+  brew/apt/dnf directly (per the invariant above).
+
+- `uninstall()` runs only after `detect::os`, so it may use `DOTFILES_OS`
+  (the orchestrator's platform gate uses it) but **must not** depend on
+  `DOTFILES_PKG_MANAGER`: no `core::pkg_install` calls, no direct brew/apt/dnf
+  calls, no reads of the variable. Uninstall must succeed on a machine whose
+  package manager is gone or broken — its job is to clean up this module's
+  own side effects (clones, downloaded files, build artefacts). Symlink
+  removal is handled by the orchestrator from `LINKS`, not by the hook.
+
 Execution order:
 - `./install.sh`:   `install() → LINKS`
 - `./uninstall.sh`: `LINKS → uninstall()`
