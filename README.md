@@ -40,13 +40,23 @@ system's package manager (sudo required).
 | Module | Platform | What it manages |
 |---|---|---|
 | `git` | all | gitconfig + custom hooks |
-| `zsh` | all | sheldon (plugin manager) + starship (prompt) |
+| `fzf` | all | fzf fuzzy finder + zsh key bindings |
+| `sheldon` | all | zsh plugin manager + curated plugins |
+| `starship` | all | Starship prompt (catppuccin-powerline preset) |
 | `nvim` | all | Neovim + LazyVim configuration |
 | `tmux` | all | tmux + oh-my-tmux configuration |
 | `ghostty` | macOS | Ghostty terminal config |
 
 See [`docs/modules/`](docs/modules/) for per-module details. (The `rust` module runs as
 an internal dependency of `nvim`; it is not a user-facing module.)
+
+The zsh shell itself, `~/.zshrc`, `~/.zprofile`, and `~/.zshenv` are
+managed by the installer's bootstrap stage, not by a module. Each tool
+module (fzf / sheldon / starship) writes its own initialization block
+into `~/.zshrc`; `bootstrap::homebrew` and the rust module write to
+`~/.zprofile`. Blocks are delimited by `# BEGIN dotfiles:<id>` /
+`# END dotfiles:<id>` markers and are safe to re-apply — only content
+inside the markers is overwritten on re-run.
 
 ## Usage
 
