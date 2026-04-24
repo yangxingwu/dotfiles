@@ -63,8 +63,11 @@ core::require_version() {
   [[ -z "${version}" ]] && return 1
   major="${version%.*}"
   minor="${version#*.}"
-  ((major > min_major)) && return 0
-  ((major == min_major)) && ((minor >= min_minor)) && return 0
+  # Force base-10: a version component like "08" or "09" would otherwise be
+  # parsed as octal by the arithmetic context and abort with "value too
+  # great for base" under set -euo pipefail.
+  ((10#${major} > 10#${min_major})) && return 0
+  ((10#${major} == 10#${min_major})) && ((10#${minor} >= 10#${min_minor})) && return 0
   return 1
 }
 
