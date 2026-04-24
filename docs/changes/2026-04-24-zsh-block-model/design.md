@@ -140,9 +140,11 @@ main() {
 ```
 
 **Ordering note.** Stage A runs before Stage C `detect::pkg_manager`, so
-`bootstrap::zsh` cannot depend on `DOTFILES_PKG_MANAGER`. It does its own
-`command -v apt-get` / `command -v dnf` dispatch, mirroring the pattern in
-`bootstrap::dev_tools` without the `DOTFILES_PKG_MANAGER` indirection.
+`bootstrap::zsh` cannot depend on `DOTFILES_PKG_MANAGER`. On Linux it
+does its own `command -v apt-get` / `command -v dnf` dispatch; on macOS
+zsh is preinstalled so no pm is consulted. Both branches dispatch on
+`DOTFILES_OS` (set by `detect::os` immediately above), not by pm
+capability detection.
 
 The stage order is fixed: zsh must come first so skeleton files exist when
 later stages append blocks. brew cannot run before zsh (brew needs PATH
@@ -159,15 +161,32 @@ the machine (§8).
 ```bash
 bootstrap::zsh() {
   if ! command -v zsh >/dev/null 2>&1; then
-    if command -v apt-get >/dev/null 2>&1; then
-      sudo apt-get install -y zsh
-    elif command -v dnf >/dev/null 2>&1; then
-      sudo dnf install -y zsh
-    else
-      core::log ERROR "zsh not found and no supported package manager to install it"
-      core::log ERROR "Supported: brew (mac preinstalled), apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
+    case "${DOTFILES_OS}" in
+    linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y zsh
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y zsh
+      else
+        core::log ERROR "zsh not found and no supported package manager to install it"
+        core::log ERROR "Supported Linux package managers: apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
+        return 1
+      fi
+      ;;
+    mac)
+      # macOS ships zsh preinstalled since Catalina. Reaching this branch
+      # means the system zsh was removed — an unusual state we don't try to
+      # repair automatically (installing brew's zsh here would conflict with
+      # later brew stage).
+      core::log ERROR "zsh not found on macOS; this is unusual (system zsh is preinstalled since Catalina)"
+      core::log ERROR "Install zsh manually (e.g. restore /bin/zsh or brew install zsh) and re-run"
       return 1
-    fi
+      ;;
+    *)
+      core::log ERROR "bootstrap::zsh called with unsupported DOTFILES_OS=${DOTFILES_OS}"
+      return 1
+      ;;
+    esac
     core::log INFO "zsh installed"
   else
     core::log INFO "zsh already installed"
@@ -185,6 +204,14 @@ bootstrap::zsh() {
   touch "${HOME}/.zshrc" "${HOME}/.zprofile" "${HOME}/.zshenv"
 }
 ```
+
+**Platform dispatch.** The "zsh missing" branch dispatches on
+`DOTFILES_OS` rather than trying to be cross-platform with a single
+`command -v apt-get` / `dnf` chain. Rationale: on macOS the `command -v
+zsh` guard always short-circuits (Catalina+ preinstalled), so the pm
+dispatch below would never fire on mac anyway — making the code
+"cross-platform" only obscures the fact. Each OS branch gets a
+platform-specific error message when it can't proceed.
 
 **Failure modes.** zsh install failure → `return 1`, `set -e` aborts the
 installer. chsh failure → bubbles via `set -e`, aborting the installer.
@@ -607,9 +634,10 @@ hook that loads the tool (`eval "$(starship init zsh)"`) but leaves the
 config sitting on disk for the user to reuse or delete manually.
 
 **Stage A cannot use `DOTFILES_PKG_MANAGER`.** Detection runs in Stage C.
-`bootstrap::zsh` duplicates the pm check via `command -v apt-get` / `dnf`.
-This is the same approach `bootstrap::dev_tools` uses pre-refactor; it's
-consistent with existing bootstrap patterns.
+`bootstrap::zsh` dispatches on `DOTFILES_OS` instead: Linux uses a direct
+`command -v apt-get` / `dnf` check; macOS relies on zsh being
+preinstalled. The OS-explicit dispatch makes it clear that mac never
+runs the Linux pm branches.
 
 **`uninstall.sh` runs no bootstrap stages.** It can succeed on a broken
 machine (brew gone, default shell reverted) and still clean up dotfiles
