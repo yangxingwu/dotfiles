@@ -17,8 +17,9 @@ archive. Re-running is safe: the installer is fully idempotent.
 ## Prerequisites
 
 - bash 4+
-- git
-- curl
+
+Everything else — Xcode CLT, Homebrew, git, curl, zsh, a C toolchain, cmake,
+meson, ninja, gettext — is installed automatically on first run.
 
 ## Quick Install
 
@@ -27,6 +28,12 @@ git clone https://github.com/<your-username>/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
 ```
+
+First run on a clean machine may take several minutes. On macOS, the
+installer triggers `xcode-select --install` (GUI confirmation required)
+and then runs Homebrew's official installer (sudo password required).
+On Linux, it installs zsh, git, curl and a compiler toolchain via your
+system's package manager (sudo required).
 
 ## Modules
 
