@@ -11,7 +11,7 @@ Retire `modules/zsh.sh`. Distribute its responsibilities across:
   default shell, and `touch`es empty skeleton files (`~/.zshrc`,
   `~/.zprofile`, `~/.zshenv`). These three files become **real files**, not
   symlinks.
-- A new `core::ensure_block` / `core::ensure_block_absent` primitive that
+- A new `core::ensure_block` / `core::remove_block` primitive that
   writes idempotent, uniquely-marked config blocks into text files.
 - Three new modules (`fzf`, `sheldon`, `starship`), each installing its own
   package and writing its own init block into `~/.zshrc`.
@@ -63,7 +63,7 @@ The sections below are numbered 1-11 and match the brainstorming dialogue.
 - Stage A `bootstrap::zsh` — install zsh (Linux only), `chsh -s $(which zsh)`
   when current login shell ≠ zsh, `touch` the three skeleton files.
 - `core::ensure_block <file> <id> <content>` and
-  `core::ensure_block_absent <file> <id>` added to `lib/core.sh`. Manages
+  `core::remove_block <file> <id>` added to `lib/core.sh`. Manages
   text blocks delimited by `# BEGIN dotfiles:<id>` / `# END dotfiles:<id>`.
 - Three new modules: `modules/fzf.sh`, `modules/sheldon.sh`,
   `modules/starship.sh`. Each installs its package, writes its init block
@@ -89,7 +89,7 @@ The sections below are numbered 1-11 and match the brainstorming dialogue.
 - `lib/bootstrap.sh` — `bootstrap::homebrew` rewritten to write a managed
   block to `~/.zprofile`.
 - `modules/rust.sh` — adds one `core::ensure_block` call for the cargo env
-  block; symmetric `ensure_block_absent` in uninstall.
+  block; symmetric `remove_block` in uninstall.
 - `README.md` — Modules table reflects the new module list.
 
 **Core paradigm shift:**
@@ -287,16 +287,16 @@ core::ensure_block() {
 
   if cmp -s "${file}" "${tmp}"; then
     rm -f "${tmp}"
-    core::log INFO "Block '${id}' in ${file} unchanged"
+    core::log INFO "Unchanged block '${id}' in ${file}"
   else
     mv "${tmp}" "${file}"
     core::log INFO "Updated block '${id}' in ${file}"
   fi
 }
 
-# core::ensure_block_absent <file> <id>
+# core::remove_block <file> <id>
 # Removes the named block and its markers. No-op if file or block absent.
-core::ensure_block_absent() {
+core::remove_block() {
   local file="${1}" id="${2}"
   local begin="# BEGIN dotfiles:${id}"
   local end="# END dotfiles:${id}"
@@ -366,7 +366,7 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "fzf"
+  core::remove_block "${HOME}/.zshrc" "fzf"
 }
 ```
 
@@ -432,7 +432,7 @@ BLOCK
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "sheldon"
+  core::remove_block "${HOME}/.zshrc" "sheldon"
 }
 
 # Module-local helper: patch the zsh-completions plugin to use fpath-apply.
@@ -494,7 +494,7 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "starship"
+  core::remove_block "${HOME}/.zshrc" "starship"
 }
 ```
 
@@ -565,7 +565,7 @@ core::ensure_block "${HOME}/.zprofile" "rust" \
 `uninstall()` gains:
 
 ```bash
-core::ensure_block_absent "${HOME}/.zprofile" "rust"
+core::remove_block "${HOME}/.zprofile" "rust"
 ```
 
 Content keeps `${HOME}` literal so zsh expands it at runtime, not bash at
@@ -581,10 +581,10 @@ config files, and bootstrap products alone.
 
 | Module | uninstall() | Does NOT |
 |---|---|---|
-| fzf | `core::ensure_block_absent ~/.zshrc fzf` | remove fzf package |
-| sheldon | `core::ensure_block_absent ~/.zshrc sheldon` | remove sheldon package; delete `~/.config/sheldon/plugins.toml` |
-| starship | `core::ensure_block_absent ~/.zshrc starship` | remove starship package; delete `~/.config/starship.toml` |
-| rust | existing rustup cleanup (user-run) + `core::ensure_block_absent ~/.zprofile rust` | |
+| fzf | `core::remove_block ~/.zshrc fzf` | remove fzf package |
+| sheldon | `core::remove_block ~/.zshrc sheldon` | remove sheldon package; delete `~/.config/sheldon/plugins.toml` |
+| starship | `core::remove_block ~/.zshrc starship` | remove starship package; delete `~/.config/starship.toml` |
+| rust | existing rustup cleanup (user-run) + `core::remove_block ~/.zprofile rust` | |
 
 Bootstrap products (zsh, chsh, CLT, Homebrew, `~/.zprofile`'s `homebrew`
 block, dev tools) are never uninstalled. See §8 for rationale.
@@ -647,7 +647,7 @@ artifacts. Uninstall cares about symlink and block removal, nothing more.
 
 | File | Status | Notes |
 |---|---|---|
-| `lib/core.sh` | modify | add `core::ensure_block` + `core::ensure_block_absent` |
+| `lib/core.sh` | modify | add `core::ensure_block` + `core::remove_block` |
 | `lib/bootstrap.sh` | modify | add `bootstrap::zsh`; rewrite `bootstrap::homebrew` to use `core::ensure_block` |
 | `install.sh` | modify | main() 4-stage rearrangement; `_MODULES` updated |
 | `uninstall.sh` | modify | `_MODULES` updated (drop zsh, add fzf/sheldon/starship) |
@@ -691,7 +691,7 @@ No test framework (project convention). Validation is:
    - Block exists, content identical → "unchanged" log, no file change.
    - Block exists, content different → "updated" log, in-place replace.
 
-2. `core::ensure_block_absent` — 3 scenarios:
+2. `core::remove_block` — 3 scenarios:
    - File does not exist → no-op, exit 0.
    - Block does not exist → no-op, exit 0.
    - Block exists → removed, surrounding content preserved.
@@ -737,7 +737,7 @@ upgrade. Users starting fresh will see the new behaviour from their first
 7. **Do not modify modules unrelated to shell init.** `modules/git.sh`,
    `modules/ghostty.sh`, `modules/tmux.sh`, `modules/nvim.sh` are untouched.
 8. **Keep `modules/rust.sh` changes minimal.** Two new calls
-   (`core::ensure_block` in install, `core::ensure_block_absent` in
+   (`core::ensure_block` in install, `core::remove_block` in
    uninstall) plus one doc line. No rework of rustup installation.
 9. **Do not revert to symlinking sheldon's `plugins.toml`.** TOML-patch via
    `awk` is the accepted approach. Breakage from sheldon format changes is

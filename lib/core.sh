@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # lib/core.sh — Standard library for all modules and the orchestrator.
-# Provides: core::log, core::backup, core::symlink, core::pkg_install,
-#           core::check_installed, core::require_version.
+# Provides: core::log, core::check_installed, core::require_version,
+#           core::backup, core::symlink, core::pkg_install,
+#           core::ensure_block, core::remove_block.
 # Requires: DOTFILES_ROOT exported, DOTFILES_PKG_MANAGER set by detect.sh.
 # Safe to source multiple times — function redefinition and plain variable
 # reassignment are idempotent in bash.

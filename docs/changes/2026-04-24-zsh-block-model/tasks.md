@@ -4,7 +4,7 @@
 
 **Goal:** Retire `modules/zsh.sh`; each tool (brew, sheldon, starship, fzf, rust) writes its own markered init block into `~/.zshrc` / `~/.zprofile`; shell skeleton files become real files owned by a new `bootstrap::zsh` Stage A.
 
-**Architecture:** Add `core::ensure_block` / `core::ensure_block_absent` primitives to `lib/core.sh`. Add `bootstrap::zsh` to `lib/bootstrap.sh` and rewrite `bootstrap::homebrew` to write a managed block to `~/.zprofile`. Replace `modules/zsh.sh` + `config/zsh/*` with three new modules (`fzf`, `sheldon`, `starship`). Reorganise `install.sh` `main()` into four stages (zsh → brew → detect pm → dev tools).
+**Architecture:** Add `core::ensure_block` / `core::remove_block` primitives to `lib/core.sh`. Add `bootstrap::zsh` to `lib/bootstrap.sh` and rewrite `bootstrap::homebrew` to write a managed block to `~/.zprofile`. Replace `modules/zsh.sh` + `config/zsh/*` with three new modules (`fzf`, `sheldon`, `starship`). Reorganise `install.sh` `main()` into four stages (zsh → brew → detect pm → dev tools).
 
 **Tech Stack:** Bash 4+, strict mode, shellcheck, shfmt 3.13, awk (POSIX, BSD-and-GNU-compatible).
 
@@ -16,7 +16,7 @@
 
 The tree must pass `bash -n` / `shellcheck` / `shfmt -d` after every commit. That constraint forces a specific order:
 
-1. **Primitives first** (Task 1): `core::ensure_block` and `core::ensure_block_absent` added to `lib/core.sh`. Independent, no callers yet. Smoke-tested ad-hoc in `/tmp`.
+1. **Primitives first** (Task 1): `core::ensure_block` and `core::remove_block` added to `lib/core.sh`. Independent, no callers yet. Smoke-tested ad-hoc in `/tmp`.
 
 2. **bootstrap::zsh added** (Task 2): pure addition to `lib/bootstrap.sh`. Not called yet (install.sh main() still has the old 3-stage flow). Independent of the homebrew rewrite.
 
@@ -40,7 +40,7 @@ Every code task follows the same shape: write/modify → `bash -n` → `shellche
 
 ---
 
-## Task 1: Add `core::ensure_block` and `core::ensure_block_absent` to `lib/core.sh`
+## Task 1: Add `core::ensure_block` and `core::remove_block` to `lib/core.sh`
 
 **Files:**
 - Modify: `lib/core.sh` (append two new functions at the end)
@@ -94,18 +94,18 @@ core::ensure_block() {
 
   if cmp -s "${file}" "${tmp}"; then
     rm -f "${tmp}"
-    core::log INFO "Block '${id}' in ${file} unchanged"
+    core::log INFO "Unchanged block '${id}' in ${file}"
   else
     mv "${tmp}" "${file}"
     core::log INFO "Updated block '${id}' in ${file}"
   fi
 }
 
-# core::ensure_block_absent <file> <id>
+# core::remove_block <file> <id>
 # Removes the named managed block (and its surrounding markers) from <file>.
 # No-op if <file> does not exist or the block is absent. Used by module
 # uninstall() hooks to clean up shell init blocks.
-core::ensure_block_absent() {
+core::remove_block() {
   local file="${1}" id="${2}"
   local begin="# BEGIN dotfiles:${id}"
   local end="# END dotfiles:${id}"
@@ -184,7 +184,7 @@ S3 OK
 S4 OK
 ```
 
-- [ ] **Step 6: Smoke test — `core::ensure_block_absent`, 3 scenarios**
+- [ ] **Step 6: Smoke test — `core::remove_block`, 3 scenarios**
 
 ```bash
 bash -c '
@@ -195,17 +195,17 @@ source lib/core.sh
 tmpdir="$(mktemp -d)"
 
 # Scenario A: file does not exist -> no-op, exit 0
-core::ensure_block_absent "${tmpdir}/nope" "test" && echo "A OK" || echo "A FAIL"
+core::remove_block "${tmpdir}/nope" "test" && echo "A OK" || echo "A FAIL"
 
 # Scenario B: file exists, block absent -> no-op, exit 0
 : >"${tmpdir}/file"
 printf "keep me\n" >"${tmpdir}/file"
-core::ensure_block_absent "${tmpdir}/file" "missing"
+core::remove_block "${tmpdir}/file" "missing"
 grep -q "keep me" "${tmpdir}/file" && echo "B OK" || echo "B FAIL"
 
 # Scenario C: file exists, block present -> removed; surrounding content preserved
 core::ensure_block "${tmpdir}/file" "remove-me" "echo inside"
-core::ensure_block_absent "${tmpdir}/file" "remove-me"
+core::remove_block "${tmpdir}/file" "remove-me"
 ! grep -q "BEGIN dotfiles:remove-me" "${tmpdir}/file" \
   && ! grep -q "echo inside" "${tmpdir}/file" \
   && grep -q "keep me" "${tmpdir}/file" \
@@ -254,7 +254,7 @@ Expected: `OK` (no `readonly` re-definition errors).
 ```bash
 git add lib/core.sh
 git commit -m "$(cat <<'EOF'
-feat(core): add core::ensure_block / core::ensure_block_absent
+feat(core): add core::ensure_block / core::remove_block
 
 Two new lib primitives for idempotently writing markered config blocks into
 text files. A block is delimited by:
@@ -268,7 +268,7 @@ core::ensure_block is three-state:
 - block identical  -> no file write, log "unchanged"
 - block different  -> in-place replace with awk, log "Updated"
 
-core::ensure_block_absent removes the block (surrounding non-block content
+core::remove_block removes the block (surrounding non-block content
 preserved). Safe no-op when file or block absent.
 
 Used by:
@@ -588,7 +588,7 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "fzf"
+  core::remove_block "${HOME}/.zshrc" "fzf"
 }
 ```
 
@@ -700,7 +700,7 @@ BLOCK
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "sheldon"
+  core::remove_block "${HOME}/.zshrc" "sheldon"
 }
 
 # Patches the zsh-completions plugin in sheldon's plugins.toml to use
@@ -866,7 +866,7 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "starship"
+  core::remove_block "${HOME}/.zshrc" "starship"
 }
 ```
 
@@ -950,14 +950,14 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zprofile" "rust"
+  core::remove_block "${HOME}/.zprofile" "rust"
 }
 ```
 
 The only two behavioural changes vs the old version:
 1. The comment above the rustup curl line drops the stale "`--no-modify-path`: `~/.cargo/env` is already sourced via `config/zsh/zshenv`" (zshenv is being deleted) in favour of the new one referring to the zprofile block.
 2. `install()` ends with a new `core::ensure_block` call.
-3. `uninstall()` changes from `{ :; }` to a one-line `core::ensure_block_absent` call.
+3. `uninstall()` changes from `{ :; }` to a one-line `core::remove_block` call.
 
 - [ ] **Step 2: Syntax check**
 
@@ -1014,7 +1014,7 @@ to ~/.zprofile. ${HOME} is kept literal (escaped) so zsh expands it at
 login, not bash at install-time.
 
 uninstall() drops the no-op and removes the block via
-core::ensure_block_absent. Symmetric with brew's ~/.zprofile wiring.
+core::remove_block. Symmetric with brew's ~/.zprofile wiring.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -1124,7 +1124,7 @@ source ./lib/core.sh
 source ./lib/bootstrap.sh
 for fn in bootstrap::zsh bootstrap::xcode_clt bootstrap::homebrew bootstrap::dev_tools \
           detect::os detect::pkg_manager \
-          core::ensure_block core::ensure_block_absent; do
+          core::ensure_block core::remove_block; do
   type "$fn" >/dev/null || { echo "MISSING: $fn"; exit 1; }
 done
 echo OK'
@@ -1708,7 +1708,7 @@ Task 12 is verification only. If everything passed, there is nothing to commit. 
 - §4 `core::ensure_block` primitives → Task 1
 - §5 New modules fzf/sheldon/starship → Tasks 4/5/6
 - §6 `bootstrap::homebrew` rewrite + cargo block → Tasks 3, 7
-- §7 Uninstall + idempotency → verified across Tasks 4/5/6/7 (each module has ensure_block_absent) + Task 9
+- §7 Uninstall + idempotency → verified across Tasks 4/5/6/7 (each module has remove_block) + Task 9
 - §8 Asymmetries — descriptive only, no task
 - §9 File inventory → all touched via Tasks 1–11
 - §10 Testing approach → Tasks 1, 12
@@ -1716,7 +1716,7 @@ Task 12 is verification only. If everything passed, there is nothing to commit. 
 
 **No placeholders**: Every code step has concrete content. Every commit message is written out. Every expected output is specified. No "TBD" / "similar to Task N" patterns.
 
-**Type consistency**: `core::ensure_block <file> <id> <content>` — same signature used in every call site (Tasks 3 brew block, 4 fzf, 5 sheldon, 6 starship, 7 rust). `core::ensure_block_absent <file> <id>` — same in all four module uninstall hooks. Block IDs are unique per content source: `homebrew`, `rust`, `fzf`, `sheldon`, `starship`. No collisions.
+**Type consistency**: `core::ensure_block <file> <id> <content>` — same signature used in every call site (Tasks 3 brew block, 4 fzf, 5 sheldon, 6 starship, 7 rust). `core::remove_block <file> <id>` — same in all four module uninstall hooks. Block IDs are unique per content source: `homebrew`, `rust`, `fzf`, `sheldon`, `starship`. No collisions.
 
 **Ordering**: After every task the tree passes `bash -n` + `shellcheck` + `shfmt -d`. Verified by the independent static-check step in each task plus the aggregated sweep in Task 12.
 
