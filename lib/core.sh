@@ -242,7 +242,7 @@ core::ensure_block() {
   fi
 
   local tmp
-  tmp="$(mktemp)"
+  tmp="$(mktemp -- "${file}.XXXXXX")"
   awk -v begin="${begin}" -v end="${end}" -v content="${content}" '
     $0 == begin { in_block=1; print; print content; next }
     $0 == end   { in_block=0; print; next }
@@ -271,7 +271,7 @@ core::ensure_block_absent() {
   grep -qxF "${begin}" "${file}" || return 0
 
   local tmp
-  tmp="$(mktemp)"
+  tmp="$(mktemp -- "${file}.XXXXXX")"
   awk -v begin="${begin}" -v end="${end}" '
     $0 == begin { in_block=1; next }
     $0 == end   { in_block=0; next }
