@@ -8,7 +8,7 @@ DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_ROOT
 export DOTFILES_ROOT
 
-readonly _MODULES=(ghostty git rust nvim tmux zsh)
+readonly _MODULES=(ghostty git rust fzf sheldon starship nvim tmux)
 
 # shellcheck source=lib/detect.sh
 source "${DOTFILES_ROOT}/lib/detect.sh"
