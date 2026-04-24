@@ -30,5 +30,5 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "starship"
+  core::remove_block "${HOME}/.zshrc" "starship"
 }

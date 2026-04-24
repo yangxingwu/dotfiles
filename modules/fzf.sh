@@ -27,5 +27,5 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "fzf"
+  core::remove_block "${HOME}/.zshrc" "fzf"
 }

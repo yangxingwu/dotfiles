@@ -41,5 +41,5 @@ install() {
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zprofile" "rust"
+  core::remove_block "${HOME}/.zprofile" "rust"
 }

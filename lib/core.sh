@@ -285,11 +285,11 @@ core::ensure_block() {
   fi
 }
 
-# core::ensure_block_absent <file> <id>
+# core::remove_block <file> <id>
 # Removes the named managed block (and its surrounding markers) from <file>.
 # No-op if <file> does not exist or the block is absent. Used by module
 # uninstall() hooks to clean up shell init blocks.
-core::ensure_block_absent() {
+core::remove_block() {
   local file="${1}" id="${2}"
   local begin="# BEGIN dotfiles:${id}"
   local end="# END dotfiles:${id}"

@@ -60,7 +60,7 @@ BLOCK
 }
 
 uninstall() {
-  core::ensure_block_absent "${HOME}/.zshrc" "sheldon"
+  core::remove_block "${HOME}/.zshrc" "sheldon"
 }
 
 # Patches the zsh-completions plugin in sheldon's plugins.toml to use
