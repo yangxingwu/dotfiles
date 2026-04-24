@@ -25,6 +25,10 @@ fi
 # Levels: INFO WARN ERROR
 # ERROR and WARN are written to stderr so they survive stdout redirection.
 core::log() {
+  if (($# < 2)); then
+    printf 'core::log: usage: core::log <level> <message>\n' >&2
+    return 2
+  fi
   local level="${1}"
   local message="${2}"
   local prefix
@@ -129,6 +133,7 @@ _core::do_link() {
 # Under install.sh's set -e, return codes 1/2/3 all abort the orchestrator;
 # the distinction matters only for callers that want to handle them.
 core::symlink() {
+  : "${DOTFILES_ROOT:?DOTFILES_ROOT must be exported (normally done by install.sh)}"
   local src="${1}"
   local target="${2}"
   local abs_src="${DOTFILES_ROOT}/${src}"
