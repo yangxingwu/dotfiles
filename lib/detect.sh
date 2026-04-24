@@ -26,7 +26,13 @@ detect::os() {
 # Must be called after detect::os — dispatches by ${DOTFILES_OS} so that a
 # Linux machine with linuxbrew installed does not accidentally pick brew over
 # the system package manager. Users who want that can set
-# DOTFILES_PKG_MANAGER=brew before sourcing.
+# DOTFILES_PKG_MANAGER=brew before calling detect::pkg_manager.
+#
+# Failure mode: when no supported pm is found we export "unknown" and log a
+# warn (not an error). This keeps detect::pkg_manager a pure detection
+# primitive usable from contexts where "none" is acceptable (e.g. uninstall.sh
+# on a machine whose pm was reimaged — symlinks can still be removed).
+# bootstrap::dev_tools is where an unknown pm becomes a hard exit.
 detect::pkg_manager() {
   case "${DOTFILES_OS}" in
   mac)
