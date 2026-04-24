@@ -14,14 +14,25 @@ readonly file_path="${CLAUDE_TOOL_INPUT_FILE_PATH:-}"
 
 printf 'post-edit: %s\n' "${file_path}"
 
-bash -n "${file_path}" \
-  || { printf 'error: syntax check failed: %s\n' "${file_path}" >&2; exit 1; }
+bash -n "${file_path}" ||
+  {
+    printf 'error: syntax check failed: %s\n' "${file_path}" >&2
+    exit 1
+  }
 
-shellcheck "${file_path}" \
-  || { printf 'error: shellcheck failed: %s\n' "${file_path}" >&2; exit 1; }
+shellcheck "${file_path}" ||
+  {
+    printf 'error: shellcheck failed: %s\n' "${file_path}" >&2
+    exit 1
+  }
 
-# shfmt reads .shfmt.toml from the project root automatically
-shfmt -w "${file_path}" \
-  || { printf 'error: shfmt failed: %s\n' "${file_path}" >&2; exit 1; }
+# shfmt 3.x reads .editorconfig for indent settings; project style relies on
+# shfmt's defaults for everything else (case arm column, binary-op placement,
+# no-space redirects). See .claude/rules/shell-style.md "Formatting".
+shfmt -w "${file_path}" ||
+  {
+    printf 'error: shfmt failed: %s\n' "${file_path}" >&2
+    exit 1
+  }
 
 printf 'post-edit: OK\n'
