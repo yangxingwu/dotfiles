@@ -12,6 +12,51 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Install zsh if missing, switch the user's login shell to zsh if it isn't
+# already, and touch the three zsh startup files as empty skeletons so later
+# stages can write managed blocks into them.
+#
+# This runs as Stage A of install.sh, before detect::pkg_manager. It cannot
+# depend on DOTFILES_PKG_MANAGER (not set yet) so it dispatches on the raw
+# apt-get / dnf presence, mirroring bootstrap::dev_tools's pattern.
+#
+# chsh failures bubble via set -e (hard fail): wrong password or zsh not in
+# /etc/shells will abort the installer; the user fixes the cause and re-runs.
+bootstrap::zsh() {
+  if ! command -v zsh >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+      sudo apt-get install -y zsh
+    elif command -v dnf >/dev/null 2>&1; then
+      sudo dnf install -y zsh
+    else
+      core::log ERROR "zsh not found and no supported package manager to install it"
+      core::log ERROR "Supported: brew (mac preinstalled), apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
+      return 1
+    fi
+    core::log INFO "zsh installed"
+  else
+    core::log INFO "zsh already installed"
+  fi
+
+  # SHELL env var is populated from /etc/passwd at login and does not update
+  # within the same session after chsh. That is fine: a re-run in a fresh
+  # shell will see the updated value, and an accidental second chsh within
+  # the same session is a harmless no-op.
+  local current_shell
+  current_shell="$(basename "${SHELL:-/bin/sh}")"
+  if [[ "${current_shell}" != "zsh" ]]; then
+    core::log INFO "Changing login shell to zsh (chsh — may prompt for password)"
+    chsh -s "$(command -v zsh)"
+  else
+    core::log INFO "Login shell already zsh"
+  fi
+
+  # Ensure real-file skeletons exist. touch is a no-op on existing files.
+  # These files are NOT symlinks — downstream code uses core::ensure_block
+  # to write markered blocks into them.
+  touch "${HOME}/.zshrc" "${HOME}/.zprofile" "${HOME}/.zshenv"
+}
+
 # macOS only. Install the Xcode Command Line Tools (git, curl, clang, make,
 # etc.) if absent. `xcode-select --install` pops a GUI confirmation dialog and
 # returns immediately while the download runs in the background; we then poll
