@@ -19,6 +19,8 @@ readonly _MODULES=(ghostty git rust nvim tmux zsh)
 source "${DOTFILES_ROOT}/lib/detect.sh"
 # shellcheck source=lib/core.sh
 source "${DOTFILES_ROOT}/lib/core.sh"
+# shellcheck source=lib/bootstrap.sh
+source "${DOTFILES_ROOT}/lib/bootstrap.sh"
 
 # install::run_module <name> <index> <total>
 # Sources modules/<name>.sh, validates interface, runs install() then LINKS.
@@ -62,6 +64,24 @@ install::run_module() {
 }
 
 main() {
+  # Detect OS first — bootstrap steps and the module loop both dispatch by it.
+  detect::os
+
+  # Stage A: ensure a package manager exists.
+  # macOS requires Xcode CLT + Homebrew; Linux's apt/dnf ships with the distro.
+  if [[ "${DOTFILES_OS}" == "mac" ]]; then
+    bootstrap::xcode_clt
+    bootstrap::homebrew
+  fi
+
+  # Stage B: identify the package manager now that one is guaranteed present.
+  detect::pkg_manager
+
+  # Stage C: install dev tools every module assumes exist (shell, vcs,
+  # downloader, compiler toolchain, build systems). Hard-fails on an
+  # unsupported package manager rather than letting modules limp along.
+  bootstrap::dev_tools
+
   core::log INFO "Platform: ${DOTFILES_OS} | Package manager: ${DOTFILES_PKG_MANAGER}"
 
   local total=${#_MODULES[@]} i=0 name
