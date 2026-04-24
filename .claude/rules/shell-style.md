@@ -76,6 +76,7 @@ All functions use `namespace::name` format matching their source file:
 |---|---|---|
 | `lib/core.sh` | `core::` | `core::log`, `core::symlink`, `core::check_installed`, `core::require_version` |
 | `lib/detect.sh` | `detect::` | `detect::os`, `detect::pkg_manager` |
+| `lib/bootstrap.sh` | `bootstrap::` | `bootstrap::xcode_clt`, `bootstrap::homebrew`, `bootstrap::dev_tools` |
 | `install.sh` | `install::` | `install::run_module` |
 | `uninstall.sh` | `uninstall::` | `uninstall::run_module` |
 | `modules/*.sh` | `module::` / `_<mod>::` | `install`, `uninstall` (interface hooks); `_nvim::install_src` (module-local helper) |
