@@ -246,8 +246,13 @@ core::ensure_block() {
 
   local tmp
   tmp="$(mktemp -- "${file}.XXXXXX")"
-  awk -v begin="${begin}" -v end="${end}" -v content="${content}" '
-    $0 == begin { in_block=1; print; print content; next }
+  # Pass content via the environment (not `awk -v`) because awk's -v
+  # performs backslash-escape expansion on its value — "\n" becomes a
+  # newline, "\\" a single backslash — which would silently mangle
+  # content containing literal backslashes and violate the header's
+  # "content is written verbatim" contract. ENVIRON[] is uninterpreted.
+  CONTENT="${content}" awk -v begin="${begin}" -v end="${end}" '
+    $0 == begin { in_block=1; print; print ENVIRON["CONTENT"]; next }
     $0 == end   { in_block=0; print; next }
     !in_block   { print }
   ' "${file}" >"${tmp}"
