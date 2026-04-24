@@ -191,25 +191,31 @@ core::pkg_install() {
       if brew list --formula "${package}" >/dev/null 2>&1 ||
         brew list --cask "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
-      else
-        brew install "${package}"
+      elif brew install "${package}"; then
         core::log INFO "Installed: ${package}"
+      else
+        core::log ERROR "brew install failed: ${package}"
+        return 1
       fi
       ;;
     apt)
       if dpkg -s "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
-      else
-        sudo apt-get install -y "${package}"
+      elif sudo apt-get install -y "${package}"; then
         core::log INFO "Installed: ${package}"
+      else
+        core::log ERROR "apt-get install failed: ${package}"
+        return 1
       fi
       ;;
     dnf)
       if rpm -q "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
-      else
-        sudo dnf install -y "${package}"
+      elif sudo dnf install -y "${package}"; then
         core::log INFO "Installed: ${package}"
+      else
+        core::log ERROR "dnf install failed: ${package}"
+        return 1
       fi
       ;;
     *)
