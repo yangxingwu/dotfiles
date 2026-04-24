@@ -99,11 +99,6 @@ bootstrap::xcode_clt() {
 # managed "homebrew" block to ~/.zprofile (so brew stays on PATH for future
 # login shells), and eval shellenv for the rest of this install run.
 #
-# This replaces the older approach where ~/.zshrc was expected to symlink
-# zshrc.mac (which contained a hard-coded eval "$(/opt/homebrew/bin/brew
-# shellenv)"). The zshrc.mac symlink is being removed in the same series,
-# so bootstrap owns the persistent brew PATH wiring now.
-#
 # Apple Silicon installs to /opt/homebrew; Intel to /usr/local. A user who
 # migrates machines will see core::ensure_block rewrite the block to match
 # the new prefix on next run.
