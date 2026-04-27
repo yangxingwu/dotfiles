@@ -177,42 +177,30 @@ core::symlink() {
 
 # core::pkg_install <package> [package ...]
 # Installs one or more packages via the detected package manager.
-# Skips individual packages that are already installed.
+# Each pm's install command is already idempotent (skips installed packages).
 core::pkg_install() {
   local package
 
   for package in "$@"; do
+    core::log INFO "Installing: ${package}"
     case "${DOTFILES_PKG_MANAGER}" in
     brew)
-      if brew list --formula "${package}" >/dev/null 2>&1 ||
-        brew list --cask "${package}" >/dev/null 2>&1; then
-        core::log INFO "Already installed: ${package}"
-      elif brew install "${package}"; then
-        core::log INFO "Installed: ${package}"
-      else
+      brew install "${package}" || {
         core::log ERROR "brew install failed: ${package}"
         return 1
-      fi
+      }
       ;;
     apt)
-      if dpkg -s "${package}" >/dev/null 2>&1; then
-        core::log INFO "Already installed: ${package}"
-      elif sudo apt-get install -y "${package}"; then
-        core::log INFO "Installed: ${package}"
-      else
+      sudo apt-get install -y "${package}" || {
         core::log ERROR "apt-get install failed: ${package}"
         return 1
-      fi
+      }
       ;;
     dnf)
-      if rpm -q "${package}" >/dev/null 2>&1; then
-        core::log INFO "Already installed: ${package}"
-      elif sudo dnf install -y "${package}"; then
-        core::log INFO "Installed: ${package}"
-      else
+      sudo dnf install -y "${package}" || {
         core::log ERROR "dnf install failed: ${package}"
         return 1
-      fi
+      }
       ;;
     *)
       core::log WARN "Unknown package manager — cannot install: ${package}"
