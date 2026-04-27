@@ -28,6 +28,8 @@ core::log() {
   WARN | ERROR) fd=2 ;;
   esac
 
+  # -t N tests whether fd N is a terminal. Check the fd we actually write to,
+  # so colours are emitted only when that specific fd goes to a TTY.
   local color="" reset=""
   if [[ -t "${fd}" ]]; then
     reset=$'\033[0m'
