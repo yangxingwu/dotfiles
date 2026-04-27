@@ -214,54 +214,24 @@ core::pkg_install() {
 #   # BEGIN dotfiles:<id>
 #   <content>
 #   # END dotfiles:<id>
-# Behaviour:
-# - If <file> does not exist, create it first.
-# - If the block is absent, append it (with a leading blank line if the file
-#   is non-empty) and log "Added block".
-# - If the block exists with identical content, log "unchanged" and leave
-#   the file untouched.
-# - If the block exists with different content, replace content in-place and
-#   log "Updated block".
+# If the block already exists it is removed first, then re-appended.
 # <content> is written verbatim; callers pre-expand any variables they want
 # captured at install-time, and escape "$" to keep shell expansions literal.
 core::ensure_block() {
   local file="${1}" id="${2}" content="${3}"
-  local begin="# BEGIN dotfiles:${id}"
-  local end="# END dotfiles:${id}"
 
   [[ -f "${file}" ]] || : >"${file}"
 
-  if ! grep -qxF "${begin}" "${file}"; then
-    if [[ -s "${file}" ]]; then printf '\n' >>"${file}"; fi
-    {
-      printf '%s\n' "${begin}"
-      printf '%s\n' "${content}"
-      printf '%s\n' "${end}"
-    } >>"${file}"
-    core::log INFO "Added block '${id}' to ${file}"
-    return 0
-  fi
+  # Remove existing block (no-op if absent) then append fresh.
+  core::remove_block "${file}" "${id}"
 
-  local tmp
-  tmp="$(mktemp -- "${file}.XXXXXX")"
-  # Pass content via the environment (not `awk -v`) because awk's -v
-  # performs backslash-escape expansion on its value — "\n" becomes a
-  # newline, "\\" a single backslash — which would silently mangle
-  # content containing literal backslashes and violate the header's
-  # "content is written verbatim" contract. ENVIRON[] is uninterpreted.
-  CONTENT="${content}" awk -v begin="${begin}" -v end="${end}" '
-    $0 == begin { in_block=1; print; print ENVIRON["CONTENT"]; next }
-    $0 == end   { in_block=0; print; next }
-    !in_block   { print }
-  ' "${file}" >"${tmp}"
-
-  if cmp -s "${file}" "${tmp}"; then
-    rm -f "${tmp}"
-    core::log INFO "Unchanged block '${id}' in ${file}"
-  else
-    mv "${tmp}" "${file}"
-    core::log INFO "Updated block '${id}' in ${file}"
-  fi
+  if [[ -s "${file}" ]]; then printf '\n' >>"${file}"; fi
+  {
+    printf '%s\n' "# BEGIN dotfiles:${id}"
+    printf '%s\n' "${content}"
+    printf '%s\n' "# END dotfiles:${id}"
+  } >>"${file}"
+  core::log INFO "Wrote block '${id}' to ${file}"
 }
 
 # core::remove_block <file> <id>
