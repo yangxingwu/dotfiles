@@ -1,27 +1,14 @@
 #!/usr/bin/env bash
 # lib/core.sh — Standard library for all modules and the orchestrator.
-# Provides: core::log, core::check_installed, core::require_version,
-#           core::backup, core::symlink, core::pkg_install,
-#           core::ensure_block, core::remove_block.
 # Requires: DOTFILES_ROOT exported, DOTFILES_PKG_MANAGER set by detect.sh.
-# Safe to source multiple times — function redefinition and plain variable
-# reassignment are idempotent in bash.
+# Safe to source multiple times (function redefinition is idempotent).
 set -euo pipefail
 IFS=$'\n\t'
 
 # core::log <level> <message>
-# Levels: INFO WARN ERROR
-# ERROR and WARN are written to stderr so they survive stdout redirection.
-# Colour codes are resolved per-call against the actual output fd, so WARN/ERROR
-# are correctly coloured even when stdout is redirected but stderr is a terminal.
+# Levels: INFO (stdout), WARN/ERROR (stderr). Colours when output fd is a TTY.
 core::log() {
-  if (($# < 2)); then
-    printf 'core::log: usage: core::log <level> <message>\n' >&2
-    return 2
-  fi
-  local level="${1}"
-  local message="${2}"
-  local fd=1
+  local level="${1}" message="${2}" fd=1
 
   case "${level}" in
   INFO) fd=1 ;;
@@ -43,8 +30,7 @@ core::log() {
   printf '%s %s\n' "${color}[${level}]${reset}" "${message}" >&"${fd}"
 }
 
-# core::check_installed <binary>
-# Returns 0 if the binary is on PATH, 1 otherwise. Pure detection, no side effects.
+# core::check_installed <binary> — returns 0 if on PATH.
 core::check_installed() {
   command -v "${1}" >/dev/null 2>&1
 }
@@ -69,46 +55,27 @@ core::require_version() {
 }
 
 # core::backup <absolute-path>
-# Moves an existing file/dir to ~/.dotfiles-backup/YYYYMMDD-HHMMSS/ preserving
+# Moves a file/dir to ~/.dotfiles-backup/YYYYMMDD-HHMMSS/ preserving
 # relative path from HOME.
 core::backup() {
   local target="${1}"
   local timestamp
   timestamp="$(date +%Y%m%d-%H%M%S)"
-  local backup_dir="${HOME}/.dotfiles-backup/${timestamp}"
-  if [[ "${target}" != "${HOME}"/* ]]; then
-    core::log ERROR "Backup target must be under HOME: ${target}"
-    return 1
-  fi
   local relative="${target#"${HOME}/"}"
-  local backup_path="${backup_dir}/${relative}"
+  local backup_path="${HOME}/.dotfiles-backup/${timestamp}/${relative}"
 
-  if ! mkdir -p "$(dirname "${backup_path}")"; then
-    core::log ERROR "Failed to create backup directory for: ${target}"
-    return 1
-  fi
-  if ! mv "${target}" "${backup_path}"; then
-    core::log ERROR "Failed to backup: ${target}"
-    return 1
-  fi
+  mkdir -p "$(dirname "${backup_path}")"
+  mv "${target}" "${backup_path}"
   core::log INFO "Backed up: ${target} → ${backup_path}"
 }
 
 # core::symlink <repo-relative-src> <absolute-target>
 # Creates symlink target → DOTFILES_ROOT/src. On conflict (target exists as a
-# real file, directory, or foreign symlink), prompts the user interactively:
-#   [b] backup existing target to ~/.dotfiles-backup/<ts>/ and replace
-#   [s] skip — do NOT create the symlink; user's file is preserved
-#   [q] quit — abort the orchestrator
-# Idempotent: if target is already the correct symlink, logs and returns 0.
-#
-# Returns:
-#   0 — linked (or already correctly linked, or user chose [s]kip)
-#   1 — filesystem failure (mkdir, ln, or backup failed)
-#   2 — stdin not available for interactive prompt (not a TTY)
-#   3 — user chose [q]uit at the conflict prompt
-# Under install.sh's set -e, return codes 1/2/3 all abort the orchestrator;
-# the distinction matters only for callers that want to handle them.
+# real file, directory, or foreign symlink), prompts the user:
+#   [b] backup to ~/.dotfiles-backup/ and replace
+#   [s] skip (existing file preserved)
+#   [q] quit installer
+# Idempotent: correct symlink already in place → no-op.
 core::symlink() {
   : "${DOTFILES_ROOT:?DOTFILES_ROOT must be exported (normally done by install.sh)}"
   local src="${1}"
