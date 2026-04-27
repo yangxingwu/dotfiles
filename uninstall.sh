@@ -8,7 +8,8 @@ DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_ROOT
 export DOTFILES_ROOT
 
-readonly _MODULES=(ghostty git rust fzf sheldon starship nvim tmux)
+# shellcheck source=lib/modules.sh
+source "${DOTFILES_ROOT}/lib/modules.sh"
 
 # shellcheck source=lib/detect.sh
 source "${DOTFILES_ROOT}/lib/detect.sh"
@@ -72,7 +73,7 @@ main() {
   detect::os
 
   local name
-  for name in "${_MODULES[@]}"; do
+  for name in "${DOTFILES_MODULES[@]}"; do
     uninstall::run_module "${name}"
   done
   core::log INFO "Uninstall complete."

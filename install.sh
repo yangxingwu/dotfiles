@@ -2,7 +2,7 @@
 # install.sh — dotfiles orchestrator
 # Usage: ./install.sh
 #
-# Installs every module in ${_MODULES} for the current platform. Idempotent.
+# Installs every module in ${DOTFILES_MODULES} for the current platform. Idempotent.
 # Conflicts are resolved interactively per symlink inside core::symlink.
 set -euo pipefail
 IFS=$'\n\t'
@@ -11,10 +11,8 @@ DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_ROOT
 export DOTFILES_ROOT
 
-# Explicit install order — dependencies first.
-# rust must precede nvim (cargo is required for tree-sitter-cli).
-# fzf must precede sheldon (sheldon's fzf-tab plugin requires the fzf binary).
-readonly _MODULES=(ghostty git rust fzf sheldon starship nvim tmux)
+# shellcheck source=lib/modules.sh
+source "${DOTFILES_ROOT}/lib/modules.sh"
 
 # shellcheck source=lib/detect.sh
 source "${DOTFILES_ROOT}/lib/detect.sh"
@@ -90,8 +88,8 @@ main() {
 
   core::log INFO "Platform: ${DOTFILES_OS} | Package manager: ${DOTFILES_PKG_MANAGER}"
 
-  local total=${#_MODULES[@]} i=0 name
-  for name in "${_MODULES[@]}"; do
+  local total=${#DOTFILES_MODULES[@]} i=0 name
+  for name in "${DOTFILES_MODULES[@]}"; do
     i=$((i + 1))
     install::run_module "${name}" "${i}" "${total}"
   done
