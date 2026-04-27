@@ -92,22 +92,6 @@ core::backup() {
   core::log INFO "Backed up: ${target} → ${backup_path}"
 }
 
-# _core::do_link <abs_src> <target>
-# Shared helper: ensure parent dirs exist, create the symlink, log success.
-# Returns non-zero if either mkdir or ln fails.
-_core::do_link() {
-  local abs_src="${1}" target="${2}"
-  if ! mkdir -p "$(dirname "${target}")"; then
-    core::log ERROR "Failed to create parent dirs for: ${target}"
-    return 1
-  fi
-  if ! ln -sf "${abs_src}" "${target}"; then
-    core::log ERROR "Failed to create symlink: ${target}"
-    return 1
-  fi
-  core::log INFO "Linked: ${target} → ${abs_src}"
-}
-
 # core::symlink <repo-relative-src> <absolute-target>
 # Creates symlink target → DOTFILES_ROOT/src. On conflict (target exists as a
 # real file, directory, or foreign symlink), prompts the user interactively:
@@ -137,7 +121,9 @@ core::symlink() {
 
   # Target absent — create parent, link, done
   if [[ ! -e "${target}" ]] && [[ ! -L "${target}" ]]; then
-    _core::do_link "${abs_src}" "${target}"
+    mkdir -p "$(dirname "${target}")"
+    ln -sf "${abs_src}" "${target}"
+    core::log INFO "Linked: ${target} → ${abs_src}"
     return
   fi
 
@@ -163,7 +149,9 @@ core::symlink() {
   case "${choice}" in
   b)
     core::backup "${target}" || return 1
-    _core::do_link "${abs_src}" "${target}"
+    mkdir -p "$(dirname "${target}")"
+    ln -sf "${abs_src}" "${target}"
+    core::log INFO "Linked: ${target} → ${abs_src}"
     ;;
   s)
     core::log WARN "Skipped: ${target} — your file is unchanged, module may be incomplete"
