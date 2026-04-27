@@ -9,22 +9,11 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# ANSI colour codes (used only when stdout is a terminal)
-if [[ -t 1 ]]; then
-  _CORE_RESET=$'\033[0m'
-  _CORE_GREEN=$'\033[0;32m'
-  _CORE_YELLOW=$'\033[0;33m'
-  _CORE_RED=$'\033[0;31m'
-else
-  _CORE_RESET=''
-  _CORE_GREEN=''
-  _CORE_YELLOW=''
-  _CORE_RED=''
-fi
-
 # core::log <level> <message>
 # Levels: INFO WARN ERROR
 # ERROR and WARN are written to stderr so they survive stdout redirection.
+# Colour codes are resolved per-call against the actual output fd, so WARN/ERROR
+# are correctly coloured even when stdout is redirected but stderr is a terminal.
 core::log() {
   if (($# < 2)); then
     printf 'core::log: usage: core::log <level> <message>\n' >&2
@@ -32,23 +21,24 @@ core::log() {
   fi
   local level="${1}"
   local message="${2}"
-  local prefix
   local fd=1
 
   case "${level}" in
-  INFO) prefix="${_CORE_GREEN}[INFO]${_CORE_RESET}" ;;
-  WARN)
-    prefix="${_CORE_YELLOW}[WARN]${_CORE_RESET}"
-    fd=2
-    ;;
-  ERROR)
-    prefix="${_CORE_RED}[ERROR]${_CORE_RESET}"
-    fd=2
-    ;;
-  *) prefix="[${level}]" ;;
+  INFO) fd=1 ;;
+  WARN | ERROR) fd=2 ;;
   esac
 
-  printf '%s %s\n' "${prefix}" "${message}" >&"${fd}"
+  local color="" reset=""
+  if [[ -t "${fd}" ]]; then
+    reset=$'\033[0m'
+    case "${level}" in
+    INFO) color=$'\033[0;32m' ;;
+    WARN) color=$'\033[0;33m' ;;
+    ERROR) color=$'\033[0;31m' ;;
+    esac
+  fi
+
+  printf '%s %s\n' "${color}[${level}]${reset}" "${message}" >&"${fd}"
 }
 
 # core::check_installed <binary>
