@@ -101,15 +101,12 @@ _nvim::clone_config() {
   fi
 
   # Back up existing nvim dirs per LazyVim installation guide.
+  # https://www.lazyvim.org/installation
   local dir
   for dir in "${target}" "${HOME}/.local/share/nvim" "${HOME}/.local/state/nvim" "${HOME}/.cache/nvim"; do
-    if [[ -e "${dir}" ]] || [[ -L "${dir}" ]]; then
-      local timestamp backup_path
-      timestamp="$(date +%Y%m%d-%H%M%S)"
-      backup_path="${HOME}/.dotfiles-backup/${timestamp}/${dir#"${HOME}/"}"
-      mkdir -p "$(dirname "${backup_path}")"
-      mv "${dir}" "${backup_path}"
-      core::log INFO "Backed up: ${dir} → ${backup_path}"
+    if [[ -e "${dir}" ]]; then
+      mv "${dir}" "${dir}.bak"
+      core::log INFO "Backed up: ${dir} → ${dir}.bak"
     fi
   done
 
