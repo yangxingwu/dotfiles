@@ -47,11 +47,8 @@ uninstall::run_module() {
 }
 
 main() {
-  # detect.sh no longer auto-runs on source — invoke detection explicitly.
-  # Only detect::os is needed: uninstall::run_module uses DOTFILES_OS for
-  # the MODULE_PLATFORM gate, but no code path here reads DOTFILES_PKG_MANAGER.
-  # Skipping detect::pkg_manager also lets `./uninstall.sh` succeed on a
-  # machine whose pm is broken or uninstalled.
+  # Only detect::os is needed: uninstall hooks clean up config files and
+  # clones, not packages — so DOTFILES_PKG_MANAGER is never read.
   detect::os
 
   local total=${#DOTFILES_MODULES[@]} i=0 name
