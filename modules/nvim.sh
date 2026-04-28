@@ -92,26 +92,16 @@ _nvim::install_nvim() {
 _nvim::clone_config() {
   local repo="git@github.com:yangxingwu/neovim-lua-config.git"
   local branch="LazyVimV2"
-  local target="${HOME}/.config/nvim"
-
-  if [[ -d "${target}/.git" ]]; then
-    core::log INFO "Neovim config already cloned — pulling latest"
-    git -C "${target}" pull
-    return 0
-  fi
 
   # Back up existing nvim dirs per LazyVim installation guide.
   # https://www.lazyvim.org/installation
-  local dir
-  for dir in "${target}" "${HOME}/.local/share/nvim" "${HOME}/.local/state/nvim" "${HOME}/.cache/nvim"; do
-    if [[ -e "${dir}" ]]; then
-      mv "${dir}" "${dir}.bak"
-      core::log INFO "Backed up: ${dir} → ${dir}.bak"
-    fi
-  done
+  mv ~/.config/nvim{,.bak} 2>/dev/null || true
+  mv ~/.local/share/nvim{,.bak} 2>/dev/null || true
+  mv ~/.local/state/nvim{,.bak} 2>/dev/null || true
+  mv ~/.cache/nvim{,.bak} 2>/dev/null || true
 
-  git clone --branch "${branch}" "${repo}" "${target}"
-  core::log INFO "Cloned neovim config to ${target}"
+  git clone --branch "${branch}" "${repo}" ~/.config/nvim
+  core::log INFO "Cloned neovim config to ~/.config/nvim"
 }
 
 install() {
