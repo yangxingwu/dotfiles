@@ -25,31 +25,8 @@ _nvim::install_deps() {
   cargo install --locked tree-sitter-cli
 }
 
-# Prompt the user to install Neovim via package manager or from source.
-# Loops until a valid choice is made.
-_nvim::install_nvim() {
-  if core::check_installed nvim; then
-    core::log INFO "Neovim already installed: $(nvim --version | head -1)"
-    return 0
-  fi
-
-  local choice
-  while :; do
-    printf '\nNeovim not found. Install options:\n' >&2
-    printf '  1) Package manager (brew/apt)\n' >&2
-    printf '  2) Build from source (latest stable tag)\n' >&2
-    printf 'Choice [1]: ' >&2
-    read -r choice
-    case "${choice:-1}" in
-    1) core::pkg_install neovim; return ;;
-    2) _nvim::install_src; return ;;
-    *) core::log WARN "Invalid choice: ${choice}" ;;
-    esac
-  done
-}
-
 # Build and install Neovim from source at the latest stable tag.
-_nvim::install_src() {
+_nvim::install_from_src() {
   local build_dir="/tmp/neovim-build-$$"
   local src_repo="https://github.com/neovim/neovim.git"
   trap 'rm -rf "${build_dir}"' RETURN
@@ -84,6 +61,29 @@ _nvim::install_src() {
   popd >/dev/null
 
   core::log INFO "Neovim built and installed from source (${latest_tag})"
+}
+
+# Prompt the user to install Neovim via package manager or from source.
+# Loops until a valid choice is made.
+_nvim::install_nvim() {
+  if core::check_installed nvim; then
+    core::log INFO "Neovim already installed: $(nvim --version | head -1)"
+    return 0
+  fi
+
+  local choice
+  while :; do
+    printf '\nNeovim not found. Install options:\n' >&2
+    printf '  1) Package manager (brew/apt)\n' >&2
+    printf '  2) Build from source (latest stable tag)\n' >&2
+    printf 'Choice [1]: ' >&2
+    read -r choice
+    case "${choice:-1}" in
+    1) core::pkg_install neovim; return ;;
+    2) _nvim::install_from_src; return ;;
+    *) core::log WARN "Invalid choice: ${choice}" ;;
+    esac
+  done
 }
 
 # Clone the LazyVim config repo to ~/.config/nvim.
