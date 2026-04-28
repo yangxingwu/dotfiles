@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # lib/core.sh — Standard library for all modules and the orchestrator.
-# Requires: DOTFILES_ROOT exported, DOTFILES_PKG_MANAGER set by detect.sh.
+# Requires: DOTFILES_ROOT set by install.sh/uninstall.sh, DOTFILES_PKG_MANAGER set by detect.sh.
 # Safe to source multiple times (function redefinition is idempotent).
 set -euo pipefail
 IFS=$'\n\t'

@@ -8,7 +8,6 @@ IFS=$'\n\t'
 
 DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_ROOT
-export DOTFILES_ROOT
 
 # shellcheck source=lib/modules.sh
 source "${DOTFILES_ROOT}/lib/modules.sh"
