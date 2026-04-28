@@ -10,7 +10,6 @@ MODULE_DESC="sheldon plugin manager with curated plugin set"
 MODULE_PLATFORM="all"
 
 # Plugin list shared by install and uninstall.
-# zsh-completions is handled separately in install (needs --apply fpath).
 _SHELDON_PLUGINS=(
   "zsh-users/zsh-autosuggestions"
   "zsh-users/zsh-syntax-highlighting"
@@ -37,15 +36,13 @@ install() {
 
   # sheldon add writes to plugins.toml.
   # Errors on duplicate plugin names — silenced so re-runs are idempotent.
-  local plugin name
+  local plugin name apply
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
-    # zsh-completions needs --apply fpath, handled separately below.
-    [[ "${name}" == "zsh-completions" ]] && continue
-    sheldon add "${name}" --github "${plugin}" 2>/dev/null || true
+    # zsh-completions must use fpath instead of source to avoid permission errors.
+    apply=(); [[ "${name}" == "zsh-completions" ]] && apply=(--apply fpath)
+    sheldon add "${name}" --github "${plugin}" "${apply[@]}" 2>/dev/null || true
   done
-  # zsh-completions must use fpath instead of source to avoid permission errors.
-  sheldon add zsh-completions --github zsh-users/zsh-completions --apply fpath 2>/dev/null || true
 
   # lock downloads plugin sources and generates the lock file.
   sheldon lock
