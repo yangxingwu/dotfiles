@@ -16,7 +16,7 @@ install() {
   # oh-my-tmux official one-liner: clones to ~/.config/tmux/.tmux,
   # creates tmux.conf symlink, and copies a starter tmux.conf.local.
   mkdir -p "${HOME}/.config/tmux"
-  curl -fsSL "https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh" | bash
+  curl -fsSL "https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh#$(date +%s)" | bash
   core::log INFO "oh-my-tmux installed"
 }
 
