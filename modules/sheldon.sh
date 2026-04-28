@@ -9,6 +9,16 @@ MODULE_NAME="sheldon"
 MODULE_DESC="sheldon plugin manager with curated plugin set"
 MODULE_PLATFORM="all"
 
+# Plugin list shared by install and uninstall.
+_SHELDON_PLUGINS=(
+  "zsh-users/zsh-autosuggestions"
+  "zsh-users/zsh-syntax-highlighting"
+  "zsh-users/zsh-completions"
+  "Aloxaf/fzf-tab"
+  "mattmc3/zsh-safe-rm"
+  "zsh-users/zsh-history-substring-search"
+)
+
 install() {
   # sheldon is not in apt/dnf — install via cargo on all platforms for
   # consistency (brew has it but cargo keeps one code path).
@@ -21,19 +31,12 @@ install() {
     core::log INFO "sheldon installed"
   fi
 
-  local plugins=(
-    "zsh-users/zsh-autosuggestions"
-    "zsh-users/zsh-syntax-highlighting"
-    "zsh-users/zsh-completions"
-    "Aloxaf/fzf-tab"
-    "mattmc3/zsh-safe-rm"
-    "zsh-users/zsh-history-substring-search"
-  )
+  sheldon init --shell zsh
 
-  # sheldon add writes to plugins.toml (creates it if absent).
+  # sheldon add writes to plugins.toml.
   # Errors on duplicate plugin names — silenced so re-runs are idempotent.
   local plugin name
-  for plugin in "${plugins[@]}"; do
+  for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
     if [[ "${name}" == "zsh-completions" ]]; then
       sheldon add "${name}" --github "${plugin}" --apply fpath 2>/dev/null || true
@@ -49,20 +52,12 @@ install() {
 }
 
 uninstall() {
-  local plugins=(
-    "zsh-users/zsh-autosuggestions"
-    "zsh-users/zsh-syntax-highlighting"
-    "zsh-users/zsh-completions"
-    "Aloxaf/fzf-tab"
-    "mattmc3/zsh-safe-rm"
-    "zsh-users/zsh-history-substring-search"
-  )
-
   local plugin name
-  for plugin in "${plugins[@]}"; do
+  for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
     sheldon remove "${name}" 2>/dev/null || true
   done
+  sheldon lock 2>/dev/null || true
 
   core::remove_block "${HOME}/.zshrc" "sheldon"
 }
