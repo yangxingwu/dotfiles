@@ -10,67 +10,47 @@ MODULE_NAME="nvim"
 MODULE_DESC="Neovim editor with LazyVim configuration (yangxingwu/neovim-lua-config)"
 MODULE_PLATFORM="all"
 
-_NVIM_SRC_REPO="https://github.com/neovim/neovim.git"
-_NVIM_REPO="git@github.com:yangxingwu/neovim-lua-config.git"
-_NVIM_BRANCH="LazyVimV2"
-_NVIM_TARGET="${HOME}/.config/nvim"
-
-install() {
-  # 1. LazyVim runtime dependencies
+# Install LazyVim runtime dependencies.
+_nvim::install_deps() {
   case "${DOTFILES_OS}" in
   mac) core::pkg_install ripgrep fd lazygit node shfmt shellcheck ;;
   linux) core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck ;;
   esac
 
   # tree-sitter-cli is not in any package manager — install via cargo.
-  if core::check_installed cargo; then
-    cargo install --locked tree-sitter-cli
-  else
-    core::log WARN "cargo not found — skipping tree-sitter-cli (run rust module first)"
+  if ! core::check_installed cargo; then
+    core::log ERROR "cargo not found — install the rust module first"
+    return 1
+  fi
+  cargo install --locked tree-sitter-cli
+}
+
+# Prompt the user to install Neovim via package manager or from source.
+# Loops until a valid choice is made.
+_nvim::install_nvim() {
+  if core::check_installed nvim; then
+    return 0
   fi
 
-  # 2. Neovim itself
-  if ! core::check_installed nvim; then
-    local choice
+  local choice
+  while :; do
     printf '\nNeovim not found. Install options:\n' >&2
     printf '  1) Package manager (brew/apt)\n' >&2
     printf '  2) Build from source (latest stable tag)\n' >&2
     printf 'Choice [1]: ' >&2
     read -r choice
     case "${choice:-1}" in
-    1) core::pkg_install neovim ;;
-    2) _nvim::install_src ;;
-    *) core::log WARN "Unknown choice '${choice}' — skipping Neovim install" ;;
+    1) core::pkg_install neovim; return ;;
+    2) _nvim::install_src; return ;;
+    *) core::log WARN "Invalid choice: ${choice}" ;;
     esac
-  fi
-
-  # 3. Clone config repo to ~/.config/nvim
-  if [[ -d "${_NVIM_TARGET}/.git" ]]; then
-    core::log INFO "Neovim config already cloned — skipping"
-    return 0
-  fi
-  if [[ -L "${_NVIM_TARGET}" ]]; then
-    rm "${_NVIM_TARGET}"
-    core::log INFO "Removed stale symlink at ${_NVIM_TARGET}"
-  elif [[ -d "${_NVIM_TARGET}" ]]; then
-    local timestamp backup_path
-    timestamp="$(date +%Y%m%d-%H%M%S)"
-    backup_path="${HOME}/.dotfiles-backup/${timestamp}/.config/nvim"
-    mkdir -p "$(dirname "${backup_path}")"
-    mv "${_NVIM_TARGET}" "${backup_path}"
-    core::log INFO "Backed up: ${_NVIM_TARGET} → ${backup_path}"
-  fi
-  git clone --branch "${_NVIM_BRANCH}" "${_NVIM_REPO}" "${_NVIM_TARGET}"
-  core::log INFO "Cloned neovim config to ${_NVIM_TARGET}"
-}
-
-uninstall() {
-  rm -rf "${_NVIM_TARGET}"
+  done
 }
 
 # Build and install Neovim from source at the latest stable tag.
 _nvim::install_src() {
   local build_dir="/tmp/neovim-build-$$"
+  local src_repo="https://github.com/neovim/neovim.git"
   trap 'rm -rf "${build_dir}"' RETURN
 
   # Remove brew-managed neovim on macOS to avoid PATH conflicts.
@@ -86,13 +66,13 @@ _nvim::install_src() {
   linux) core::pkg_install curl ;;
   esac
 
-  git clone "${_NVIM_SRC_REPO}" "${build_dir}"
+  git clone "${src_repo}" "${build_dir}"
 
   local latest_tag
   latest_tag="$(cd "${build_dir}" && git tag --sort=-v:refname |
     grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)"
   if [[ -z "${latest_tag}" ]]; then
-    core::log ERROR "No stable release tag found in ${_NVIM_SRC_REPO}"
+    core::log ERROR "No stable release tag found in ${src_repo}"
     return 1
   fi
 
@@ -103,4 +83,41 @@ _nvim::install_src() {
   popd >/dev/null
 
   core::log INFO "Neovim built and installed from source (${latest_tag})"
+}
+
+# Clone the LazyVim config repo to ~/.config/nvim.
+# Backs up any existing non-git directory; removes stale symlinks.
+_nvim::clone_config() {
+  local repo="git@github.com:yangxingwu/neovim-lua-config.git"
+  local branch="LazyVimV2"
+  local target="${HOME}/.config/nvim"
+
+  if [[ -d "${target}/.git" ]]; then
+    core::log INFO "Neovim config already cloned — skipping"
+    return 0
+  fi
+  if [[ -L "${target}" ]]; then
+    rm "${target}"
+    core::log INFO "Removed stale symlink at ${target}"
+  elif [[ -d "${target}" ]]; then
+    local timestamp backup_path
+    timestamp="$(date +%Y%m%d-%H%M%S)"
+    backup_path="${HOME}/.dotfiles-backup/${timestamp}/.config/nvim"
+    mkdir -p "$(dirname "${backup_path}")"
+    mv "${target}" "${backup_path}"
+    core::log INFO "Backed up: ${target} → ${backup_path}"
+  fi
+
+  git clone --branch "${branch}" "${repo}" "${target}"
+  core::log INFO "Cloned neovim config to ${target}"
+}
+
+install() {
+  _nvim::install_deps
+  _nvim::install_nvim
+  _nvim::clone_config
+}
+
+uninstall() {
+  rm -rf "${HOME}/.config/nvim"
 }
