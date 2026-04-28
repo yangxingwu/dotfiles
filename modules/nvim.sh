@@ -33,7 +33,7 @@ _nvim::install_from_src() {
 
   if [[ -d "${src_dir}" ]]; then
     core::log ERROR "Source directory already exists: ${src_dir}"
-    core::log ERROR "Remove it manually and re-run if you want a fresh build"
+    core::log ERROR "Run ./uninstall.sh first to clean up the previous build"
     return 1
   fi
 
