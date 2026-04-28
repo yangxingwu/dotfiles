@@ -36,16 +36,18 @@ install() {
 
   # sheldon add writes to plugins.toml.
   # Errors on duplicate plugin names — silenced so re-runs are idempotent.
-  local plugin name apply
+  local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
     # zsh-completions must use fpath instead of source to avoid permission errors.
-    apply=(); [[ "${name}" == "zsh-completions" ]] && apply=(--apply fpath)
-    sheldon add "${name}" --github "${plugin}" "${apply[@]}" 2>/dev/null || true
+    if [[ "${name}" == "zsh-completions" ]]; then
+      sheldon add "${name}" --github "${plugin}" --apply fpath 2>/dev/null || true
+    else
+      sheldon add "${name}" --github "${plugin}" 2>/dev/null || true
+    fi
   done
 
-  # lock downloads plugin sources and generates the lock file.
-  sheldon lock
+  sheldon lock --update
 
   core::ensure_block "${HOME}/.zshrc" "sheldon" 'eval "$(sheldon source)"'
 }
@@ -56,7 +58,7 @@ uninstall() {
     name="${plugin##*/}"
     sheldon remove "${name}" 2>/dev/null || true
   done
-  sheldon lock 2>/dev/null || true
+  sheldon lock --update 2>/dev/null || true
 
   core::remove_block "${HOME}/.zshrc" "sheldon"
 }
