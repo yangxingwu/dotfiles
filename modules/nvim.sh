@@ -32,7 +32,9 @@ _nvim::install_from_src() {
   local src_dir="${HOME}/.local/src/neovim"
 
   if [[ -d "${src_dir}" ]]; then
-    rm -rf "${src_dir}"
+    core::log ERROR "Source directory already exists: ${src_dir}"
+    core::log ERROR "Remove it manually and re-run if you want a fresh build"
+    return 1
   fi
 
   git clone https://github.com/neovim/neovim.git "${src_dir}"
