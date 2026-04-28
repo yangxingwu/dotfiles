@@ -11,7 +11,6 @@ readonly DOTFILES_ROOT
 
 # shellcheck source=lib/modules.sh
 source "${DOTFILES_ROOT}/lib/modules.sh"
-
 # shellcheck source=lib/detect.sh
 source "${DOTFILES_ROOT}/lib/detect.sh"
 # shellcheck source=lib/core.sh
