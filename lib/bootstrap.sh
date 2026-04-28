@@ -52,8 +52,10 @@ bootstrap::zsh() {
       ;;
     esac
     core::log INFO "zsh installed"
+    core::summary "  zsh                          ✓ installed"
   else
     core::log INFO "zsh already installed"
+    core::summary "  zsh                          ✓ already installed"
   fi
 
   # SHELL env var is populated from /etc/passwd at login and does not update
@@ -90,6 +92,7 @@ bootstrap::xcode_clt() {
 
   if xcode-select -p >/dev/null 2>&1; then
     core::log INFO "Xcode Command Line Tools already installed"
+    core::summary "  Xcode Command Line Tools     ✓ already installed"
     return 0
   fi
 
@@ -111,6 +114,7 @@ bootstrap::xcode_clt() {
   done
 
   core::log INFO "Xcode Command Line Tools installed"
+  core::summary "  Xcode Command Line Tools     ✓ installed"
 }
 
 # macOS only. Install Homebrew via the official upstream installer, write a
@@ -123,6 +127,7 @@ bootstrap::xcode_clt() {
 bootstrap::homebrew() {
   if command -v brew >/dev/null 2>&1; then
     core::log INFO "Homebrew already installed"
+    core::summary "  Homebrew                     ✓ already installed"
     return 0
   fi
 
@@ -155,6 +160,7 @@ bootstrap::homebrew() {
   eval "$("${brew_prefix}/bin/brew" shellenv)"
 
   core::log INFO "Homebrew installed; shellenv wired into ~/.zprofile"
+  core::summary "  Homebrew                     ✓ installed"
 }
 
 # Both platforms. Install the dev tools every module assumes exist.
@@ -183,6 +189,12 @@ bootstrap::dev_tools() {
     core::log ERROR "Supported: brew (macOS), apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
     return 1
     ;;
+  esac
+
+  case "${DOTFILES_PKG_MANAGER}" in
+  brew) core::summary "  dev tools                    ✓ installed (cmake, meson, ninja, gettext)" ;;
+  apt) core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, build-essential)" ;;
+  dnf) core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, Development Tools)" ;;
   esac
 
   core::log INFO "Dev tools installed"
