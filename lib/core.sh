@@ -137,10 +137,13 @@ core::run_module() {
   if [[ "${MODULE_PLATFORM}" != "all" ]] &&
     [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
     core::log INFO "Skipping ${name} (platform: ${MODULE_PLATFORM})"
+    core::summary "  ${name}"
+    core::summary "    — skipped (${MODULE_PLATFORM} only)"
     return 0
   fi
 
   core::log INFO "▶ [${index}/${total}] ${name} — ${MODULE_DESC}"
+  core::summary "  ${name}"
   "${action}"
   core::log INFO "✓ ${name}"
 }
