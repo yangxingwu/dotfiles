@@ -65,8 +65,8 @@ _nvim::install_nvim() {
     # Show the version available from the system package manager.
     local pkg_version
     case "${DOTFILES_PKG_MANAGER}" in
-    apt) pkg_version="$(apt-cache show neovim 2>/dev/null | grep -m1 '^Version:' | cut -d' ' -f2)" ;;
-    dnf) pkg_version="$(dnf info neovim 2>/dev/null | grep -m1 '^Version' | awk '{print $NF}')" ;;
+    apt) pkg_version="$(apt-cache show neovim 2>/dev/null | awk '/^Version:/{print $2; exit}')" ;;
+    dnf) pkg_version="$(dnf info neovim 2>/dev/null | awk '/^Version/{print $NF; exit}')" ;;
     esac
 
     local choice
