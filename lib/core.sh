@@ -108,6 +108,7 @@ core::remove_block() {
     $0 == end   { skip=0; next }
     !skip       { print }
   ' "${file}" >"${tmp}"
+  chmod 644 "${tmp}"
   mv "${tmp}" "${file}"
 
   core::log INFO "Removed block '${id}' from ${file}"
