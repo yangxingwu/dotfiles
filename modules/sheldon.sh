@@ -34,16 +34,14 @@ install() {
   # No-op if config already exists.
   sheldon init --shell zsh
 
-  # sheldon add writes to plugins.toml.
-  # Errors on duplicate plugin names — silenced so re-runs are idempotent.
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
     # zsh-completions must use fpath instead of source to avoid permission errors.
     if [[ "${name}" == "zsh-completions" ]]; then
-      sheldon add "${name}" --github "${plugin}" --apply fpath 2>/dev/null || true
+      sheldon add "${name}" --github "${plugin}" --apply fpath
     else
-      sheldon add "${name}" --github "${plugin}" 2>/dev/null || true
+      sheldon add "${name}" --github "${plugin}"
     fi
   done
 
@@ -61,8 +59,7 @@ uninstall() {
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
-    # Plugin may already be absent — silence "not found" errors.
-    sheldon remove "${name}" 2>/dev/null || true
+    sheldon remove "${name}"
   done
   sheldon lock --update
 
