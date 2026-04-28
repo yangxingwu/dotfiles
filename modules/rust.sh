@@ -17,25 +17,22 @@ install() {
   if core::check_installed rustup; then
     core::log INFO "rustup already installed — skipping"
   else
-    # --no-modify-path: we manage PATH via the ~/.zprofile block below,
-    # not via rustup's own shell-integration patching.
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
-      sh -s -- -y --no-modify-path
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     core::log INFO "rustup installed"
   fi
 
-  if [[ -f "${HOME}/.cargo/env" ]]; then
-    # shellcheck source=/dev/null
-    source "${HOME}/.cargo/env"
-  else
-    core::log WARN "${HOME}/.cargo/env not found — cargo may not be on PATH"
+  if [[ ! -f "${HOME}/.cargo/env" ]]; then
+    core::log ERROR "${HOME}/.cargo/env not found — rustup install may have failed"
+    return 1
   fi
 
-  # Persist cargo env for future login shells. Symmetric with brew's
-  # ~/.zprofile wiring in bootstrap::homebrew. ${HOME} is escaped so zsh
-  # expands it at login, not bash at install-time.
+  # Activate cargo for the rest of this install run.
+  # shellcheck source=/dev/null
+  source "${HOME}/.cargo/env"
+
+  # Persist for future login shells.
   core::ensure_block "${HOME}/.zprofile" "rust" \
-    '[[ -f "${HOME}/.cargo/env" ]] && . "${HOME}/.cargo/env"'
+    '. "${HOME}/.cargo/env"'
 }
 
 uninstall() {
