@@ -29,9 +29,6 @@ install() {
 }
 
 uninstall() {
-  if [[ -f "${_STARSHIP_CONFIG}" ]]; then
-    rm "${_STARSHIP_CONFIG}"
-    core::log INFO "Removed ${_STARSHIP_CONFIG}"
-  fi
+  rm -f "${_STARSHIP_CONFIG}"
   core::remove_block "${HOME}/.zshrc" "starship"
 }
