@@ -25,46 +25,25 @@ _nvim::install_deps() {
   cargo install --locked tree-sitter-cli
 }
 
-# Build and install Neovim from source at the latest stable tag.
+# Build and install Neovim from source (Linux only).
+# Follows https://github.com/neovim/neovim/blob/master/BUILD.md
 _nvim::install_from_src() {
   local build_dir="/tmp/neovim-build-$$"
-  local src_repo="https://github.com/neovim/neovim.git"
   trap 'rm -rf "${build_dir}"' RETURN
 
-  # Remove brew-managed neovim on macOS to avoid PATH conflicts.
-  if [[ "${DOTFILES_OS}" == "mac" ]]; then
-    if brew list neovim >/dev/null 2>&1; then
-      local confirm
-      printf 'Homebrew neovim found — uninstall it to avoid PATH conflicts? [y/N]: ' >&2
-      read -r confirm
-      if [[ "${confirm}" == [yY] ]]; then
-        brew uninstall neovim
-      else
-        core::log WARN "Keeping brew neovim — source build may not take precedence on PATH"
-      fi
-    fi
-  fi
-
-  git clone "${src_repo}" "${build_dir}"
-
-  local latest_tag
-  latest_tag="$(cd "${build_dir}" && git tag --sort=-v:refname |
-    grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)"
-  if [[ -z "${latest_tag}" ]]; then
-    core::log ERROR "No stable release tag found in ${src_repo}"
-    return 1
-  fi
+  git clone https://github.com/neovim/neovim.git "${build_dir}"
 
   pushd "${build_dir}" >/dev/null
-  git checkout "${latest_tag}"
+  git checkout stable
   make CMAKE_BUILD_TYPE=RelWithDebInfo
   sudo make install
   popd >/dev/null
 
-  core::log INFO "Neovim built and installed from source (${latest_tag})"
+  core::log INFO "Neovim built and installed from source (stable)"
 }
 
-# Prompt the user to install Neovim via package manager or from source.
+# Prompt the user to install Neovim. On macOS only brew is offered.
+# On Linux the user can choose between package manager and source build.
 # Loops until a valid choice is made.
 _nvim::install_nvim() {
   if core::check_installed nvim; then
@@ -72,19 +51,34 @@ _nvim::install_nvim() {
     return 0
   fi
 
-  local choice
-  while :; do
-    printf '\nNeovim not found. Install options:\n' >&2
-    printf '  1) Package manager (brew/apt)\n' >&2
-    printf '  2) Build from source (latest stable tag)\n' >&2
-    printf 'Choice [1]: ' >&2
-    read -r choice
-    case "${choice:-1}" in
-    1) core::pkg_install neovim; return ;;
-    2) _nvim::install_from_src; return ;;
-    *) core::log WARN "Invalid choice: ${choice}" ;;
-    esac
-  done
+  case "${DOTFILES_OS}" in
+  mac)
+    core::pkg_install neovim
+    ;;
+  linux)
+    # Show the version available from the system package manager.
+    local pkg_version
+    if core::check_installed apt-cache; then
+      pkg_version="$(apt-cache show neovim 2>/dev/null | grep -m1 '^Version:' | cut -d' ' -f2)"
+    elif core::check_installed dnf; then
+      pkg_version="$(dnf info neovim 2>/dev/null | grep -m1 '^Version' | awk '{print $NF}')"
+    fi
+
+    local choice
+    while :; do
+      printf '\nNeovim not found. Install options:\n' >&2
+      printf '  1) Package manager — %s\n' "${pkg_version:-version unknown}" >&2
+      printf '  2) Build from source (latest stable)\n' >&2
+      printf 'Choice [1]: ' >&2
+      read -r choice
+      case "${choice:-1}" in
+      1) core::pkg_install neovim; return ;;
+      2) _nvim::install_from_src; return ;;
+      *) core::log WARN "Invalid choice: ${choice}" ;;
+      esac
+    done
+    ;;
+  esac
 }
 
 # Clone the LazyVim config repo to ~/.config/nvim.
