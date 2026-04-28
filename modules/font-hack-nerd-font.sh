@@ -9,8 +9,6 @@ MODULE_NAME="font-hack-nerd-font"
 MODULE_DESC="Hack Nerd Font (patched with Nerd Font icons)"
 MODULE_PLATFORM="mac"
 
-LINKS=()
-
 # Hack Nerd Font is a Homebrew cask — core::pkg_install handles cask detection
 # transparently (brew list --cask / brew install).
 install() {

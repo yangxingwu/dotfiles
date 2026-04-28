@@ -10,8 +10,6 @@ MODULE_NAME="fzf"
 MODULE_DESC="fzf fuzzy finder with zsh key bindings"
 MODULE_PLATFORM="all"
 
-LINKS=()
-
 # Installs the fzf package and writes the zsh integration block to ~/.zshrc.
 # The `eval "$(fzf --zsh)"` line enables Ctrl+R (history search) and Ctrl+T
 # (file search) key bindings. It must run after `sheldon source` when both

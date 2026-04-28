@@ -10,8 +10,6 @@ MODULE_NAME="zoxide"
 MODULE_DESC="zoxide smarter cd command"
 MODULE_PLATFORM="all"
 
-LINKS=()
-
 # Installs zoxide and writes the zsh init block to ~/.zshrc.
 # `eval "$(zoxide init zsh)"` defines the `z` and `zi` shell functions.
 install() {

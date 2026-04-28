@@ -9,8 +9,6 @@ MODULE_NAME="sheldon"
 MODULE_DESC="sheldon plugin manager with curated plugin set"
 MODULE_PLATFORM="all"
 
-LINKS=()
-
 _SHELDON_PLUGINS=(
   "zsh-users/zsh-autosuggestions"
   "zsh-users/zsh-syntax-highlighting"

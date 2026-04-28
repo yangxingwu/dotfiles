@@ -9,8 +9,6 @@ MODULE_NAME="rust"
 MODULE_DESC="Rust toolchain via rustup"
 MODULE_PLATFORM="all"
 
-LINKS=()
-
 # Installs the Rust stable toolchain via the official rustup script.
 # Idempotent: skips if rustup is already present. After install (or skip),
 # sources ~/.cargo/env so later modules (nvim → tree-sitter-cli) can see cargo,

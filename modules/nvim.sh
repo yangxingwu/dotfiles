@@ -9,8 +9,6 @@ MODULE_NAME="nvim"
 MODULE_DESC="Neovim editor with LazyVim configuration (yangxingwu/neovim-lua-config)"
 MODULE_PLATFORM="all"
 
-LINKS=()
-
 _NVIM_SRC_REPO="https://github.com/neovim/neovim.git"
 _NVIM_BUILD_DIR="/tmp/neovim-build-$$"
 _NVIM_MIN_MAJOR=0

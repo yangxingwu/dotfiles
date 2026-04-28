@@ -9,8 +9,6 @@ MODULE_NAME="starship"
 MODULE_DESC="Starship prompt (catppuccin-powerline preset)"
 MODULE_PLATFORM="all"
 
-LINKS=()
-
 _STARSHIP_PRESET="catppuccin-powerline"
 
 # Installs starship, generates ~/.config/starship.toml from the preset if it
