@@ -18,17 +18,8 @@ _SHELDON_PLUGINS=(
   "zsh-users/zsh-history-substring-search"
 )
 
-# The zshrc block written by this module. Order is load-bearing:
-# 1. sheldon source — populates fpath and loads plugins
-# 2. compinit — consumes the expanded fpath
-# 3. bindkey — requires history-substring-search plugin already loaded
-_SHELDON_ZSHRC_BLOCK='eval "$(sheldon source)"
-autoload -Uz compinit && compinit
-bindkey "^[[A" history-substring-search-up
-bindkey "^[[B" history-substring-search-down'
-
 install() {
-  core::pkg_install sheldon
+  _sheldon::install_binary
 
   local config="${HOME}/.config/sheldon/plugins.toml"
   if [[ ! -f "${config}" ]]; then
@@ -38,39 +29,51 @@ install() {
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
-    sheldon add "${name}" --github "${plugin}" 2>/dev/null || true
+    # --apply fpath for zsh-completions; source (default) for everything else.
+    if [[ "${name}" == "zsh-completions" ]]; then
+      sheldon add "${name}" --github "${plugin}" --apply fpath 2>/dev/null || true
+    else
+      sheldon add "${name}" --github "${plugin}" 2>/dev/null || true
+    fi
   done
 
-  _sheldon::patch_fpath_for_zsh_completions "${config}"
-
-  core::ensure_block "${HOME}/.zshrc" "sheldon" "${_SHELDON_ZSHRC_BLOCK}"
+  core::ensure_block "${HOME}/.zshrc" "sheldon" 'eval "$(sheldon source)"'
+  core::ensure_block "${HOME}/.zshrc" "compinit" 'autoload -Uz compinit && compinit'
+  core::ensure_block "${HOME}/.zshrc" "history-substring-search" \
+    'bindkey "^[[A" history-substring-search-up
+bindkey "^[[B" history-substring-search-down'
 }
 
 uninstall() {
+  local plugin name
+  for plugin in "${_SHELDON_PLUGINS[@]}"; do
+    name="${plugin##*/}"
+    sheldon remove "${name}" 2>/dev/null || true
+  done
+
+  core::remove_block "${HOME}/.zshrc" "history-substring-search"
+  core::remove_block "${HOME}/.zshrc" "compinit"
   core::remove_block "${HOME}/.zshrc" "sheldon"
 }
 
-# Patches zsh-completions in plugins.toml to use `apply = ["fpath"]`.
-# Without this, zsh-completions triggers "insecure directories" warnings.
-# Idempotent: no-op if the apply key is already present.
-_sheldon::patch_fpath_for_zsh_completions() {
-  local config="${1}"
-
-  if grep -q 'apply = \["fpath"\]' "${config}" 2>/dev/null; then
+# Install sheldon binary. brew on macOS, cargo on Linux.
+_sheldon::install_binary() {
+  if core::check_installed sheldon; then
+    core::log INFO "sheldon already installed"
     return 0
   fi
 
-  local tmp
-  tmp="$(mktemp)"
-  awk '
-    /^\[plugins\.zsh-completions\]/ {
-      print
-      print "apply = [\"fpath\"]"
-      next
-    }
-    { print }
-  ' "${config}" >"${tmp}"
-  chmod 644 "${tmp}"
-  mv "${tmp}" "${config}"
-  core::log INFO "Patched zsh-completions to use fpath in ${config}"
+  case "${DOTFILES_OS}" in
+  mac)
+    core::pkg_install sheldon
+    ;;
+  linux)
+    if ! core::check_installed cargo; then
+      core::log ERROR "cargo not found — install the rust module first"
+      return 1
+    fi
+    cargo install sheldon --locked
+    ;;
+  esac
+  core::log INFO "sheldon installed"
 }
