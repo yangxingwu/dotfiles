@@ -6,14 +6,8 @@ set -euo pipefail
 IFS=$'\n\t'
 
 MODULE_NAME="tmux"
-MODULE_DESC="tmux configuration (oh-my-tmux base + local overrides)"
+MODULE_DESC="tmux configuration (oh-my-tmux)"
 MODULE_PLATFORM="all"
-
-# tmux.conf.local is our local override; oh-my-tmux sources it automatically.
-# tmux.conf and the upstream clone are created by oh-my-tmux's install.sh.
-LINKS=(
-  "config/tmux/tmux.conf.local:${HOME}/.config/tmux/tmux.conf.local"
-)
 
 _TMUX_INSTALL_URL="https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh"
 _TMUX_CLONE_DIR="${HOME}/.config/tmux/.tmux"
@@ -30,18 +24,8 @@ install() {
   # not the home-directory fallback.
   mkdir -p "${HOME}/.config/tmux"
 
-  # Official one-liner — clones to ~/.config/tmux/.tmux, creates tmux.conf
-  # symlink, and cp's a starter tmux.conf.local.
   curl -fsSL "${_TMUX_INSTALL_URL}" | bash
   core::log INFO "oh-my-tmux installed"
-
-  # Remove upstream's starter tmux.conf.local only if it is a real file
-  # (not already our symlink from a prior run), so LINKS can take over
-  # without a spurious conflict prompt.
-  if [[ -f "${HOME}/.config/tmux/tmux.conf.local" ]] &&
-    [[ ! -L "${HOME}/.config/tmux/tmux.conf.local" ]]; then
-    rm "${HOME}/.config/tmux/tmux.conf.local"
-  fi
 }
 
 uninstall() {
