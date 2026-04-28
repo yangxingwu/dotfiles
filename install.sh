@@ -48,7 +48,6 @@ install::run_module() {
 
   core::log INFO "▶ [${index}/${total}] ${name} — ${MODULE_DESC}"
   install
-
   core::log INFO "✓ ${name}"
 }
 

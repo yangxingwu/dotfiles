@@ -42,9 +42,7 @@ uninstall::run_module() {
   fi
 
   core::log INFO "▶ Uninstalling ${name}"
-
   uninstall
-
   core::log INFO "✓ ${name}"
 }
 
