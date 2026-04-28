@@ -15,17 +15,14 @@ MODULE_NAME="$ARGUMENTS"
 MODULE_DESC="[One-line description]"
 MODULE_PLATFORM="all"   # all | mac | linux
 
-LINKS=()
-
 install() {
-  # Install packages, external tools, or clone external repositories.
+  # Install packages, external tools, write config files.
   # Example: core::pkg_install $ARGUMENTS
   :
 }
 
 uninstall() {
-  # Clean up external side effects produced by install().
-  # LINKS symlinks are removed automatically by uninstall.sh — do not touch them here.
+  # Clean up side effects produced by install() (config files, clones, etc.).
   :
 }
 ```
@@ -36,12 +33,6 @@ uninstall() {
 # Module: $ARGUMENTS
 
 [Description of what this module manages]
-
-## Symlinks
-
-| Source | Target | Platform |
-|---|---|---|
-| `config/$ARGUMENTS/` | `~/.config/$ARGUMENTS/` | all |
 
 ## Module hooks
 
@@ -61,15 +52,14 @@ uninstall() {
 ---
 paths:
   - "modules/$ARGUMENTS.sh"
-  - "config/$ARGUMENTS/**"
 ---
 
 @docs/modules/$ARGUMENTS.md
 ```
 
 After creating all three files, remind the user to:
-1. Fill in `MODULE_DESC`, `MODULE_PLATFORM`, `LINKS`, and add `core::pkg_install` calls
+1. Fill in `MODULE_DESC`, `MODULE_PLATFORM`, and add `core::pkg_install` calls
    in `install()` for any packages needed
-2. Create `config/$ARGUMENTS/` and add the actual config files
-3. Update `docs/modules/$ARGUMENTS.md` with accurate symlink and hooks tables
+2. Add `$ARGUMENTS` to `DOTFILES_MODULES` in `lib/modules.sh`
+3. Update `docs/modules/$ARGUMENTS.md` with accurate hooks table
 4. Run `./install.sh` to verify the module works end-to-end

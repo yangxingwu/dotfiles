@@ -4,11 +4,6 @@ Neovim editor with LazyVim configuration. The module installs runtime dependenci
 installs or upgrades Neovim itself, and clones the config repo directly to
 `~/.config/nvim` — all inside a single `install()` hook.
 
-## Symlinks
-
-This module sets `LINKS=()` — no standard symlinks are created. `install()` clones the
-config repo directly to `~/.config/nvim` instead.
-
 ## Module hooks
 
 | Hook | Action |
@@ -40,7 +35,7 @@ than a hard failure.
 
 ### 3. Neovim version check
 
-Uses `core::check_installed nvim && core::require_version nvim 0 9`. When the check
+Uses `core::check_installed nvim && _nvim::version_ok nvim 0 9`. When the check
 fails, the user is prompted:
 
 ```
@@ -95,7 +90,7 @@ The clone is idempotent — the step handles four possible states of `_NVIM_TARG
 |---|---|
 | Contains `.git/` (already cloned) | Skip |
 | Stale symlink | Remove symlink, then clone |
-| Existing non-git directory | `core::backup`, then clone |
+| Existing non-git directory | `_nvim::backup`, then clone |
 | Absent | Clone |
 
 ## uninstall()

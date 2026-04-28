@@ -2,15 +2,6 @@
 
 [fzf](https://github.com/junegunn/fzf) fuzzy finder with zsh key bindings.
 
-## Symlinks
-
-| Source | Target | Platform |
-|---|---|---|
-| — | — | — |
-
-No LINKS — all configuration is done via the managed `fzf` block in
-`~/.zshrc`.
-
 ## Module hooks
 
 | Hook | Action |
@@ -28,4 +19,4 @@ No LINKS — all configuration is done via the managed `fzf` block in
 
 The fzf package must be installed before the sheldon module runs because
 sheldon's `fzf-tab` plugin requires the `fzf` binary on PATH. Install order
-is managed by `_MODULES` in `install.sh`.
+is managed by `DOTFILES_MODULES` in `lib/modules.sh`.

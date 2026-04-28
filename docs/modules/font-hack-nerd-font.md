@@ -4,10 +4,6 @@
 — the Hack typeface patched with Nerd Font glyphs (Powerline, Devicons, Font Awesome,
 etc.). macOS only.
 
-## Symlinks
-
-None — fonts are installed system-wide by Homebrew into `~/Library/Fonts/`.
-
 ## Module hooks
 
 | Hook | Action |

@@ -74,7 +74,7 @@ All functions use `namespace::name` format matching their source file:
 
 | File | Namespace | Examples |
 |---|---|---|
-| `lib/core.sh` | `core::` | `core::log`, `core::symlink`, `core::check_installed`, `core::require_version` |
+| `lib/core.sh` | `core::` | `core::log`, `core::check_installed`, `core::pkg_install` |
 | `lib/detect.sh` | `detect::` | `detect::os`, `detect::pkg_manager` |
 | `lib/bootstrap.sh` | `bootstrap::` | `bootstrap::xcode_clt`, `bootstrap::homebrew`, `bootstrap::dev_tools` |
 | `install.sh` | `install::` | `install::run_module` |
@@ -142,8 +142,8 @@ printf 'Configuring %s\n' "${MODULE_NAME}"
 Exception: interactive prompts. `core::log` renders a boxed `[INFO]` prefix and a
 trailing newline, which doesn't suit a multi-line question + `read -r` flow. For
 those, use raw `printf '...' >&2` directly (see `modules/nvim.sh`'s pkg-vs-source
-install menu, and `core::symlink`'s conflict prompt in `lib/core.sh`). The
-"no raw printf in modules" rule covers informational log output, not prompts.
+install menu). The "no raw printf in modules" rule covers informational log output,
+not prompts.
 
 ---
 
@@ -263,12 +263,12 @@ Describe *what* and *why*, not *how*. The code itself shows how.
 
 ```bash
 # Wrong — describes the how, not the why
-# iterate over each file in the array and create a symlink
-for link in "${LINKS[@]}"; do
+# iterate over each file in the array and install it
+for pkg in "${packages[@]}"; do
 
 # Correct — describes why this check exists
-# Skip files already correctly symlinked — install.sh is designed to be idempotent
-for link in "${LINKS[@]}"; do
+# Skip packages already present — install.sh is designed to be idempotent
+for pkg in "${packages[@]}"; do
 ```
 
 ---

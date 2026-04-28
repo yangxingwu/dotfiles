@@ -3,10 +3,6 @@
 [zoxide](https://github.com/ajeetdsouza/zoxide) — a smarter `cd` command that learns
 your most-visited directories and lets you jump to them with `z foo`. Cross-platform.
 
-## Symlinks
-
-None — zoxide needs no config files; it works out of the box.
-
 ## Module hooks
 
 | Hook | Action |

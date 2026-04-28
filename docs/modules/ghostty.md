@@ -2,26 +2,19 @@
 
 [Ghostty](https://ghostty.org/) terminal emulator configuration. macOS only.
 
-## Symlinks
-
-| Source | Target | Platform |
-|---|---|---|
-| `config/ghostty/config` | `~/.config/ghostty/config` | mac |
-
 ## Module hooks
 
 | Hook | Action |
 |---|---|
-| `install` | no-op — Ghostty is distributed as a standalone app and is installed manually |
-| `uninstall` | no-op |
+| `install` | Writes config to `~/.config/ghostty/config` via heredoc |
+| `uninstall` | Removes `~/.config/ghostty/config` |
 
 ## Notes
 
 Ghostty reads its configuration from `~/.config/ghostty/config` on macOS.
 
-Default settings in `config/ghostty/config`:
+Default settings:
 
-- **Font**: system monospace, size 13
-- **Theme**: `catppuccin-mocha` (built into Ghostty's bundled themes)
-- **Window padding**: 8 px on all sides
-- **Background opacity**: 0.95
+- **Font**: Hack Nerd Font Mono, size 15
+- **Theme**: Catppuccin Mocha (built into Ghostty's bundled themes)
+- **macOS Option key**: treated as Alt (for terminal keybindings)
