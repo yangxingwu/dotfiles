@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # modules/starship.sh — Starship prompt (catppuccin-powerline preset)
+# https://github.com/starship/starship
 # Platform: all
 # shellcheck disable=SC2034,SC2016  # module interface vars + intentional literal shell expansion in zsh init block
 set -euo pipefail
@@ -10,23 +11,27 @@ MODULE_DESC="Starship prompt (catppuccin-powerline preset)"
 MODULE_PLATFORM="all"
 
 _STARSHIP_PRESET="catppuccin-powerline"
+_STARSHIP_CONFIG="${HOME}/.config/starship.toml"
 
-# Installs starship, generates ~/.config/starship.toml from the preset if it
-# doesn't exist yet, and writes the zsh init block. Does NOT regenerate an
-# existing config — users who've tweaked their prompt keep their tweaks.
+# Install starship via the official installer (works on both macOS and Linux).
+# Generate starship.toml from the preset and write the zsh init block.
 install() {
-  core::pkg_install starship
-
-  local config="${HOME}/.config/starship.toml"
-  if [[ ! -f "${config}" ]]; then
-    mkdir -p "$(dirname "${config}")"
-    starship preset "${_STARSHIP_PRESET}" --output "${config}"
-    core::log INFO "Generated starship.toml from preset ${_STARSHIP_PRESET}"
+  if ! core::check_installed starship; then
+    curl -sS https://starship.rs/install.sh | sh
+    core::log INFO "starship installed"
   fi
+
+  mkdir -p "$(dirname "${_STARSHIP_CONFIG}")"
+  starship preset "${_STARSHIP_PRESET}" --output "${_STARSHIP_CONFIG}"
+  core::log INFO "Generated starship.toml from preset ${_STARSHIP_PRESET}"
 
   core::ensure_block "${HOME}/.zshrc" "starship" 'eval "$(starship init zsh)"'
 }
 
 uninstall() {
+  if [[ -f "${_STARSHIP_CONFIG}" ]]; then
+    rm "${_STARSHIP_CONFIG}"
+    core::log INFO "Removed ${_STARSHIP_CONFIG}"
+  fi
   core::remove_block "${HOME}/.zshrc" "starship"
 }
