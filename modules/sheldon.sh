@@ -53,12 +53,18 @@ install() {
 }
 
 uninstall() {
+  if ! core::check_installed sheldon; then
+    core::log WARN "sheldon not found — skipping plugin removal"
+    return 0
+  fi
+
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
+    # Plugin may already be absent — silence "not found" errors.
     sheldon remove "${name}" 2>/dev/null || true
   done
-  sheldon lock --update 2>/dev/null || true
+  sheldon lock --update
 
   core::remove_block "${HOME}/.zshrc" "sheldon"
 }
