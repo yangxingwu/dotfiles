@@ -144,3 +144,29 @@ core::run_module() {
   "${action}"
   core::log INFO "✓ ${name}"
 }
+
+# Summary tracking — populated by bootstrap, core::run_module, and modules.
+_CORE_SUMMARY=()
+
+# core::summary <entry>
+# Appends a line to the summary buffer.
+core::summary() {
+  _CORE_SUMMARY+=("${1}")
+}
+
+# core::print_summary
+# Prints the accumulated summary between box-drawing borders.
+core::print_summary() {
+  printf '\n══════════════════════════════════════════════════\n'
+  printf '  Summary\n'
+  printf '══════════════════════════════════════════════════\n'
+  local line
+  for line in "${_CORE_SUMMARY[@]}"; do
+    if [[ "${line}" == "---" ]]; then
+      printf '──────────────────────────────────────────────────\n'
+    else
+      printf '%s\n' "${line}"
+    fi
+  done
+  printf '══════════════════════════════════════════════════\n'
+}
