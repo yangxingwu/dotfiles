@@ -85,6 +85,7 @@ core::ensure_block() {
   core::remove_block "${file}" "${id}"
 
   printf '%s\n%s\n%s\n' "${begin}" "${content}" "${end}" >>"${file}"
+
   core::log INFO "Wrote block '${id}' to ${file}"
 }
 
