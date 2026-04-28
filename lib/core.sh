@@ -69,32 +69,28 @@ core::pkg_install() {
   done
 }
 
-# core::ensure_block <file> <id> <content>
-# Idempotently writes a managed block into <file>. A block is delimited by
+# Managed blocks in shell init files are delimited by:
 #   # BEGIN dotfiles:<id>
 #   <content>
 #   # END dotfiles:<id>
-# If the block already exists it is removed first, then re-appended.
-# <content> is written verbatim; callers pre-expand any variables they want
-# captured at install-time, and escape "$" to keep shell expansions literal.
+
+# core::ensure_block <file> <id> <content>
+# Writes a managed block to <file>. Removes any existing block with the
+# same id first, then appends the new one.
 core::ensure_block() {
   local file="${1}" id="${2}" content="${3}"
+  local begin="# BEGIN dotfiles:${id}"
+  local end="# END dotfiles:${id}"
 
-  # Remove existing block (no-op if absent) then append fresh.
   core::remove_block "${file}" "${id}"
 
-  {
-    printf '%s\n' "# BEGIN dotfiles:${id}"
-    printf '%s\n' "${content}"
-    printf '%s\n' "# END dotfiles:${id}"
-  } >>"${file}"
+  printf '%s\n%s\n%s\n' "${begin}" "${content}" "${end}" >>"${file}"
   core::log INFO "Wrote block '${id}' to ${file}"
 }
 
 # core::remove_block <file> <id>
-# Removes the named managed block (and its surrounding markers) from <file>.
-# No-op if <file> does not exist or the block is absent. Used by module
-# uninstall() hooks to clean up shell init blocks.
+# Removes the managed block with the given id from <file>.
+# No-op if the file or block is absent.
 core::remove_block() {
   local file="${1}" id="${2}"
   local begin="# BEGIN dotfiles:${id}"
@@ -103,14 +99,15 @@ core::remove_block() {
   [[ -f "${file}" ]] || return 0
   grep -qxF "${begin}" "${file}" || return 0
 
+  # Write everything outside BEGIN..END to a temp file, then swap.
   local tmp
   tmp="$(mktemp -- "${file}.XXXXXX")"
   awk -v begin="${begin}" -v end="${end}" '
-    $0 == begin { in_block=1; next }
-    $0 == end   { in_block=0; next }
-    !in_block   { print }
+    $0 == begin { skip=1; next }
+    $0 == end   { skip=0; next }
+    !skip       { print }
   ' "${file}" >"${tmp}"
-
   mv "${tmp}" "${file}"
+
   core::log INFO "Removed block '${id}' from ${file}"
 }
