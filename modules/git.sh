@@ -10,14 +10,12 @@ MODULE_DESC="Git configuration"
 MODULE_PLATFORM="all"
 
 install() {
-  git config --global core.quotepath false
   git config --global user.name "yangxingwu"
   git config --global user.email "xingwu.yang@gmail.com"
   core::log INFO "Wrote git global config"
 }
 
 uninstall() {
-  git config --global --unset core.quotepath 2>/dev/null || true
   git config --global --unset user.name 2>/dev/null || true
   git config --global --unset user.email 2>/dev/null || true
   core::log INFO "Removed git global config"
