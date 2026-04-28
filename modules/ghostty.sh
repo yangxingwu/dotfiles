@@ -9,9 +9,22 @@ MODULE_NAME="ghostty"
 MODULE_DESC="Ghostty terminal emulator configuration"
 MODULE_PLATFORM="mac"
 
-LINKS=(
-  "config/ghostty/config:${HOME}/.config/ghostty/config"
-)
+_GHOSTTY_CONFIG="${HOME}/.config/ghostty/config"
 
-install() { :; }
-uninstall() { :; }
+install() {
+  mkdir -p "$(dirname "${_GHOSTTY_CONFIG}")"
+  cat >"${_GHOSTTY_CONFIG}" <<'CONF'
+theme = Catppuccin Mocha
+font-family = "Hack Nerd Font Mono"
+font-size = "15"
+macos-option-as-alt = true
+CONF
+  core::log INFO "Wrote Ghostty config"
+}
+
+uninstall() {
+  if [[ -f "${_GHOSTTY_CONFIG}" ]]; then
+    rm "${_GHOSTTY_CONFIG}"
+    core::log INFO "Removed ${_GHOSTTY_CONFIG}"
+  fi
+}
