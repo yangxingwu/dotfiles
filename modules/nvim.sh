@@ -19,6 +19,21 @@ _NVIM_REPO="git@github.com:yangxingwu/neovim-lua-config.git"
 _NVIM_BRANCH="LazyVimV2"
 _NVIM_TARGET="${HOME}/.config/nvim"
 
+# _nvim::version_ok <binary> <min-major> <min-minor>
+# Returns 0 if `<binary> --version` reports >= min-major.min-minor.
+_nvim::version_ok() {
+  local bin="${1}" min_major="${2}" min_minor="${3}"
+  local version major minor
+  version="$("${bin}" --version 2>/dev/null | head -1 |
+    grep -oE '[0-9]+\.[0-9]+' || true)"
+  [[ -z "${version}" ]] && return 1
+  major="${version%.*}"
+  minor="${version#*.}"
+  ((10#${major} > 10#${min_major})) && return 0
+  ((10#${major} == 10#${min_major})) && ((10#${minor} >= 10#${min_minor})) && return 0
+  return 1
+}
+
 install() {
   # 1. LazyVim runtime dependencies
   case "${DOTFILES_OS}" in
@@ -35,7 +50,7 @@ install() {
 
   # 2. Neovim itself — version check, prompt on miss
   if core::check_installed nvim &&
-    core::require_version nvim "${_NVIM_MIN_MAJOR}" "${_NVIM_MIN_MINOR}"; then
+    _nvim::version_ok nvim "${_NVIM_MIN_MAJOR}" "${_NVIM_MIN_MINOR}"; then
     core::log INFO "Neovim >= ${_NVIM_MIN_MAJOR}.${_NVIM_MIN_MINOR} already installed — skipping"
   else
     local choice

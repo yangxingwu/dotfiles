@@ -35,25 +35,6 @@ core::check_installed() {
   command -v "${1}" >/dev/null 2>&1
 }
 
-# core::require_version <binary> <min-major> <min-minor>
-# Returns 0 if `<binary> --version` reports >= min-major.min-minor, 1 otherwise.
-# Parses the first "<digits>.<digits>" substring on the first output line.
-core::require_version() {
-  local bin="${1}" min_major="${2}" min_minor="${3}"
-  local version major minor
-  version="$("${bin}" --version 2>/dev/null | head -1 |
-    grep -oE '[0-9]+\.[0-9]+' || true)"
-  [[ -z "${version}" ]] && return 1
-  major="${version%.*}"
-  minor="${version#*.}"
-  # Force base-10: a version component like "08" or "09" would otherwise be
-  # parsed as octal by the arithmetic context and abort with "value too
-  # great for base" under set -euo pipefail.
-  ((10#${major} > 10#${min_major})) && return 0
-  ((10#${major} == 10#${min_major})) && ((10#${minor} >= 10#${min_minor})) && return 0
-  return 1
-}
-
 # core::backup <absolute-path>
 # Moves a file/dir to ~/.dotfiles-backup/YYYYMMDD-HHMMSS/ preserving
 # relative path from HOME.
