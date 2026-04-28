@@ -51,11 +51,6 @@ install() {
 }
 
 uninstall() {
-  if ! core::check_installed sheldon; then
-    core::log WARN "sheldon not found — skipping plugin removal"
-    return 0
-  fi
-
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
