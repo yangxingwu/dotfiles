@@ -10,15 +10,8 @@ MODULE_NAME="fzf"
 MODULE_DESC="fzf fuzzy finder with zsh key bindings"
 MODULE_PLATFORM="all"
 
-# Installs the fzf package and writes the zsh integration block to ~/.zshrc.
-# The `eval "$(fzf --zsh)"` line enables Ctrl+R (history search) and Ctrl+T
-# (file search) key bindings. It must run after `sheldon source` when both
-# are present (sheldon's fzf-tab plugin integrates with fzf) — install order
-# in _MODULES puts fzf before sheldon so the fzf binary is on PATH when
-# sheldon loads, but the init block order is determined by module run order,
-# which places the fzf block before the sheldon block in ~/.zshrc. Both
-# orders work: fzf's --zsh emits a self-contained init that doesn't depend
-# on sheldon, and sheldon's fzf-tab loads later, picking up fzf already set.
+# Installs fzf and writes the zsh integration block to ~/.zshrc.
+# fzf must be installed before sheldon (sheldon's fzf-tab plugin needs the binary).
 install() {
   core::pkg_install fzf
   core::ensure_block "${HOME}/.zshrc" "fzf" 'eval "$(fzf --zsh)"'
