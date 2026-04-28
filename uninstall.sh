@@ -14,10 +14,10 @@ source "${DOTFILES_ROOT}/lib/detect.sh"
 # shellcheck source=lib/core.sh
 source "${DOTFILES_ROOT}/lib/core.sh"
 
-# uninstall::run_module <name>
+# uninstall::run_module <name> <index> <total>
 # Sources modules/<name>.sh, runs uninstall().
 uninstall::run_module() {
-  local name="${1}"
+  local name="${1}" index="${2}" total="${3}"
   local module_file="${DOTFILES_ROOT}/modules/${name}.sh"
 
   install() { :; }
@@ -41,7 +41,7 @@ uninstall::run_module() {
     return 0
   fi
 
-  core::log INFO "▶ Uninstalling ${name}"
+  core::log INFO "▶ [${index}/${total}] Uninstalling ${name}"
   uninstall
   core::log INFO "✓ ${name}"
 }
@@ -54,9 +54,10 @@ main() {
   # machine whose pm is broken or uninstalled.
   detect::os
 
-  local name
+  local total=${#DOTFILES_MODULES[@]} i=0 name
   for name in "${DOTFILES_MODULES[@]}"; do
-    uninstall::run_module "${name}"
+    i=$((i + 1))
+    uninstall::run_module "${name}" "${i}" "${total}"
   done
   core::log INFO "Uninstall complete."
 }
