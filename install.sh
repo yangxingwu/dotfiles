@@ -3,7 +3,6 @@
 # Usage: ./install.sh
 #
 # Installs every module in ${DOTFILES_MODULES} for the current platform. Idempotent.
-# Conflicts are resolved interactively per symlink inside core::symlink.
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -22,7 +21,7 @@ source "${DOTFILES_ROOT}/lib/core.sh"
 source "${DOTFILES_ROOT}/lib/bootstrap.sh"
 
 # install::run_module <name> <index> <total>
-# Sources modules/<name>.sh, validates interface, runs install() then LINKS.
+# Sources modules/<name>.sh, validates interface, runs install().
 install::run_module() {
   local name="${1}" index="${2}" total="${3}"
   local module_file="${DOTFILES_ROOT}/modules/${name}.sh"
@@ -30,7 +29,7 @@ install::run_module() {
   # Reset module state to prevent bleed-through between modules.
   install() { :; }
   uninstall() { :; }
-  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
 
   # shellcheck source=/dev/null
   source "${module_file}"
@@ -51,13 +50,6 @@ install::run_module() {
 
   core::log INFO "▶ [${index}/${total}] ${name} — ${MODULE_DESC}"
   install
-
-  local link_entry src target
-  for link_entry in "${LINKS[@]+"${LINKS[@]}"}"; do
-    src="${link_entry%%:*}"
-    target="${link_entry##*:}"
-    core::symlink "${src}" "${target}"
-  done
 
   core::log INFO "✓ ${name}"
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# uninstall.sh — removes dotfile symlinks and runs each module's uninstall() hook.
+# uninstall.sh — runs each module's uninstall() hook.
 # Usage: ./uninstall.sh
 set -euo pipefail
 IFS=$'\n\t'
@@ -17,14 +17,14 @@ source "${DOTFILES_ROOT}/lib/detect.sh"
 source "${DOTFILES_ROOT}/lib/core.sh"
 
 # uninstall::run_module <name>
-# Sources modules/<name>.sh, removes LINKS symlinks, then runs uninstall().
+# Sources modules/<name>.sh, runs uninstall().
 uninstall::run_module() {
   local name="${1}"
   local module_file="${DOTFILES_ROOT}/modules/${name}.sh"
 
   install() { :; }
   uninstall() { :; }
-  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM LINKS
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
 
   # shellcheck source=/dev/null
   source "${module_file}"
@@ -45,19 +45,6 @@ uninstall::run_module() {
 
   core::log INFO "▶ Uninstalling ${name}"
 
-  # 1. Remove LINKS symlinks first (relinquish ownership)
-  local link_entry target
-  for link_entry in "${LINKS[@]+"${LINKS[@]}"}"; do
-    target="${link_entry##*:}"
-    if [[ -L "${target}" ]]; then
-      rm "${target}"
-      core::log INFO "Removed symlink: ${target}"
-    elif [[ -e "${target}" ]]; then
-      core::log WARN "Not a symlink — skipping: ${target}"
-    fi
-  done
-
-  # 2. Run uninstall() to clean up external side effects (clones, etc.)
   uninstall
 
   core::log INFO "✓ ${name}"
@@ -68,8 +55,7 @@ main() {
   # Only detect::os is needed: uninstall::run_module uses DOTFILES_OS for
   # the MODULE_PLATFORM gate, but no code path here reads DOTFILES_PKG_MANAGER.
   # Skipping detect::pkg_manager also lets `./uninstall.sh` succeed on a
-  # machine whose pm is broken or uninstalled — removing our symlinks
-  # shouldn't require a working package manager.
+  # machine whose pm is broken or uninstalled.
   detect::os
 
   local name
