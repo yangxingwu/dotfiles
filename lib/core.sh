@@ -80,8 +80,6 @@ core::pkg_install() {
 core::ensure_block() {
   local file="${1}" id="${2}" content="${3}"
 
-  [[ -f "${file}" ]] || : >"${file}"
-
   # Remove existing block (no-op if absent) then append fresh.
   core::remove_block "${file}" "${id}"
 
