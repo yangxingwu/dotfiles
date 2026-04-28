@@ -24,6 +24,6 @@ install() {
 # Reverse of install: remove clone, unlink symlink, remove local config.
 uninstall() {
   rm -rf "${HOME}/.local/share/tmux/oh-my-tmux"
-  unlink "${HOME}/.config/tmux/tmux.conf" 2>/dev/null || true
+  unlink "${HOME}/.config/tmux/tmux.conf"
   rm -f "${HOME}/.config/tmux/tmux.conf.local"
 }
