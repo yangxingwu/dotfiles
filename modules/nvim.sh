@@ -17,6 +17,21 @@ _NVIM_REPO="git@github.com:yangxingwu/neovim-lua-config.git"
 _NVIM_BRANCH="LazyVimV2"
 _NVIM_TARGET="${HOME}/.config/nvim"
 
+# _nvim::backup <absolute-path>
+# Moves a file/dir to ~/.dotfiles-backup/YYYYMMDD-HHMMSS/ preserving
+# relative path from HOME.
+_nvim::backup() {
+  local target="${1}"
+  local timestamp
+  timestamp="$(date +%Y%m%d-%H%M%S)"
+  local relative="${target#"${HOME}/"}"
+  local backup_path="${HOME}/.dotfiles-backup/${timestamp}/${relative}"
+
+  mkdir -p "$(dirname "${backup_path}")"
+  mv "${target}" "${backup_path}"
+  core::log INFO "Backed up: ${target} → ${backup_path}"
+}
+
 # _nvim::version_ok <binary> <min-major> <min-minor>
 # Returns 0 if `<binary> --version` reports >= min-major.min-minor.
 _nvim::version_ok() {
@@ -76,7 +91,7 @@ install() {
     rm "${_NVIM_TARGET}"
     core::log INFO "Removed stale symlink at ${_NVIM_TARGET}"
   elif [[ -d "${_NVIM_TARGET}" ]]; then
-    core::backup "${_NVIM_TARGET}"
+    _nvim::backup "${_NVIM_TARGET}"
   fi
 
   git clone --branch "${_NVIM_BRANCH}" "${_NVIM_REPO}" "${_NVIM_TARGET}"
