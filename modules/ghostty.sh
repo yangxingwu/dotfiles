@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
-# modules/ghostty.sh — Ghostty terminal emulator configuration
+# modules/ghostty.sh — Ghostty terminal emulator
+# https://ghostty.org
 # Platform: mac
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 set -euo pipefail
 IFS=$'\n\t'
 
 MODULE_NAME="ghostty"
-MODULE_DESC="Ghostty terminal emulator configuration"
+MODULE_DESC="Ghostty terminal emulator"
 MODULE_PLATFORM="mac"
 
 _GHOSTTY_CONFIG="${HOME}/.config/ghostty/config"
 
 install() {
+  core::pkg_install ghostty
+
   mkdir -p "$(dirname "${_GHOSTTY_CONFIG}")"
   cat >"${_GHOSTTY_CONFIG}" <<'CONF'
 theme = Catppuccin Mocha
@@ -23,8 +26,5 @@ CONF
 }
 
 uninstall() {
-  if [[ -f "${_GHOSTTY_CONFIG}" ]]; then
-    rm "${_GHOSTTY_CONFIG}"
-    core::log INFO "Removed ${_GHOSTTY_CONFIG}"
-  fi
+  rm -f "${_GHOSTTY_CONFIG}"
 }
