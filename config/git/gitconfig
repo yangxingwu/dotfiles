@@ -1,6 +1,0 @@
-[core]
-	hooksPath = ~/.git-hooks
-	quotepath = false
-[user]
-	name = yangxingwu
-	email = xingwu.yang@gmail.com
