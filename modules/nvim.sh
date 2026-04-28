@@ -29,6 +29,7 @@ _nvim::install_deps() {
 # Loops until a valid choice is made.
 _nvim::install_nvim() {
   if core::check_installed nvim; then
+    core::log INFO "Neovim already installed: $(nvim --version | head -1)"
     return 0
   fi
 
