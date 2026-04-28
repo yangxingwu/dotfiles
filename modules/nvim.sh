@@ -27,13 +27,17 @@ _nvim::install_deps() {
 
 # Build and install Neovim from source (Linux only).
 # Follows https://github.com/neovim/neovim/blob/master/BUILD.md
+# Source is kept at ~/.local/src/neovim for future uninstall.
 _nvim::install_from_src() {
-  local build_dir="/tmp/neovim-build-$$"
-  trap 'rm -rf "${build_dir}"' RETURN
+  local src_dir="${HOME}/.local/src/neovim"
 
-  git clone https://github.com/neovim/neovim.git "${build_dir}"
+  if [[ -d "${src_dir}" ]]; then
+    rm -rf "${src_dir}"
+  fi
 
-  pushd "${build_dir}" >/dev/null
+  git clone https://github.com/neovim/neovim.git "${src_dir}"
+
+  pushd "${src_dir}" >/dev/null
   git checkout stable
   make CMAKE_BUILD_TYPE=RelWithDebInfo
   sudo make install
@@ -115,5 +119,15 @@ install() {
 }
 
 uninstall() {
+  # If neovim was built from source, uninstall via make.
+  local src_dir="${HOME}/.local/src/neovim"
+  if [[ -d "${src_dir}/build" ]]; then
+    pushd "${src_dir}" >/dev/null
+    sudo make uninstall
+    popd >/dev/null
+    rm -rf "${src_dir}"
+    core::log INFO "Uninstalled source-built Neovim"
+  fi
+
   rm -rf "${HOME}/.config/nvim"
 }
