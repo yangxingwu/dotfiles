@@ -9,6 +9,7 @@ MODULE_NAME="git"
 MODULE_DESC="Git configuration"
 MODULE_PLATFORM="all"
 
+# git is installed by bootstrap::dev_tools — only config is needed here.
 install() {
   git config --global user.name "yangxingwu"
   git config --global user.email "xingwu.yang@gmail.com"
