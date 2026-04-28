@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # modules/nvim.sh — Neovim editor with LazyVim configuration
 # https://github.com/neovim/neovim
+# https://www.lazyvim.org
 # Platform: all
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 set -euo pipefail
@@ -10,11 +11,12 @@ MODULE_NAME="nvim"
 MODULE_DESC="Neovim editor with LazyVim configuration (yangxingwu/neovim-lua-config)"
 MODULE_PLATFORM="all"
 
-# Install LazyVim runtime dependencies.
+# Install LazyVim requirements.
+# https://www.lazyvim.org/ — Requirements section.
 _nvim::install_deps() {
   case "${DOTFILES_OS}" in
-  mac) core::pkg_install ripgrep fd lazygit node shfmt shellcheck ;;
-  linux) core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck ;;
+  mac) core::pkg_install ripgrep fd lazygit node shfmt shellcheck fzf ;;
+  linux) core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck fzf curl ;;
   esac
 
   # tree-sitter-cli is not in any package manager — install via cargo.
@@ -26,7 +28,7 @@ _nvim::install_deps() {
 }
 
 # Build and install Neovim from source (Linux only).
-# Follows https://github.com/neovim/neovim/blob/master/BUILD.md
+# https://github.com/neovim/neovim/blob/master/BUILD.md
 # Source is kept at ~/.local/src/neovim for future uninstall.
 _nvim::install_from_src() {
   local src_dir="${HOME}/.local/src/neovim"
@@ -48,9 +50,7 @@ _nvim::install_from_src() {
   core::log INFO "Neovim built and installed from source (stable)"
 }
 
-# Prompt the user to install Neovim. On macOS only brew is offered.
-# On Linux the user can choose between package manager and source build.
-# Loops until a valid choice is made.
+# Install Neovim. macOS uses brew; Linux offers package manager or source build.
 _nvim::install_nvim() {
   if core::check_installed nvim; then
     core::log INFO "Neovim already installed: $(nvim --version | head -1)"
@@ -62,7 +62,6 @@ _nvim::install_nvim() {
     core::pkg_install neovim
     ;;
   linux)
-    # Show the version available from the system package manager.
     local pkg_version
     case "${DOTFILES_PKG_MANAGER}" in
     apt) pkg_version="$(apt-cache show neovim 2>/dev/null | awk '/^Version:/{print $2; exit}')" ;;
@@ -87,27 +86,32 @@ _nvim::install_nvim() {
 }
 
 # Clone the LazyVim config repo to ~/.config/nvim.
-# Backs up any existing non-git directory; removes stale symlinks.
+# https://www.lazyvim.org/installation
+# Uses a personal fork instead of the official starter; .git is kept for
+# ongoing maintenance of the config repo.
 _nvim::clone_config() {
   local repo="git@github.com:yangxingwu/neovim-lua-config.git"
   local branch="LazyVimV2"
   local target="${HOME}/.config/nvim"
 
   if [[ -d "${target}/.git" ]]; then
-    core::log INFO "Neovim config already cloned — skipping"
+    core::log INFO "Neovim config already cloned — pulling latest"
+    git -C "${target}" pull
     return 0
   fi
-  if [[ -L "${target}" ]]; then
-    rm "${target}"
-    core::log INFO "Removed stale symlink at ${target}"
-  elif [[ -d "${target}" ]]; then
-    local timestamp backup_path
-    timestamp="$(date +%Y%m%d-%H%M%S)"
-    backup_path="${HOME}/.dotfiles-backup/${timestamp}/.config/nvim"
-    mkdir -p "$(dirname "${backup_path}")"
-    mv "${target}" "${backup_path}"
-    core::log INFO "Backed up: ${target} → ${backup_path}"
-  fi
+
+  # Back up existing nvim dirs per LazyVim installation guide.
+  local dir
+  for dir in "${target}" "${HOME}/.local/share/nvim" "${HOME}/.local/state/nvim" "${HOME}/.cache/nvim"; do
+    if [[ -e "${dir}" ]] || [[ -L "${dir}" ]]; then
+      local timestamp backup_path
+      timestamp="$(date +%Y%m%d-%H%M%S)"
+      backup_path="${HOME}/.dotfiles-backup/${timestamp}/${dir#"${HOME}/"}"
+      mkdir -p "$(dirname "${backup_path}")"
+      mv "${dir}" "${backup_path}"
+      core::log INFO "Backed up: ${dir} → ${backup_path}"
+    fi
+  done
 
   git clone --branch "${branch}" "${repo}" "${target}"
   core::log INFO "Cloned neovim config to ${target}"
