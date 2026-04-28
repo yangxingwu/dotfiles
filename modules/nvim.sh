@@ -45,12 +45,6 @@ _nvim::install_from_src() {
     fi
   fi
 
-  # Build deps (cmake/ninja/gettext already installed by bootstrap::dev_tools,
-  # but curl may be missing on minimal Linux installs).
-  case "${DOTFILES_OS}" in
-  linux) core::pkg_install curl ;;
-  esac
-
   git clone "${src_repo}" "${build_dir}"
 
   local latest_tag
