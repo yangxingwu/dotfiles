@@ -83,7 +83,6 @@ core::ensure_block() {
   # Remove existing block (no-op if absent) then append fresh.
   core::remove_block "${file}" "${id}"
 
-  if [[ -s "${file}" ]]; then printf '\n' >>"${file}"; fi
   {
     printf '%s\n' "# BEGIN dotfiles:${id}"
     printf '%s\n' "${content}"
