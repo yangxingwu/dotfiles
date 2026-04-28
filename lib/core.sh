@@ -111,3 +111,36 @@ core::remove_block() {
 
   core::log INFO "Removed block '${id}' from ${file}"
 }
+
+# core::run_module <action> <name> <index> <total>
+# Sources modules/<name>.sh, validates the module interface, skips if the
+# platform doesn't match, then calls the given action (install or uninstall).
+core::run_module() {
+  local action="${1}" name="${2}" index="${3}" total="${4}"
+  local module_file="${DOTFILES_ROOT}/modules/${name}.sh"
+
+  install() { :; }
+  uninstall() { :; }
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
+
+  # shellcheck source=/dev/null
+  source "${module_file}"
+
+  : "${MODULE_NAME:?missing MODULE_NAME in ${module_file}}"
+  : "${MODULE_DESC:?missing MODULE_DESC in ${module_file}}"
+  : "${MODULE_PLATFORM:?missing MODULE_PLATFORM in ${module_file}}"
+
+  if [[ "${MODULE_NAME}" != "${name}" ]]; then
+    core::log ERROR "MODULE_NAME=${MODULE_NAME} does not match filename ${name}.sh"
+    return 1
+  fi
+  if [[ "${MODULE_PLATFORM}" != "all" ]] &&
+    [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
+    core::log INFO "Skipping ${name} (platform: ${MODULE_PLATFORM})"
+    return 0
+  fi
+
+  core::log INFO "▶ [${index}/${total}] ${name} — ${MODULE_DESC}"
+  "${action}"
+  core::log INFO "✓ ${name}"
+}

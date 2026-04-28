@@ -14,38 +14,6 @@ source "${DOTFILES_ROOT}/lib/detect.sh"
 # shellcheck source=lib/core.sh
 source "${DOTFILES_ROOT}/lib/core.sh"
 
-# uninstall::run_module <name> <index> <total>
-# Sources modules/<name>.sh, runs uninstall().
-uninstall::run_module() {
-  local name="${1}" index="${2}" total="${3}"
-  local module_file="${DOTFILES_ROOT}/modules/${name}.sh"
-
-  install() { :; }
-  uninstall() { :; }
-  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
-
-  # shellcheck source=/dev/null
-  source "${module_file}"
-
-  : "${MODULE_NAME:?missing MODULE_NAME in ${module_file}}"
-  : "${MODULE_DESC:?missing MODULE_DESC in ${module_file}}"
-  : "${MODULE_PLATFORM:?missing MODULE_PLATFORM in ${module_file}}"
-
-  if [[ "${MODULE_NAME}" != "${name}" ]]; then
-    core::log ERROR "MODULE_NAME=${MODULE_NAME} does not match filename ${name}.sh"
-    return 1
-  fi
-  if [[ "${MODULE_PLATFORM}" != "all" ]] &&
-    [[ "${MODULE_PLATFORM}" != "${DOTFILES_OS}" ]]; then
-    core::log INFO "Skipping ${name} (platform: ${MODULE_PLATFORM})"
-    return 0
-  fi
-
-  core::log INFO "▶ [${index}/${total}] Uninstalling ${name}"
-  uninstall
-  core::log INFO "✓ ${name}"
-}
-
 main() {
   # Only detect::os is needed: uninstall hooks clean up config files and
   # clones, not packages — so DOTFILES_PKG_MANAGER is never read.
@@ -54,8 +22,9 @@ main() {
   local total=${#DOTFILES_MODULES[@]} i=0 name
   for name in "${DOTFILES_MODULES[@]}"; do
     i=$((i + 1))
-    uninstall::run_module "${name}" "${i}" "${total}"
+    core::run_module uninstall "${name}" "${i}" "${total}"
   done
+
   core::log INFO "Uninstall complete."
 }
 
