@@ -16,7 +16,7 @@ MODULE_PLATFORM="all"
 _nvim::install_deps() {
   case "${DOTFILES_OS}" in
   mac) core::pkg_install ripgrep fd lazygit node shfmt shellcheck fzf ;;
-  linux) core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck fzf curl ;;
+  linux) core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck fzf ;;
   esac
 
   # tree-sitter-cli is not in any package manager — install via cargo.
