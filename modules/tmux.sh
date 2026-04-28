@@ -13,13 +13,17 @@ MODULE_PLATFORM="all"
 install() {
   core::pkg_install tmux
 
-  # Official oh-my-tmux installer handles everything: creates dirs, clones
-  # the repo, sets up tmux.conf symlink, and copies starter tmux.conf.local.
+  # Official oh-my-tmux installer (see install.sh in the repo):
+  #   1. Clones the repo to ~/.local/share/tmux/oh-my-tmux
+  #   2. Creates symlink ~/.config/tmux/tmux.conf → the clone's .tmux.conf
+  #   3. Copies a starter tmux.conf.local to ~/.config/tmux/
   curl -fsSL "https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh#$(date +%s)" | bash
   core::log INFO "oh-my-tmux installed"
 }
 
+# Reverse of install: remove clone, unlink symlink, remove local config.
 uninstall() {
   rm -rf "${HOME}/.local/share/tmux/oh-my-tmux"
-  rm -f "${HOME}/.config/tmux/tmux.conf"
+  unlink "${HOME}/.config/tmux/tmux.conf" 2>/dev/null || true
+  rm -f "${HOME}/.config/tmux/tmux.conf.local"
 }
