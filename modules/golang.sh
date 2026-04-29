@@ -60,8 +60,6 @@ install() {
 }
 
 uninstall() {
-  sudo rm -rf /usr/local/go
   core::remove_block "${HOME}/.zprofile" "golang"
-  core::summary "    ✓ removed /usr/local/go"
   core::summary "    ✓ removed block from ~/.zprofile"
 }

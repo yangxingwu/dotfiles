@@ -33,6 +33,12 @@ main() {
     core::run_module uninstall "${name}" "${i}" "${total}"
   done
 
+  core::summary "---"
+  core::summary "  Note: binaries installed by modules (brew/apt/dnf packages,"
+  core::summary "  rustup toolchain, Go toolchain, cargo-installed tools,"
+  core::summary "  go-installed tools) are left in place. Remove them manually"
+  core::summary "  if needed."
+
   core::print_summary
   core::log INFO "Uninstall complete."
 }
