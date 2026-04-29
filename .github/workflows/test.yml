@@ -1,0 +1,32 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run integration tests
+        run: bash tests/test_install.sh
+
+  test-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test image
+        run: docker build -f tests/Dockerfile.ubuntu -t dotfiles-test-ubuntu .
+      - name: Run integration tests
+        run: docker run --rm dotfiles-test-ubuntu
+
+  test-fedora:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test image
+        run: docker build -f tests/Dockerfile.fedora -t dotfiles-test-fedora .
+      - name: Run integration tests
+        run: docker run --rm dotfiles-test-fedora
