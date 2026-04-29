@@ -39,6 +39,9 @@ main() {
   core::summary "  go-installed tools) are left in place. Remove them manually"
   core::summary "  if needed."
 
+  core::summary_file "${HOME}/.zprofile"
+  core::summary_file "${HOME}/.zshrc"
+
   core::print_summary
   core::log INFO "Uninstall complete."
 }

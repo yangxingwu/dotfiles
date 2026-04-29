@@ -179,6 +179,22 @@ core::summary() {
   _CORE_SUMMARY+=("${1}")
 }
 
+# core::summary_file <file>
+# Appends the content of <file> to the summary buffer, indented.
+# No-op if the file is missing or empty.
+core::summary_file() {
+  local file="${1}"
+  [[ -f "${file}" ]] || return 0
+  [[ -s "${file}" ]] || return 0
+
+  core::summary "---"
+  core::summary "  ${file}"
+  local line
+  while IFS= read -r line; do
+    core::summary "    ${line}"
+  done <"${file}"
+}
+
 # core::print_summary
 # Prints the accumulated summary between box-drawing borders.
 core::print_summary() {

@@ -47,6 +47,9 @@ main() {
     core::run_module install "${name}" "${i}" "${total}"
   done
 
+  core::summary_file "${HOME}/.zprofile"
+  core::summary_file "${HOME}/.zshrc"
+
   core::print_summary
   core::log INFO "Install complete."
 }
