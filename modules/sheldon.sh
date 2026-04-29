@@ -34,8 +34,12 @@ install() {
     core::summary "    ✓ sheldon already installed"
   fi
 
-  # No-op if config already exists.
-  sheldon init --shell zsh
+  # Create config if absent (sheldon init prompts interactively, so we skip it).
+  local config="${HOME}/.config/sheldon/plugins.toml"
+  if [[ ! -f "${config}" ]]; then
+    mkdir -p "$(dirname "${config}")"
+    printf 'shell = "zsh"\n' >"${config}"
+  fi
 
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
