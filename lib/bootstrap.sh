@@ -182,8 +182,8 @@ bootstrap::dev_tools() {
     ;;
   dnf)
     sudo dnf install -y zsh git curl cmake meson ninja-build gettext pkg-config openssl-devel
-    sudo dnf group install -y "Development Tools"
-    core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, pkg-config, openssl-devel, Development Tools)"
+    sudo dnf install -y @development-tools
+    core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, pkg-config, openssl-devel, @development-tools)"
     ;;
   *)
     core::log ERROR "Unsupported package manager: ${DOTFILES_PKG_MANAGER}"
