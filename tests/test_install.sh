@@ -18,13 +18,33 @@ assert() {
   fi
 }
 
-assert_file_exists() { assert "file exists: ${1}" test -f "${1}"; }
-assert_file_missing() { assert "file missing: ${1}" test ! -f "${1}"; }
-assert_dir_exists() { assert "dir exists: ${1}" test -d "${1}"; }
-assert_dir_missing() { assert "dir missing: ${1}" test ! -d "${1}"; }
-assert_command() { assert "command on PATH: ${1}" command -v "${1}"; }
-assert_file_contains() { assert "file ${1} contains '${2}'" grep -q "${2}" "${1}"; }
-assert_file_not_contains() { assert "file ${1} missing '${2}'" ! grep -q "${2}" "${1}"; }
+assert_file_exists() {
+  assert "file exists: ${1}" test -f "${1}"
+}
+
+assert_file_missing() {
+  assert "file missing: ${1}" test ! -f "${1}"
+}
+
+assert_dir_exists() {
+  assert "dir exists: ${1}" test -d "${1}"
+}
+
+assert_dir_missing() {
+  assert "dir missing: ${1}" test ! -d "${1}"
+}
+
+assert_command() {
+  assert "command on PATH: ${1}" command -v "${1}"
+}
+
+assert_file_contains() {
+  assert "file ${1} contains '${2}'" grep -q "${2}" "${1}"
+}
+
+assert_file_not_contains() {
+  assert "file ${1} missing '${2}'" ! grep -q "${2}" "${1}"
+}
 
 detect_os() {
   case "$(uname -s)" in
