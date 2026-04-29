@@ -178,11 +178,11 @@ bootstrap::dev_tools() {
     core::pkg_install cmake meson ninja gettext
     ;;
   apt)
-    core::pkg_install zsh git curl cmake meson ninja-build gettext \
+    core::pkg_install git curl cmake meson ninja-build gettext \
       pkg-config libssl-dev libclang-dev build-essential
     ;;
   dnf)
-    core::pkg_install zsh git curl cmake meson ninja-build gettext \
+    core::pkg_install git curl cmake meson ninja-build gettext \
       pkg-config openssl-devel clang-devel
     # @development-tools is a dnf group — check and install directly.
     if dnf group list --installed 2>/dev/null | grep -qi "development tools"; then

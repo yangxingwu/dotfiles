@@ -24,7 +24,6 @@ install() {
   cp "${clone_dir}/.tmux.conf.local" "${config_dir}/tmux.conf.local"
 
   core::log INFO "oh-my-tmux installed"
-  core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
   core::summary "    ✓ oh-my-tmux cloned to ~/.local/share/tmux/oh-my-tmux"
   core::summary "    ✓ config → ~/.config/tmux/tmux.conf (symlink)"
   core::summary "    ✓ config → ~/.config/tmux/tmux.conf.local (copied)"
