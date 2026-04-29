@@ -74,12 +74,10 @@ All functions use `namespace::name` format matching their source file:
 
 | File | Namespace | Examples |
 |---|---|---|
-| `lib/core.sh` | `core::` | `core::log`, `core::check_installed`, `core::pkg_install` |
+| `lib/core.sh` | `core::` | `core::log`, `core::check_installed`, `core::pkg_install`, `core::run_module` |
 | `lib/detect.sh` | `detect::` | `detect::os`, `detect::pkg_manager` |
 | `lib/bootstrap.sh` | `bootstrap::` | `bootstrap::xcode_clt`, `bootstrap::homebrew`, `bootstrap::dev_tools` |
-| `install.sh` | `install::` | `install::run_module` |
-| `uninstall.sh` | `uninstall::` | `uninstall::run_module` |
-| `modules/*.sh` | `module::` / `_<mod>::` | `install`, `uninstall` (interface hooks); `_nvim::install_src` (module-local helper) |
+| `modules/*.sh` | `_<mod>::` | `install`, `uninstall` (interface hooks); `_nvim::install_from_src` (module-local helper) |
 
 One blank line between functions. Comment above each function describing what it does:
 
@@ -91,8 +89,8 @@ core::repo_root() {
 ```
 
 Module-local constants use an uppercase `_<MOD>_` prefix so they don't collide
-when multiple modules are sourced into the same shell. Examples: `_NVIM_REPO`,
-`_TMUX_INSTALL_URL`, `_TMUX_CLONE_DIR`. Do **not** declare them `readonly` —
+when multiple modules are sourced into the same shell. Examples: `_STARSHIP_PRESET`,
+`_STARSHIP_CONFIG`, `_GHOSTTY_CONFIG`. Do **not** declare them `readonly` —
 modules and lib files must be safe to source multiple times, which `readonly`
 breaks.
 

@@ -7,46 +7,23 @@ curated plugin set.
 
 | Hook | Action |
 |---|---|
-| `install` | `core::pkg_install sheldon`; `sheldon init --shell zsh` (first run); `sheldon add` each plugin in `_SHELDON_PLUGINS`; patch zsh-completions to use `apply = ["fpath"]`; write managed `sheldon` block to `~/.zshrc` |
-| `uninstall` | remove the `sheldon` block from `~/.zshrc` (package and `plugins.toml` are preserved) |
+| `install` | install sheldon via cargo; `sheldon init`; add plugins; `sheldon lock --update`; write managed `sheldon` block to `~/.zshrc` |
+| `uninstall` | `sheldon remove` each plugin; `sheldon lock --update`; remove `sheldon` block from `~/.zshrc` |
 
-## Plugins installed
+## Plugins
 
 | Plugin | Purpose |
 |---|---|
 | `zsh-users/zsh-autosuggestions` | fish-like command suggestions |
 | `zsh-users/zsh-syntax-highlighting` | syntax coloring while typing |
-| `zsh-users/zsh-completions` | additional completion definitions |
+| `zsh-users/zsh-completions` | additional completion definitions (apply = fpath) |
 | `Aloxaf/fzf-tab` | fzf-powered tab completion |
 | `mattmc3/zsh-safe-rm` | trash instead of real `rm` |
-| `rupa/z` | frecency-based directory jumping |
-| `zsh-users/zsh-history-substring-search` | Ctrl+R-style substring history nav |
-
-## Init block contents
-
-The managed `sheldon` block in `~/.zshrc` contains:
-
-```zsh
-eval "$(sheldon source)"
-
-# Completion system (after sheldon so fpath is fully populated)
-autoload -Uz compinit && compinit
-
-# History substring search key bindings (plugin loaded above)
-bindkey "^[[A" history-substring-search-up
-bindkey "^[[B" history-substring-search-down
-```
-
-Ordering is load-bearing:
-1. `sheldon source` populates `fpath` and loads every plugin.
-2. `compinit` consumes the expanded `fpath`.
-3. `bindkey` lines require the `history-substring-search` plugin already
-   loaded.
+| `zsh-users/zsh-history-substring-search` | history substring navigation |
 
 ## Notes
 
-`zsh-completions` requires `apply = ["fpath"]` in its `plugins.toml` entry
-to avoid "insecure directories" warnings. The `sheldon add` CLI has no
-direct flag for this, so the module patches `plugins.toml` via `awk` after
-running the `add` commands. If sheldon's output format changes, the patch
-may break; fix when that happens.
+- sheldon is not in apt/dnf — installed via `cargo install sheldon --locked`
+  on all platforms for consistency.
+- `zsh-completions` uses `--apply fpath` to avoid "insecure directories" warnings.
+- The managed `sheldon` block in `~/.zshrc` contains: `eval "$(sheldon source)"`.

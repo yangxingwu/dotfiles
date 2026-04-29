@@ -1,7 +1,7 @@
 # dotfiles
 
 A full auto-installer for macOS and Linux development configurations. Not just a config
-archive — it installs packages, creates symlinks, and handles conflicts gracefully.
+archive — it installs packages, writes configs, and manages shell init blocks.
 
 ## Platform Support
 
@@ -16,7 +16,8 @@ and `docs/changes/2026-04-22-system-optimization/design.md` for the current shap
 Key invariants:
 - **Idempotent**: safe to run `install.sh` multiple times.
 - **No direct package manager calls in modules**: use `core::pkg_install` inside
-  `install()`; never call brew/apt/dnf/pacman directly.
+  `install()`; never call brew/apt/dnf directly. Exception: modules that install
+  via cargo, curl, or rustup (sheldon, starship, rust) handle it themselves.
 
 ## Module Interface Contract
 
@@ -55,7 +56,7 @@ Execution order:
 ## Development Workflow
 
 **Large changes** (new modules, architecture changes):
-1. Run `superpowers:brainstorm` → produces `docs/changes/YYYY-MM-DD-<topic>/design.md`
+1. Run `superpowers:brainstorming` → produces `docs/changes/YYYY-MM-DD-<topic>/design.md`
 2. Run `writing-plans` → produces `docs/changes/YYYY-MM-DD-<topic>/tasks.md`
 3. Implement
 4. Run `/change` to record a lightweight summary (optional if design.md covers it)
@@ -70,6 +71,18 @@ All change docs save to `docs/changes/YYYY-MM-DD-<slug>/`.
 ## Shell Script Standards
 
 See `.claude/rules/shell-style.md` (auto-loaded each session).
+
+## Testing
+
+Integration tests run in CI via GitHub Actions (`.github/workflows/test.yml`):
+- **macOS**: `macos-latest` runner
+- **Ubuntu**: Docker container (`tests/Dockerfile.ubuntu`)
+- **Fedora**: Docker container (`tests/Dockerfile.fedora`)
+
+Test script: `tests/test_install.sh` — runs install.sh, verifies binaries/configs/blocks,
+runs uninstall.sh, verifies cleanup. Do NOT run locally — it modifies the environment.
+
+Manual trigger: `gh workflow run "Integration Tests"`
 
 ## Language
 

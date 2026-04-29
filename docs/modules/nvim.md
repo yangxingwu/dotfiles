@@ -1,103 +1,52 @@
 # Module: nvim
 
-Neovim editor with LazyVim configuration. The module installs runtime dependencies,
-installs or upgrades Neovim itself, and clones the config repo directly to
-`~/.config/nvim` — all inside a single `install()` hook.
+Neovim editor with [LazyVim](https://www.lazyvim.org/) configuration.
+https://github.com/neovim/neovim
 
 ## Module hooks
 
 | Hook | Action |
 |---|---|
-| `install` | runtime deps → tree-sitter-cli → nvim (version-checked) → clone config |
-| `uninstall` | `rm -rf ~/.config/nvim` if a git checkout |
+| `install` | deps → tree-sitter-cli → nvim → clone config |
+| `uninstall` | uninstall source-built nvim (if applicable); `rm -rf ~/.config/nvim` |
 
 ## install()
 
-The hook performs four sub-steps in order:
-
-### 1. Runtime dependencies
-
-Installed via `core::pkg_install`:
+### 1. Runtime dependencies (`_nvim::install_deps`)
 
 | Platform | Packages |
 |---|---|
 | macOS | `ripgrep fd lazygit node shfmt shellcheck` |
 | Linux | `ripgrep fd-find lazygit nodejs npm shfmt shellcheck` |
 
-### 2. `tree-sitter-cli`
+`tree-sitter-cli` is installed via `cargo install --locked`. Fails if cargo is absent.
 
-Installed via `cargo install --locked tree-sitter-cli`. If `cargo` is not available
-(i.e. the `rust` module has not run yet), this step is skipped with a `WARN` log rather
-than a hard failure.
+### 2. Neovim (`_nvim::install_nvim`)
 
-> **Module ordering:** `rust` must appear before `nvim` in `_MODULES` so `cargo` is
-> available here.
+- If already installed, logs the version and skips.
+- macOS: `core::pkg_install neovim` (brew).
+- Linux: interactive prompt — package manager or build from source.
 
-### 3. Neovim version check
+Source build follows [BUILD.md](https://github.com/neovim/neovim/blob/master/BUILD.md):
+`git clone` → `git checkout stable` → `make` → `sudo make install`.
+Source kept at `~/.local/src/neovim` for future `make uninstall`.
 
-Uses `core::check_installed nvim && _nvim::version_ok nvim 0 9`. When the check
-fails, the user is prompted:
+### 3. Clone config (`_nvim::clone_config`)
 
+Backs up existing nvim dirs per [LazyVim installation guide](https://www.lazyvim.org/installation):
+```bash
+mv ~/.config/nvim{,.bak}
+mv ~/.local/share/nvim{,.bak}
+mv ~/.local/state/nvim{,.bak}
+mv ~/.cache/nvim{,.bak}
 ```
-Neovim not found (or too old — LazyVim requires >= 0.9)
-Install options:
-  1) Package manager (brew/apt)
-  2) Build from source (latest stable tag)
-Choice [1]:
-```
 
-Constants used:
-
-| Constant | Value |
-|---|---|
-| `_NVIM_MIN_MAJOR` | `0` |
-| `_NVIM_MIN_MINOR` | `9` |
-| `_NVIM_SRC_REPO` | `https://github.com/neovim/neovim.git` |
-| `_NVIM_BUILD_DIR` | `/tmp/neovim-build-$$` |
-
-#### Option 1 — package manager
-
-Calls `core::pkg_install neovim` (same package name on both platforms).
-
-#### Option 2 — build from source
-
-Build steps:
-
-1. **macOS only**: if a Homebrew-managed `neovim` is installed, it is uninstalled first
-   to avoid PATH conflicts with the source build.
-2. Install platform-specific build dependencies:
-   - macOS: `ninja cmake gettext curl`
-   - Linux: `ninja-build gettext cmake curl build-essential`
-3. Shallow-clone `_NVIM_SRC_REPO` into `_NVIM_BUILD_DIR`.
-4. Find the latest stable semver tag (pattern `v[0-9]+.[0-9]+.[0-9]+`), check it out.
-5. Build: `make CMAKE_BUILD_TYPE=RelWithDebInfo`.
-6. Install: `sudo make install`.
-7. A `trap … RETURN` ensures `_NVIM_BUILD_DIR` is removed on both success and failure.
-
-### 4. Clone the LazyVim config repo
-
-Constants used:
-
-| Constant | Value |
-|---|---|
-| `_NVIM_REPO` | `git@github.com:yangxingwu/neovim-lua-config.git` |
-| `_NVIM_BRANCH` | `LazyVimV2` |
-| `_NVIM_TARGET` | `~/.config/nvim` |
-
-**Conflict handling:** The clone is idempotent — the step handles four possible states
-of `_NVIM_TARGET`:
-
-| State | Action |
-|---|---|
-| Contains `.git/` (already cloned) | Skip |
-| Stale symlink | Remove symlink, then clone |
-| Existing non-git directory | `_nvim::backup`, then clone |
-| Absent | Clone |
-
-If an existing non-git directory is detected, the `_nvim::backup` helper moves it to
-`~/.dotfiles-backup/YYYYMMDD-HHMMSS/` before proceeding with the clone. This preserves
-any user data while allowing the module to proceed.
+Then clones the personal config repo:
+- Repo: `git@github.com:yangxingwu/neovim-lua-config.git`
+- Branch: `LazyVimV2`
+- Target: `~/.config/nvim`
 
 ## uninstall()
 
-If `~/.config/nvim/.git` exists, removes the whole directory.
+- If `~/.local/src/neovim/build` exists: `sudo make uninstall`, then remove source dir.
+- `rm -rf ~/.config/nvim`

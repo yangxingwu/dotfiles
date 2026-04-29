@@ -7,31 +7,12 @@
 
 | Hook | Action |
 |---|---|
-| `install` | `core::pkg_install starship`; generate `~/.config/starship.toml` from preset if absent; write managed `starship` block to `~/.zshrc` |
-| `uninstall` | remove the `starship` block from `~/.zshrc` (package and `~/.config/starship.toml` are preserved) |
-
-## Config generation
-
-On first run the module runs:
-
-```bash
-starship preset catppuccin-powerline --output ~/.config/starship.toml
-```
-
-If the file already exists, it is left alone. This lets you hand-tune the
-prompt without dotfiles overwriting your changes on re-run.
-
-## Init block contents
-
-The managed `starship` block in `~/.zshrc` contains a single line:
-
-```zsh
-eval "$(starship init zsh)"
-```
+| `install` | install starship via official curl installer; generate `~/.config/starship.toml` from preset; write managed `starship` block to `~/.zshrc` |
+| `uninstall` | remove `~/.config/starship.toml`; remove `starship` block from `~/.zshrc` |
 
 ## Notes
 
-The preset name is hard-coded in `_STARSHIP_PRESET` inside
-`modules/starship.sh`. Change it there and re-run `./install.sh` — but the
-existing `~/.config/starship.toml` won't be regenerated; delete it manually
-first if you want the new preset applied.
+- Installed via `curl -sS https://starship.rs/install.sh | sh` (official installer,
+  works on both macOS and Linux).
+- `starship.toml` is regenerated from the preset on every install run.
+- The managed `starship` block in `~/.zshrc` contains: `eval "$(starship init zsh)"`.

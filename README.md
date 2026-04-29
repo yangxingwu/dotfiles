@@ -4,7 +4,7 @@ Full auto-installer for macOS and Linux development configurations.
 
 ## Overview
 
-Installs packages, creates symlinks, and handles conflicts gracefully — not just a config
+Installs packages, writes configs, and manages shell init blocks — not just a config
 archive. Re-running is safe: the installer is fully idempotent.
 
 ## Platform Support
@@ -39,16 +39,18 @@ system's package manager (sudo required).
 
 | Module | Platform | What it manages |
 |---|---|---|
-| `git` | all | gitconfig + custom hooks |
+| `font-hack-nerd-font` | macOS | Hack Nerd Font (Homebrew cask) |
+| `git` | all | Git global config (user.name, user.email) |
+| `rust` | all | Rust toolchain via rustup |
 | `fzf` | all | fzf fuzzy finder + zsh key bindings |
+| `zoxide` | all | zoxide smarter cd command |
 | `sheldon` | all | zsh plugin manager + curated plugins |
 | `starship` | all | Starship prompt (catppuccin-powerline preset) |
+| `ghostty` | macOS | Ghostty terminal emulator + config |
 | `nvim` | all | Neovim + LazyVim configuration |
-| `tmux` | all | tmux + oh-my-tmux configuration |
-| `ghostty` | macOS | Ghostty terminal config |
+| `tmux` | all | tmux + oh-my-tmux |
 
-See [`docs/modules/`](docs/modules/) for per-module details. (The `rust` module runs as
-an internal dependency of `nvim`; it is not a user-facing module.)
+See [`docs/modules/`](docs/modules/) for per-module details.
 
 The zsh shell itself, `~/.zshrc`, `~/.zprofile`, and `~/.zshenv` are
 managed by the installer's bootstrap stage, not by a module. Each tool
@@ -93,9 +95,9 @@ cp -r ~/.dotfiles-backup/20260421-143022/.config/nvim ~/.config/nvim
 
 ## Manual Cleanup After Uninstall
 
-`./uninstall.sh` removes managed symlinks and cleans up each module's external side
-effects (oh-my-tmux clone, LazyVim config, etc.). The following are **not** removed
-automatically — clean up manually if desired:
+`./uninstall.sh` removes config files, managed blocks, and cleans up each module's
+external side effects (oh-my-tmux clone, LazyVim config, etc.). The following are
+**not** removed automatically — clean up manually if desired:
 
 - Rust toolchain: `rustup self uninstall`
 - Installed packages: uninstall via your package manager

@@ -1,18 +1,11 @@
 # Module: git
 
 Git global configuration via `git config --global`. Cross-platform.
+git is already installed by bootstrap (CLT on macOS, dev_tools on Linux).
 
 ## Module hooks
 
 | Hook | Action |
 |---|---|
-| `install` | `core::pkg_install git`; sets `core.quotepath`, `user.name`, `user.email` |
-| `uninstall` | no-op |
-
-## Notes
-
-Config is written via `git config --global` — the idiomatic way to manage
-`~/.gitconfig`. The installer sets:
-
-- `core.quotepath = false` — show non-ASCII filenames as-is
-- `user.name` / `user.email` — commit identity
+| `install` | sets `user.name`, `user.email` via `git config --global` |
+| `uninstall` | removes `user.name`, `user.email` from `~/.gitconfig` |

@@ -1,20 +1,19 @@
 # Module: tmux
 
-tmux configuration using [oh-my-tmux](https://github.com/gpakosz/.tmux) as the base.
-The upstream project is installed via its official `install.sh` one-liner.
+tmux terminal multiplexer with [oh-my-tmux](https://github.com/gpakosz/.tmux).
 
 ## Module hooks
 
 | Hook | Action |
 |---|---|
-| `install` | `core::pkg_install tmux`; run oh-my-tmux's upstream installer |
-| `uninstall` | remove `~/.config/tmux/.tmux/` clone and `~/.config/tmux/tmux.conf` symlink |
+| `install` | `core::pkg_install tmux`; run oh-my-tmux official installer |
+| `uninstall` | remove clone, unlink tmux.conf symlink, remove tmux.conf.local |
 
 ## Notes
 
 The oh-my-tmux installer creates:
-- `~/.config/tmux/.tmux/` — the upstream clone
+- `~/.local/share/tmux/oh-my-tmux` — the upstream clone
 - `~/.config/tmux/tmux.conf` — symlink into the clone
-- `~/.config/tmux/tmux.conf.local` — starter override file (kept as-is)
+- `~/.config/tmux/tmux.conf.local` — starter override file
 
 Machine-specific tweaks go in `tmux.conf.local`. oh-my-tmux sources it automatically.
