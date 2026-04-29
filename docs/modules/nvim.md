@@ -84,7 +84,8 @@ Constants used:
 | `_NVIM_BRANCH` | `LazyVimV2` |
 | `_NVIM_TARGET` | `~/.config/nvim` |
 
-The clone is idempotent — the step handles four possible states of `_NVIM_TARGET`:
+**Conflict handling:** The clone is idempotent — the step handles four possible states
+of `_NVIM_TARGET`:
 
 | State | Action |
 |---|---|
@@ -92,6 +93,10 @@ The clone is idempotent — the step handles four possible states of `_NVIM_TARG
 | Stale symlink | Remove symlink, then clone |
 | Existing non-git directory | `_nvim::backup`, then clone |
 | Absent | Clone |
+
+If an existing non-git directory is detected, the `_nvim::backup` helper moves it to
+`~/.dotfiles-backup/YYYYMMDD-HHMMSS/` before proceeding with the clone. This preserves
+any user data while allowing the module to proceed.
 
 ## uninstall()
 

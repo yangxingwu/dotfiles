@@ -64,20 +64,22 @@ inside the markers is overwritten on re-run.
 # Install all modules for the current platform
 ./install.sh
 
-# Remove all dotfile symlinks and clean up module side effects
+# Remove all dotfile configurations and clean up module side effects
 ./uninstall.sh
 ```
 
-## Conflict Handling
+## Idempotency
 
-When `install.sh` tries to create a symlink and the target already exists as a real file
-or a foreign symlink, you get an interactive prompt per conflict:
+The installer is idempotent — re-running is always safe. Configuration is managed
+through **managed blocks** delimited by `# BEGIN dotfiles:<id>` / `# END dotfiles:<id>`
+markers. These blocks are automatically updated or removed without prompting. Each
+module is responsible for handling conflicts with existing configurations:
 
-- **[b] backup** — existing file moves to `~/.dotfiles-backup/YYYYMMDD-HHMMSS/`, symlink created
-- **[s] skip**   — this symlink is not created; your file is preserved (module may end up incomplete)
-- **[q] quit**   — installer exits; fix things and re-run
+- If a module cannot safely replace an existing file, it logs a `WARN` and skips that step
+- The module may offer an interactive prompt for user guidance (e.g., the `nvim` module)
+- On re-run, the installer will attempt the same steps again
 
-The installer is idempotent — re-running is always safe.
+This design ensures the installer never silently overwrites user data without prior notice.
 
 ## Restoring a Backup
 

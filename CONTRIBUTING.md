@@ -20,7 +20,7 @@ Install [Claude Code](https://claude.ai/code) for AI-assisted development (recom
 See `CLAUDE.md` for the full workflow. Summary:
 
 **Large changes** (new module, architecture change, refactor):
-1. Run `superpowers:brainstorming` in Claude Code
+1. Run `superpowers:writing-plans` in Claude Code
 2. Design doc + tasks saved to `docs/changes/YYYY-MM-DD-<topic>/`
 3. Implement following the tasks file
 4. Optionally run `/change` for a lightweight summary
@@ -35,7 +35,7 @@ Use the `/new-module <name>` slash command in Claude Code. It creates:
 
 - `modules/<name>.sh` — module with standard interface (fill in `install()`)
 - `docs/modules/<name>.md` — documentation template
-- `.claude/rules/module-<name>.md` — path-scoped context rule
+- `.claude/rules/module-<name>.md` — path-scoped context rule (auto-generated, should be committed)
 
 Then add `<name>` to the `DOTFILES_MODULES` array in `lib/modules.sh` and run:
 
