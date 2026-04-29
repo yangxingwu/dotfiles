@@ -16,4 +16,6 @@ install() {
   core::summary "    ✓ installed via brew"
 }
 
-uninstall() { :; }
+uninstall() {
+  core::summary "    — no-op (font not managed by uninstall)"
+}

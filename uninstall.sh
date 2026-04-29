@@ -19,6 +19,12 @@ main() {
   # clones, not packages — so DOTFILES_PKG_MANAGER is never read.
   detect::os
 
+  # Ensure tools installed by modules (cargo, go, etc.) are on PATH.
+  # In a normal interactive shell this is handled by .zprofile at login;
+  # here we source it explicitly because uninstall.sh runs in a fresh process.
+  # shellcheck source=/dev/null
+  [[ -f "${HOME}/.zprofile" ]] && source "${HOME}/.zprofile"
+
   local total=${#DOTFILES_MODULES[@]} i=0 name
   for name in "${DOTFILES_MODULES[@]}"; do
     i=$((i + 1))

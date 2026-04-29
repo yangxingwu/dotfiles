@@ -17,11 +17,11 @@ _nvim::install_deps() {
   case "${DOTFILES_OS}" in
   mac)
     core::pkg_install ripgrep fd node shfmt shellcheck
-    core::summary "    ✓ deps: ripgrep, fd, node, shfmt, shellcheck"
+    core::summary "    ✓ deps installed via brew: ripgrep, fd, node, shfmt, shellcheck"
     ;;
   linux)
     core::pkg_install ripgrep fd-find nodejs npm shfmt shellcheck
-    core::summary "    ✓ deps: ripgrep, fd-find, nodejs, npm, shfmt, shellcheck"
+    core::summary "    ✓ deps installed via ${DOTFILES_PKG_MANAGER}: ripgrep, fd-find, nodejs, npm, shfmt, shellcheck"
     ;;
   esac
 

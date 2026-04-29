@@ -43,7 +43,12 @@ assert_file_contains() {
 }
 
 assert_file_not_contains() {
-  assert "file ${1} missing '${2}'" ! grep -q "${2}" "${1}"
+  if grep -q "${2}" "${1}"; then
+    printf '  ✗ file %s still contains %s\n' "${1}" "${2}" >&2
+    FAILURES=$((FAILURES + 1))
+  else
+    printf '  ✓ file %s missing %s\n' "${1}" "${2}"
+  fi
 }
 
 detect_os() {
