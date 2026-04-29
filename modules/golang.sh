@@ -50,7 +50,10 @@ install() {
   core::log INFO "Go ${version} installed to /usr/local/go"
   core::summary "    ✓ installed Go ${version} from go.dev"
 
-  # Add Go to PATH for future login shells.
+  # Activate for the rest of this install run.
+  export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"
+
+  # Persist for future login shells.
   core::ensure_block "${HOME}/.zprofile" "golang" \
     'export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"'
   core::summary "    ✓ config → ~/.zprofile (Go PATH)"
