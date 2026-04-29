@@ -166,26 +166,28 @@ bootstrap::homebrew() {
 }
 
 # Both platforms. Install the dev tools every module assumes exist.
-# Bypasses core::pkg_install and calls native pm commands directly because
-# (a) bootstrap already knows the pm, and (b) dnf requires `groupinstall` for
-# "Development Tools" which core::pkg_install does not support.
-#
 # Requires DOTFILES_PKG_MANAGER to be set — call detect::pkg_manager first.
+#
+# dnf's @development-tools is a group install — core::pkg_install only
+# handles individual packages, so the group is installed directly here.
 bootstrap::dev_tools() {
   case "${DOTFILES_PKG_MANAGER}" in
   brew)
-    brew install cmake meson ninja gettext
-    core::summary "  dev tools                    ✓ installed (cmake, meson, ninja, gettext)"
+    core::pkg_install cmake meson ninja gettext
     ;;
   apt)
-    sudo apt-get install -y zsh git curl cmake meson ninja-build gettext pkg-config libssl-dev libclang-dev
-    sudo apt-get install -y build-essential
-    core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, pkg-config, libssl-dev, libclang-dev, build-essential)"
+    core::pkg_install zsh git curl cmake meson ninja-build gettext \
+      pkg-config libssl-dev libclang-dev build-essential
     ;;
   dnf)
-    sudo dnf install -y zsh git curl cmake meson ninja-build gettext pkg-config openssl-devel clang-devel
-    sudo dnf install -y @development-tools
-    core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, pkg-config, openssl-devel, clang-devel, @development-tools)"
+    core::pkg_install zsh git curl cmake meson ninja-build gettext \
+      pkg-config openssl-devel clang-devel
+    # @development-tools is a dnf group — check and install directly.
+    if dnf group list --installed 2>/dev/null | grep -qi "development tools"; then
+      core::log INFO "Already installed: @development-tools"
+    else
+      sudo dnf install -y @development-tools
+    fi
     ;;
   *)
     core::log ERROR "Unsupported package manager: ${DOTFILES_PKG_MANAGER}"
@@ -194,5 +196,6 @@ bootstrap::dev_tools() {
     ;;
   esac
 
+  core::summary "  dev tools                    ✓ installed"
   core::log INFO "Dev tools installed"
 }

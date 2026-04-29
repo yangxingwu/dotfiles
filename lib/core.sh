@@ -37,30 +37,46 @@ core::check_installed() {
 
 # core::pkg_install <package> [package ...]
 # Installs one or more packages via the detected package manager.
-# Each pm's install command is already idempotent (skips installed packages).
+# Skips packages that are already installed (checked via brew list / dpkg -s /
+# rpm -q). Does NOT support dnf group installs (@<group>) — handle those
+# directly where needed.
 core::pkg_install() {
   local package
 
   for package in "$@"; do
-    core::log INFO "Installing: ${package}"
     case "${DOTFILES_PKG_MANAGER}" in
     brew)
-      brew install "${package}" || {
-        core::log ERROR "brew install failed: ${package}"
-        return 1
-      }
+      if brew list "${package}" >/dev/null 2>&1; then
+        core::log INFO "Already installed: ${package}"
+      else
+        core::log INFO "Installing: ${package}"
+        brew install "${package}" || {
+          core::log ERROR "brew install failed: ${package}"
+          return 1
+        }
+      fi
       ;;
     apt)
-      sudo apt-get install -y "${package}" || {
-        core::log ERROR "apt-get install failed: ${package}"
-        return 1
-      }
+      if dpkg -s "${package}" >/dev/null 2>&1; then
+        core::log INFO "Already installed: ${package}"
+      else
+        core::log INFO "Installing: ${package}"
+        sudo apt-get install -y "${package}" || {
+          core::log ERROR "apt-get install failed: ${package}"
+          return 1
+        }
+      fi
       ;;
     dnf)
-      sudo dnf install -y "${package}" || {
-        core::log ERROR "dnf install failed: ${package}"
-        return 1
-      }
+      if rpm -q "${package}" >/dev/null 2>&1; then
+        core::log INFO "Already installed: ${package}"
+      else
+        core::log INFO "Installing: ${package}"
+        sudo dnf install -y "${package}" || {
+          core::log ERROR "dnf install failed: ${package}"
+          return 1
+        }
+      fi
       ;;
     *)
       core::log WARN "Unknown package manager — cannot install: ${package}"
