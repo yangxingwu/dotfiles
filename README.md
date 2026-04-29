@@ -83,16 +83,6 @@ module is responsible for handling conflicts with existing configurations:
 
 This design ensures the installer never silently overwrites user data without prior notice.
 
-## Restoring a Backup
-
-```bash
-# List available backups
-ls ~/.dotfiles-backup/
-
-# Restore a specific file
-cp -r ~/.dotfiles-backup/20260421-143022/.config/nvim ~/.config/nvim
-```
-
 ## Manual Cleanup After Uninstall
 
 `./uninstall.sh` removes config files, managed blocks, and cleans up each module's
