@@ -14,8 +14,8 @@ MODULE_PLATFORM="all"
 # fzf must be installed before sheldon (sheldon's fzf-tab plugin needs the binary).
 install() {
   core::pkg_install fzf
-  core::ensure_block "${HOME}/.zshrc" "fzf" 'eval "$(fzf --zsh)"'
   core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
+  core::ensure_block "${HOME}/.zshrc" "fzf" 'eval "$(fzf --zsh)"'
   core::summary "    ✓ config → ~/.zshrc (fzf init)"
 }
 
