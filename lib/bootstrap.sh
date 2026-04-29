@@ -65,18 +65,8 @@ bootstrap::zsh() {
   local current_shell
   current_shell="$(basename "${SHELL:-/bin/sh}")"
   if [[ "${current_shell}" != "zsh" ]]; then
-    local zsh_path
-    zsh_path="$(command -v zsh)"
     core::log INFO "Changing login shell to zsh"
-    # chsh prompts for password; in non-interactive environments (CI),
-    # fall back to sudo chsh which uses sudoer privileges instead.
-    if chsh -s "${zsh_path}" 2>/dev/null; then
-      core::log INFO "Login shell changed to zsh"
-    elif sudo chsh -s "${zsh_path}" "$(whoami)" 2>/dev/null; then
-      core::log INFO "Login shell changed to zsh (via sudo)"
-    else
-      core::log WARN "Could not change login shell to zsh — change it manually after install"
-    fi
+    sudo chsh -s "$(command -v zsh)" "$(whoami)"
   else
     core::log INFO "Login shell already zsh"
   fi
