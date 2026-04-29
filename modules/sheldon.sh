@@ -58,8 +58,18 @@ install() {
   done
   core::summary "    ✓ plugins: ${plugin_names}"
 
-  core::ensure_block "${HOME}/.zshrc" "sheldon" 'eval "$(sheldon source)"'
-  core::summary "    ✓ config → ~/.zshrc (sheldon source)"
+  core::ensure_block "${HOME}/.zshrc" "sheldon" \
+    'eval "$(sheldon source)"
+
+# zsh-completions: initialize completion system after sheldon adds fpath entries
+# https://github.com/zsh-users/zsh-completions#zsh-completions
+autoload -Uz compinit && compinit
+
+# zsh-history-substring-search: bind arrow keys to substring search
+# https://github.com/zsh-users/zsh-history-substring-search#usage
+bindkey "^[[A" history-substring-search-up
+bindkey "^[[B" history-substring-search-down'
+  core::summary "    ✓ config → ~/.zshrc (sheldon source, compinit, history-substring-search)"
 }
 
 uninstall() {
