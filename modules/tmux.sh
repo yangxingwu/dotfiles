@@ -14,7 +14,7 @@ install() {
   core::pkg_install tmux
 
   # Manual installation per oh-my-tmux README:
-  # https://github.com/gpakosz/.tmux#manual-installation-for-configtmux
+  # https://github.com/gpakosz/.tmux#manual-installation-configtmux
   local clone_dir="${HOME}/.local/share/tmux/oh-my-tmux"
   local config_dir="${HOME}/.config/tmux"
 
