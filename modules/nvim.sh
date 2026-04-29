@@ -15,8 +15,14 @@ MODULE_PLATFORM="all"
 # https://www.lazyvim.org/ — Requirements section.
 _nvim::install_deps() {
   case "${DOTFILES_OS}" in
-  mac) core::pkg_install ripgrep fd lazygit node shfmt shellcheck ;;
-  linux) core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck ;;
+  mac)
+    core::pkg_install ripgrep fd lazygit node shfmt shellcheck
+    core::summary "    ✓ deps: ripgrep, fd, lazygit, node, shfmt, shellcheck"
+    ;;
+  linux)
+    core::pkg_install ripgrep fd-find lazygit nodejs npm shfmt shellcheck
+    core::summary "    ✓ deps: ripgrep, fd-find, lazygit, nodejs, npm, shfmt, shellcheck"
+    ;;
   esac
 
   # tree-sitter-cli is not in any package manager — install via cargo.
@@ -25,7 +31,6 @@ _nvim::install_deps() {
     return 1
   fi
   cargo install --locked tree-sitter-cli
-  core::summary "    ✓ deps: ripgrep, fd, lazygit, node, shfmt, shellcheck"
   core::summary "    ✓ tree-sitter-cli installed via cargo"
 }
 

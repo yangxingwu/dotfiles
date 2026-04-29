@@ -30,7 +30,7 @@ install() {
 
   core::ensure_block "${HOME}/.zshrc" "starship" 'eval "$(starship init zsh)"'
   core::summary "    ✓ config → ~/.config/starship.toml (${_STARSHIP_PRESET})"
-  core::summary "    ✓ config → ~/.zshrc (starship init)"
+  core::summary "    ✓ config → ~/.zshrc (starship init zsh)"
 }
 
 uninstall() {

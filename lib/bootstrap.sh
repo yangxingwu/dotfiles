@@ -172,29 +172,24 @@ bootstrap::homebrew() {
 bootstrap::dev_tools() {
   case "${DOTFILES_PKG_MANAGER}" in
   brew)
-    # CLT already provides git, curl, clang, make. macOS (Catalina+) ships
-    # zsh as the default login shell. Only modern build systems are missing.
     brew install cmake meson ninja gettext
+    core::summary "  dev tools                    ✓ installed (cmake, meson, ninja, gettext)"
     ;;
   apt)
     sudo apt-get install -y zsh git curl cmake meson ninja-build gettext
     sudo apt-get install -y build-essential
+    core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, build-essential)"
     ;;
   dnf)
     sudo dnf install -y zsh git curl cmake meson ninja-build gettext
     sudo dnf groupinstall -y "Development Tools"
+    core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, Development Tools)"
     ;;
   *)
     core::log ERROR "Unsupported package manager: ${DOTFILES_PKG_MANAGER}"
     core::log ERROR "Supported: brew (macOS), apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
     return 1
     ;;
-  esac
-
-  case "${DOTFILES_PKG_MANAGER}" in
-  brew) core::summary "  dev tools                    ✓ installed (cmake, meson, ninja, gettext)" ;;
-  apt) core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, build-essential)" ;;
-  dnf) core::summary "  dev tools                    ✓ installed (zsh, git, curl, cmake, meson, ninja-build, gettext, Development Tools)" ;;
   esac
 
   core::log INFO "Dev tools installed"
