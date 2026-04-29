@@ -25,15 +25,10 @@ _nvim::install_deps() {
     ;;
   esac
 
-  # lazygit is not in apt/dnf — install via go.
+  # lazygit and tree-sitter-cli are not in apt/dnf.
+  # golang and rust modules run before nvim, so go and cargo are on PATH.
   go install github.com/jesseduffield/lazygit@latest
   core::summary "    ✓ lazygit installed via go"
-
-  # tree-sitter-cli is not in any package manager — install via cargo.
-  if ! core::check_installed cargo; then
-    core::log ERROR "cargo not found — install the rust module first"
-    return 1
-  fi
   cargo install --locked tree-sitter-cli
   core::summary "    ✓ tree-sitter-cli installed via cargo"
 }
