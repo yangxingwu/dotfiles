@@ -1,0 +1,9 @@
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y sudo curl git
+RUN useradd -m -s /bin/bash testuser \
+    && echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+USER testuser
+WORKDIR /home/testuser/dotfiles
+COPY --chown=testuser:testuser . .
+CMD ["bash", "tests/test_install.sh"]
