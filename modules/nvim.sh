@@ -63,6 +63,7 @@ _nvim::install_nvim() {
   case "${DOTFILES_OS}" in
   mac)
     core::pkg_install neovim
+    core::summary "    ✓ installed via brew"
     ;;
   linux)
     local pkg_version
