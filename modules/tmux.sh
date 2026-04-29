@@ -13,8 +13,8 @@ MODULE_PLATFORM="all"
 install() {
   core::pkg_install tmux
 
-  # Manual installation per oh-my-tmux README:
-  # https://github.com/gpakosz/.tmux#manual-installation-configtmux
+  # Manual installation per oh-my-tmux README.md
+  # (section: "Manual installation `~/.config/tmux`")
   local clone_dir="${HOME}/.local/share/tmux/oh-my-tmux"
   local config_dir="${HOME}/.config/tmux"
 
