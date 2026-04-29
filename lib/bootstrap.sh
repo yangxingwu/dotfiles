@@ -128,39 +128,41 @@ bootstrap::homebrew() {
   if command -v brew >/dev/null 2>&1; then
     core::log INFO "Homebrew already installed"
     core::summary "  Homebrew                     ✓ already installed"
-    return 0
+  else
+    core::log INFO "Installing Homebrew (official installer)..."
+    # Interactive by default — brew prompts "Press RETURN to continue" so the
+    # user can review what is about to happen before granting sudo. We do NOT
+    # set NONINTERACTIVE=1.
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    core::log INFO "Homebrew installed"
+    core::summary "  Homebrew                     ✓ installed"
   fi
 
-  core::log INFO "Installing Homebrew (official installer)..."
-  # Interactive by default — brew prompts "Press RETURN to continue" so the
-  # user can review what is about to happen before granting sudo. We do NOT
-  # set NONINTERACTIVE=1.
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
+  # Detect prefix — Apple Silicon uses /opt/homebrew, Intel uses /usr/local.
   local brew_prefix
   if [[ -x /opt/homebrew/bin/brew ]]; then
     brew_prefix=/opt/homebrew
   elif [[ -x /usr/local/bin/brew ]]; then
     brew_prefix=/usr/local
   else
-    core::log ERROR "Homebrew installer completed but brew binary not found"
-    core::log ERROR "Checked /opt/homebrew/bin/brew and /usr/local/bin/brew"
+    core::log ERROR "brew binary not found at /opt/homebrew/bin/brew or /usr/local/bin/brew"
     return 1
   fi
-
-  # Persist for future login shells. ~/.zprofile was touched by
-  # bootstrap::zsh in Stage A, so it exists. ${brew_prefix} expands at
-  # install-time; the inner $(...) stays literal for zsh to eval at login.
-  core::ensure_block "${HOME}/.zprofile" "homebrew" \
-    "eval \"\$(${brew_prefix}/bin/brew shellenv)\""
 
   # Activate for the rest of THIS install run — .zprofile only applies to
   # login shells, but later stages/modules in this same process need brew
   # on PATH now.
   eval "$("${brew_prefix}/bin/brew" shellenv)"
 
-  core::log INFO "Homebrew installed; shellenv wired into ~/.zprofile"
-  core::summary "  Homebrew                     ✓ installed"
+  # Persist for future login shells. ~/.zprofile was touched by
+  # bootstrap::zsh in Stage A, so it exists. ${brew_prefix} expands at
+  # install-time; the inner $(...) stays literal for zsh to eval at login.
+  # Runs unconditionally — even when brew was already installed, the
+  # .zprofile block may be missing (e.g. first run on a machine with brew
+  # pre-installed by the OS image).
+  core::ensure_block "${HOME}/.zprofile" "homebrew" \
+    "eval \"\$(${brew_prefix}/bin/brew shellenv)\""
+  core::summary "  Homebrew                     ✓ shellenv wired into ~/.zprofile"
 }
 
 # Both platforms. Install the dev tools every module assumes exist.
