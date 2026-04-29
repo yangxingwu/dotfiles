@@ -14,6 +14,7 @@ install() {
   git config --global user.name "yangxingwu"
   git config --global user.email "xingwu.yang@gmail.com"
   core::log INFO "Wrote git global config"
+  core::summary "    — binary installed by bootstrap"
   core::summary "    ✓ config → ~/.gitconfig (user.name, user.email)"
 }
 
