@@ -19,6 +19,9 @@ install() {
   if ! core::check_installed starship; then
     curl -sS https://starship.rs/install.sh | sh
     core::log INFO "starship installed"
+    core::summary "    ✓ installed via curl (official installer)"
+  else
+    core::summary "    ✓ starship already installed"
   fi
 
   mkdir -p "$(dirname "${_STARSHIP_CONFIG}")"
@@ -26,9 +29,13 @@ install() {
   core::log INFO "Generated starship.toml from preset ${_STARSHIP_PRESET}"
 
   core::ensure_block "${HOME}/.zshrc" "starship" 'eval "$(starship init zsh)"'
+  core::summary "    ✓ config → ~/.config/starship.toml (${_STARSHIP_PRESET})"
+  core::summary "    ✓ config → ~/.zshrc (starship init)"
 }
 
 uninstall() {
   rm -f "${_STARSHIP_CONFIG}"
   core::remove_block "${HOME}/.zshrc" "starship"
+  core::summary "    ✓ removed ~/.config/starship.toml"
+  core::summary "    ✓ removed block from ~/.zshrc"
 }

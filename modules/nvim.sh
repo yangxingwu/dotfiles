@@ -25,6 +25,8 @@ _nvim::install_deps() {
     return 1
   fi
   cargo install --locked tree-sitter-cli
+  core::summary "    ✓ deps: ripgrep, fd, lazygit, node, shfmt, shellcheck"
+  core::summary "    ✓ tree-sitter-cli installed via cargo"
 }
 
 # Build and install Neovim from source (Linux only).
@@ -54,6 +56,7 @@ _nvim::install_from_src() {
 _nvim::install_nvim() {
   if core::check_installed nvim; then
     core::log INFO "Neovim already installed: $(nvim --version | head -1)"
+    core::summary "    ✓ $(nvim --version | head -1) already installed"
     return 0
   fi
 
@@ -76,8 +79,16 @@ _nvim::install_nvim() {
       printf 'Choice [1]: ' >&2
       read -r choice
       case "${choice:-1}" in
-      1) core::pkg_install neovim; return ;;
-      2) _nvim::install_from_src; return ;;
+      1)
+        core::pkg_install neovim
+        core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
+        return
+        ;;
+      2)
+        _nvim::install_from_src
+        core::summary "    ✓ installed from source"
+        return
+        ;;
       *) core::log WARN "Invalid choice: ${choice}" ;;
       esac
     done
@@ -102,6 +113,7 @@ _nvim::clone_config() {
 
   git clone --branch "${branch}" "${repo}" ~/.config/nvim
   core::log INFO "Cloned neovim config to ~/.config/nvim"
+  core::summary "    ✓ config → ~/.config/nvim (cloned)"
 }
 
 install() {
@@ -111,7 +123,6 @@ install() {
 }
 
 uninstall() {
-  # If neovim was built from source, uninstall via make.
   local src_dir="${HOME}/.local/src/neovim"
   if [[ -d "${src_dir}/build" ]]; then
     pushd "${src_dir}" >/dev/null
@@ -119,7 +130,9 @@ uninstall() {
     popd >/dev/null
     rm -rf "${src_dir}"
     core::log INFO "Uninstalled source-built Neovim"
+    core::summary "    ✓ uninstalled source-built neovim"
   fi
 
   rm -rf "${HOME}/.config/nvim"
+  core::summary "    ✓ removed ~/.config/nvim"
 }

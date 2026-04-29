@@ -29,6 +29,9 @@ install() {
     fi
     cargo install sheldon --locked
     core::log INFO "sheldon installed"
+    core::summary "    ✓ installed via cargo"
+  else
+    core::summary "    ✓ sheldon already installed"
   fi
 
   # No-op if config already exists.
@@ -47,7 +50,15 @@ install() {
 
   sheldon lock --update
 
+  local plugin_names=""
+  local p
+  for p in "${_SHELDON_PLUGINS[@]}"; do
+    plugin_names="${plugin_names:+${plugin_names}, }${p##*/}"
+  done
+  core::summary "    ✓ plugins: ${plugin_names}"
+
   core::ensure_block "${HOME}/.zshrc" "sheldon" 'eval "$(sheldon source)"'
+  core::summary "    ✓ config → ~/.zshrc (sheldon source)"
 }
 
 uninstall() {
@@ -59,4 +70,5 @@ uninstall() {
   sheldon lock --update
 
   core::remove_block "${HOME}/.zshrc" "sheldon"
+  core::summary "    ✓ removed plugins and block from ~/.zshrc"
 }

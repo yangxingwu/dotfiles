@@ -16,9 +16,11 @@ MODULE_PLATFORM="all"
 install() {
   if core::check_installed rustup; then
     core::log INFO "rustup already installed — skipping"
+    core::summary "    ✓ rustup already installed"
   else
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     core::log INFO "rustup installed"
+    core::summary "    ✓ installed via rustup"
   fi
 
   if [[ ! -f "${HOME}/.cargo/env" ]]; then
@@ -33,8 +35,10 @@ install() {
   # Persist for future login shells.
   core::ensure_block "${HOME}/.zprofile" "rust" \
     '. "${HOME}/.cargo/env"'
+  core::summary "    ✓ config → ~/.zprofile (cargo env)"
 }
 
 uninstall() {
   core::remove_block "${HOME}/.zprofile" "rust"
+  core::summary "    ✓ removed block from ~/.zprofile"
 }

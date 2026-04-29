@@ -15,8 +15,11 @@ MODULE_PLATFORM="all"
 install() {
   core::pkg_install fzf
   core::ensure_block "${HOME}/.zshrc" "fzf" 'eval "$(fzf --zsh)"'
+  core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
+  core::summary "    ✓ config → ~/.zshrc (fzf init)"
 }
 
 uninstall() {
   core::remove_block "${HOME}/.zshrc" "fzf"
+  core::summary "    ✓ removed block from ~/.zshrc"
 }

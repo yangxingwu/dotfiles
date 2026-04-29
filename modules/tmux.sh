@@ -19,6 +19,8 @@ install() {
   #   3. Copies a starter tmux.conf.local to ~/.config/tmux/
   curl -fsSL "https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh#$(date +%s)" | bash
   core::log INFO "oh-my-tmux installed"
+  core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
+  core::summary "    ✓ oh-my-tmux installed"
 }
 
 # Reverse of install: remove clone, unlink symlink, remove local config.
@@ -26,4 +28,7 @@ uninstall() {
   rm -rf "${HOME}/.local/share/tmux/oh-my-tmux"
   unlink "${HOME}/.config/tmux/tmux.conf"
   rm -f "${HOME}/.config/tmux/tmux.conf.local"
+  core::summary "    ✓ removed oh-my-tmux clone"
+  core::summary "    ✓ unlinked ~/.config/tmux/tmux.conf"
+  core::summary "    ✓ removed ~/.config/tmux/tmux.conf.local"
 }

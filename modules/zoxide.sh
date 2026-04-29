@@ -15,8 +15,11 @@ MODULE_PLATFORM="all"
 install() {
   core::pkg_install zoxide
   core::ensure_block "${HOME}/.zshrc" "zoxide" 'eval "$(zoxide init zsh)"'
+  core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
+  core::summary "    ✓ config → ~/.zshrc (zoxide init)"
 }
 
 uninstall() {
   core::remove_block "${HOME}/.zshrc" "zoxide"
+  core::summary "    ✓ removed block from ~/.zshrc"
 }

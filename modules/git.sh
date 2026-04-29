@@ -14,10 +14,12 @@ install() {
   git config --global user.name "yangxingwu"
   git config --global user.email "xingwu.yang@gmail.com"
   core::log INFO "Wrote git global config"
+  core::summary "    ✓ config → ~/.gitconfig (user.name, user.email)"
 }
 
 uninstall() {
   git config --global --unset user.name 2>/dev/null || true
   git config --global --unset user.email 2>/dev/null || true
   core::log INFO "Removed git global config"
+  core::summary "    ✓ removed config from ~/.gitconfig"
 }

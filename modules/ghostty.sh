@@ -23,8 +23,11 @@ font-size = "15"
 macos-option-as-alt = true
 CONF
   core::log INFO "Wrote Ghostty config"
+  core::summary "    ✓ installed via brew"
+  core::summary "    ✓ config → ~/.config/ghostty/config"
 }
 
 uninstall() {
   rm -f "${_GHOSTTY_CONFIG}"
+  core::summary "    ✓ removed ~/.config/ghostty/config"
 }
