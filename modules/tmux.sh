@@ -17,11 +17,13 @@ install() {
   #   1. Clones the repo to ~/.local/share/tmux/oh-my-tmux
   #   2. Creates symlink ~/.config/tmux/tmux.conf → the clone's .tmux.conf
   #   3. Copies a starter tmux.conf.local to ~/.config/tmux/
-  # Download then execute (not pipe) to avoid the interactive "STOP" prompt.
+  # The script has an interactive review prompt that reads /dev/tty, which
+  # doesn't exist in CI. Download, strip the prompt block, then execute.
   local installer="/tmp/oh-my-tmux-install.sh"
   curl -fsSL "https://github.com/gpakosz/.tmux/raw/refs/heads/master/install.sh#$(date +%s)" -o "${installer}"
+  sed -i.bak '/if \[ -p \/dev\/stdin \]/,/^fi$/d' "${installer}"
   bash "${installer}"
-  rm -f "${installer}"
+  rm -f "${installer}" "${installer}.bak"
   core::log INFO "oh-my-tmux installed"
   core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
   core::summary "    ✓ oh-my-tmux installed"
