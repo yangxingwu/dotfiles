@@ -9,13 +9,13 @@ DOTFILES_MODULES=(
   font-hack-nerd-font
   git
   rust             # before nvim: cargo is required for tree-sitter-cli
-  golang
+  golang           # before nvim: go install lazygit
   fzf              # before zoxide: zi interactive mode uses fzf
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide
   sheldon
   starship
   ghostty          # after font/sheldon/zoxide/starship: config assumes these are installed
-  nvim             # after rust: builds tree-sitter-cli via cargo
+  nvim             # after rust (cargo) and golang (go install lazygit)
   tmux
 )

@@ -52,7 +52,7 @@ install() {
 
   # Add Go to PATH for future login shells.
   core::ensure_block "${HOME}/.zprofile" "golang" \
-    'export PATH="${PATH}:/usr/local/go/bin"'
+    'export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"'
   core::summary "    ✓ config → ~/.zprofile (Go PATH)"
 }
 
