@@ -17,7 +17,7 @@ _STARSHIP_CONFIG="${HOME}/.config/starship.toml"
 # Generate starship.toml from the preset and write the zsh init block.
 install() {
   if ! core::check_installed starship; then
-    curl -sS https://starship.rs/install.sh | sh
+    curl -sS https://starship.rs/install.sh | sh -s -- --yes
     core::log INFO "starship installed"
     core::summary "    ✓ installed via curl (official installer)"
   else
