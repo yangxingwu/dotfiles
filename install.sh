@@ -39,12 +39,15 @@ main() {
 
   core::log INFO "Platform: ${DOTFILES_OS} | Package manager: ${DOTFILES_PKG_MANAGER}"
 
+  core::summary "---"
+
   local total=${#DOTFILES_MODULES[@]} i=0 name
   for name in "${DOTFILES_MODULES[@]}"; do
     i=$((i + 1))
     core::run_module install "${name}" "${i}" "${total}"
   done
 
+  core::print_summary
   core::log INFO "Install complete."
 }
 

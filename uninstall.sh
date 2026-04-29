@@ -25,6 +25,7 @@ main() {
     core::run_module uninstall "${name}" "${i}" "${total}"
   done
 
+  core::print_summary
   core::log INFO "Uninstall complete."
 }
 
