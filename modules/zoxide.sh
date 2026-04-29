@@ -14,7 +14,6 @@ MODULE_PLATFORM="all"
 # `eval "$(zoxide init zsh)"` defines the `z` and `zi` shell functions.
 install() {
   core::pkg_install zoxide
-  core::summary "    ✓ installed via ${DOTFILES_PKG_MANAGER}"
   core::ensure_block "${HOME}/.zshrc" "zoxide" 'eval "$(zoxide init zsh)"'
   core::summary "    ✓ config → ~/.zshrc (zoxide init zsh)"
 }

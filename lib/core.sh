@@ -38,8 +38,8 @@ core::check_installed() {
 # core::pkg_install <package> [package ...]
 # Installs one or more packages via the detected package manager.
 # Skips packages that are already installed (checked via brew list / dpkg -s /
-# rpm -q). Does NOT support dnf group installs (@<group>) — handle those
-# directly where needed.
+# rpm -q). Writes a per-package summary line automatically. Does NOT support
+# dnf group installs (@<group>) — handle those directly where needed.
 core::pkg_install() {
   local package
 
@@ -48,34 +48,40 @@ core::pkg_install() {
     brew)
       if brew list "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
+        core::summary "    ✓ ${package} already installed"
       else
         core::log INFO "Installing: ${package}"
         brew install "${package}" || {
           core::log ERROR "brew install failed: ${package}"
           return 1
         }
+        core::summary "    ✓ ${package} installed via brew"
       fi
       ;;
     apt)
       if dpkg -s "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
+        core::summary "    ✓ ${package} already installed"
       else
         core::log INFO "Installing: ${package}"
         sudo apt-get install -y "${package}" || {
           core::log ERROR "apt-get install failed: ${package}"
           return 1
         }
+        core::summary "    ✓ ${package} installed via apt"
       fi
       ;;
     dnf)
       if rpm -q "${package}" >/dev/null 2>&1; then
         core::log INFO "Already installed: ${package}"
+        core::summary "    ✓ ${package} already installed"
       else
         core::log INFO "Installing: ${package}"
         sudo dnf install -y "${package}" || {
           core::log ERROR "dnf install failed: ${package}"
           return 1
         }
+        core::summary "    ✓ ${package} installed via dnf"
       fi
       ;;
     *)

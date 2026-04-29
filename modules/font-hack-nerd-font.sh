@@ -13,7 +13,6 @@ MODULE_PLATFORM="mac"
 # transparently (brew list --cask / brew install).
 install() {
   core::pkg_install font-hack-nerd-font
-  core::summary "    ✓ installed via brew"
 }
 
 uninstall() {

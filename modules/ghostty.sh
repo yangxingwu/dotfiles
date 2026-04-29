@@ -14,7 +14,6 @@ _GHOSTTY_CONFIG="${HOME}/.config/ghostty/config"
 
 install() {
   core::pkg_install ghostty
-  core::summary "    ✓ installed via brew"
 
   mkdir -p "$(dirname "${_GHOSTTY_CONFIG}")"
   cat >"${_GHOSTTY_CONFIG}" <<'CONF'

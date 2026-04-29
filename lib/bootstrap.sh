@@ -171,6 +171,8 @@ bootstrap::homebrew() {
 # dnf's @development-tools is a group install — core::pkg_install only
 # handles individual packages, so the group is installed directly here.
 bootstrap::dev_tools() {
+  core::summary "  dev tools"
+
   case "${DOTFILES_PKG_MANAGER}" in
   brew)
     core::pkg_install cmake meson ninja gettext
@@ -185,8 +187,10 @@ bootstrap::dev_tools() {
     # @development-tools is a dnf group — check and install directly.
     if dnf group list --installed 2>/dev/null | grep -qi "development tools"; then
       core::log INFO "Already installed: @development-tools"
+      core::summary "    ✓ @development-tools already installed"
     else
       sudo dnf install -y @development-tools
+      core::summary "    ✓ @development-tools installed via dnf"
     fi
     ;;
   *)
@@ -196,6 +200,5 @@ bootstrap::dev_tools() {
     ;;
   esac
 
-  core::summary "  dev tools                    ✓ installed"
   core::log INFO "Dev tools installed"
 }
