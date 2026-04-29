@@ -9,6 +9,7 @@ DOTFILES_MODULES=(
   font-hack-nerd-font
   git
   rust             # before nvim: cargo is required for tree-sitter-cli
+  golang
   fzf              # before zoxide: zi interactive mode uses fzf
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide
