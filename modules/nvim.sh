@@ -107,7 +107,7 @@ _nvim::install_nvim() {
 # Uses a personal fork instead of the official starter; .git is kept for
 # ongoing maintenance of the config repo.
 _nvim::clone_config() {
-  local repo="git@github.com:yangxingwu/neovim-lua-config.git"
+  local repo="https://github.com/yangxingwu/neovim-lua-config.git"
   local branch="LazyVimV2"
 
   # Back up existing nvim dirs per LazyVim installation guide.
