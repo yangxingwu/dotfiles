@@ -13,9 +13,9 @@ MODULE_PLATFORM="all"
 # Detect the correct tarball name for the current platform.
 _golang::tarball_name() {
   local os arch
-  case "$(uname -s)" in
-  Darwin) os="darwin" ;;
-  Linux) os="linux" ;;
+  case "${DOTFILES_OS}" in
+  mac) os="darwin" ;;
+  linux) os="linux" ;;
   esac
   case "$(uname -m)" in
   x86_64) arch="amd64" ;;
