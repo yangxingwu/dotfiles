@@ -104,6 +104,8 @@ _ssh::generate_key() {
 }
 
 # Push public key to GitHub via gh CLI. Authenticates interactively if needed.
+# Skipped entirely in non-interactive environments (CI) where no one can
+# complete the browser auth flow.
 _ssh::push_key_to_github() {
   local pub_key="${HOME}/.ssh/id_ed25519.pub"
   local key_title
@@ -111,6 +113,12 @@ _ssh::push_key_to_github() {
 
   # Ensure gh is authenticated — run interactive login if not.
   if ! gh auth status >/dev/null 2>&1; then
+    # Non-interactive (no TTY on stdin) — skip rather than hang waiting for auth.
+    if [[ ! -t 0 ]]; then
+      core::log INFO "gh not authenticated and no TTY — skipping GitHub key push"
+      core::summary "    — skipped GitHub key push (non-interactive)"
+      return 0
+    fi
     core::log INFO "gh not authenticated — starting interactive login"
     gh auth login
   fi
