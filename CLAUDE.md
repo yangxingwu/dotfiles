@@ -17,7 +17,8 @@ Key invariants:
 - **Idempotent**: safe to run `install.sh` multiple times.
 - **No direct package manager calls in modules**: use `core::pkg_install` inside
   `install()`; never call brew/apt/dnf directly. Exception: modules that install
-  via cargo, curl, or rustup (sheldon, starship, rust) handle it themselves.
+  via cargo, curl, or rustup (sheldon, starship, rust) handle it themselves;
+  ssh module calls dnf directly for gh (`--repo gh-cli` flag required by upstream).
 
 ## Module Interface Contract
 
