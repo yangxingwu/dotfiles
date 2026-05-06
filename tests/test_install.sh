@@ -97,6 +97,22 @@ fi
 # Git config
 assert_file_contains "${HOME}/.gitconfig" "yangxingwu"
 
+# SSH module
+assert_dir_exists "${HOME}/.ssh"
+assert "~/.ssh mode 700" test "$(stat -c '%a' "${HOME}/.ssh" 2>/dev/null || stat -f '%Lp' "${HOME}/.ssh")" = "700"
+assert_dir_exists "${HOME}/.ssh/sockets"
+assert_dir_exists "${HOME}/.ssh/passwords"
+assert_file_exists "${HOME}/.ssh/id_ed25519"
+assert_file_exists "${HOME}/.ssh/id_ed25519.pub"
+assert_file_exists "${HOME}/.ssh/config"
+assert_file_contains "${HOME}/.ssh/config" "ServerAliveInterval 60"
+assert_file_contains "${HOME}/.ssh/config" "ControlMaster auto"
+assert_file_contains "${HOME}/.ssh/config" "ControlPersist 10m"
+assert_file_exists "${HOME}/.ssh/ssh-wrapper.sh"
+assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh-wrapper"
+assert_command sshpass
+assert_command gh
+
 # Ghostty config (macOS only)
 if [[ "${OS}" == "mac" ]]; then
   assert_file_exists "${HOME}/.config/ghostty/config"
@@ -156,6 +172,13 @@ assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
 
 # Git config entries removed
 assert_file_not_contains "${HOME}/.gitconfig" "yangxingwu"
+
+# SSH module uninstall — wrapper removed, user data retained
+assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh-wrapper"
+assert_file_missing "${HOME}/.ssh/ssh-wrapper.sh"
+assert_dir_exists "${HOME}/.ssh"
+assert_file_exists "${HOME}/.ssh/id_ed25519"
+assert_file_exists "${HOME}/.ssh/config"
 
 # ─── Result ─────────────────────────────────────────────────────────
 printf '\n══ Result ══\n'
