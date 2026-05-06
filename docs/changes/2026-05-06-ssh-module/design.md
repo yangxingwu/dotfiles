@@ -26,21 +26,20 @@ connectivity tools." No hard technical dependency on git module output.
 ### 1. Install Packages
 
 **sshpass:**
-- **brew (macOS)**: not in default formulae; add the tap first
-  (`brew tap esolitos/ipa`), then `core::pkg_install sshpass` works normally.
-- **apt / dnf (Linux)**: `core::pkg_install sshpass` — available in default
-  repositories.
-
-In both cases the actual install goes through `core::pkg_install sshpass` —
-the only platform-specific bit is the one-time tap on macOS.
+- **brew / apt / dnf**: available in default repositories on all platforms.
+  `core::pkg_install sshpass` — no special handling needed.
 
 **gh (GitHub CLI):**
-- **brew / dnf**: available in default repositories, no special handling.
+- **brew (macOS)**: available in default formulae. `core::pkg_install gh`.
 - **apt (Debian/Ubuntu)**: add the official GitHub CLI APT repository first
-  (GPG key + source list), then `core::pkg_install gh` works normally.
+  (keyring to `/etc/apt/keyrings/`, source list via `wget`), then
+  `core::pkg_install gh`. Follows official docs at
+  https://github.com/cli/cli/blob/trunk/docs/install_linux.md.
+- **dnf (Fedora)**: add the gh-cli repo via `dnf config-manager addrepo`,
+  then `core::pkg_install gh`. Follows official docs.
 
-In both cases the actual install goes through `core::pkg_install gh` — the
-only platform-specific bit is the one-time repo setup on apt.
+In all cases the actual install goes through `core::pkg_install` — the
+only platform-specific bit is the one-time repo/keyring setup on apt/dnf.
 
 ### 2. Create Directory Structure
 
@@ -131,26 +130,18 @@ function body.
 
 ## sshpass Availability Note
 
-- **brew (macOS)**: requires `brew tap esolitos/ipa` before install. After the
-  tap, `core::pkg_install sshpass` works like any other package.
-- **apt / dnf (Linux)**: available in default repositories, no special handling.
+- Available in default repositories on all supported platforms (homebrew-core,
+  apt, dnf). No tap or special repository needed.
 
-## gh (GitHub CLI) Installation — apt Detail
+## gh (GitHub CLI) Installation — Platform Detail
 
-Ubuntu/Debian does not ship `gh` in default repositories. The module adds the
-official GitHub CLI repository before calling `core::pkg_install gh`:
-
-```bash
-# Add GitHub CLI GPG key and apt source (idempotent — skipped if already present)
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-  | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-  | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
-sudo apt-get update
-```
-
-After the repo is added, `core::pkg_install gh` works like any other package.
+- **brew (macOS)**: `core::pkg_install gh` — available in homebrew-core.
+- **apt (Debian/Ubuntu)**: add keyring to `/etc/apt/keyrings/` and source list
+  via `wget`, then `core::pkg_install gh`. Per official docs:
+  https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+- **dnf (Fedora)**: `dnf config-manager addrepo` with the official repo file,
+  then `core::pkg_install gh`. Per official docs:
+  https://github.com/cli/cli/blob/trunk/docs/install_linux.md
 
 ## Security Considerations
 
