@@ -11,28 +11,35 @@ MODULE_PLATFORM="all"
 
 # Install sshpass and gh with platform-specific source setup.
 _ssh::install_packages() {
-  # sshpass: macOS needs a third-party tap
-  if [[ "${DOTFILES_PKG_MANAGER}" == "brew" ]]; then
-    if ! brew tap | grep -q "esolitos/ipa"; then
-      brew tap esolitos/ipa
-      core::log INFO "Added brew tap esolitos/ipa (for sshpass)"
-    fi
-  fi
+  # sshpass: available in homebrew-core, apt, and dnf default repos.
   core::pkg_install sshpass
 
-  # gh: Ubuntu/Debian needs the official GitHub CLI repository
-  if [[ "${DOTFILES_PKG_MANAGER}" == "apt" ]]; then
+  # gh (GitHub CLI): platform-specific repository setup before install.
+  case "${DOTFILES_PKG_MANAGER}" in
+  apt)
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
-      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-        | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
-      sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-      printf 'deb [arch=%s signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
+      sudo mkdir -p -m 755 /etc/apt/keyrings
+      local tmp
+      tmp="$(mktemp)"
+      wget -nv -O "${tmp}" https://cli.github.com/packages/githubcli-archive-keyring.gpg
+      cat "${tmp}" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+      rm -f "${tmp}"
+      sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+      printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
         "$(dpkg --print-architecture)" \
         | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
       sudo apt-get update >/dev/null 2>&1
       core::log INFO "Added GitHub CLI APT repository"
     fi
-  fi
+    ;;
+  dnf)
+    if [[ ! -f /etc/yum.repos.d/gh-cli.repo ]]; then
+      sudo dnf install -y dnf5-plugins 2>/dev/null || true
+      sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo
+      core::log INFO "Added GitHub CLI DNF repository"
+    fi
+    ;;
+  esac
   core::pkg_install gh
 }
 
