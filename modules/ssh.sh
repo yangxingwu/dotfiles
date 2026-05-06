@@ -145,29 +145,19 @@ _ssh::install_wrapper() {
 # Otherwise, plain ssh runs as normal (key-based or interactive password prompt).
 
 ssh() {
+  # Resolve the effective hostname via ssh's own config parser.
+  # Handles aliases, User@Host, -p port, etc. without manual parsing.
   local host
-
-  # Use 'ssh -G' to have ssh itself parse all arguments and tell us the final hostname.
-  # This avoids manually handling complex cases like -p, -vp, aliases, etc.
-  # '2>/dev/null' suppresses errors when the command doesn't include a hostname (e.g., 'ssh -V').
   host=$(command ssh -G "$@" 2>/dev/null | awk '/^hostname / {print $2; exit}')
 
-  # If 'ssh -G' successfully parsed a hostname...
-  if [[ -n "${host}" ]]; then
-    local password_file="${HOME}/.ssh/passwords/${host}"
-
-    if [[ -f "${password_file}" ]]; then
-      # Password file found — execute with sshpass.
-      sshpass -f "${password_file}" command ssh "$@"
-    else
-      # No password file — execute normally (key-based auth).
-      command ssh "$@"
-    fi
-  else
-    # If 'ssh -G' couldn't resolve a hostname (e.g., for 'ssh -h' or 'ssh -V'),
-    # fall back to the original ssh command.
-    command ssh "$@"
+  # If a password file exists for this host, prepend sshpass.
+  local password_file="${HOME}/.ssh/passwords/${host}"
+  if [[ -n "${host}" ]] && [[ -f "${password_file}" ]]; then
+    sshpass -f "${password_file}" command ssh "$@"
+    return
   fi
+
+  command ssh "$@"
 }
 WRAPPER
   chmod 644 "${wrapper_file}"
@@ -194,6 +184,7 @@ uninstall() {
   rm -f "${HOME}/.ssh/ssh-wrapper.sh"
   core::summary "    ✓ removed ~/.ssh/ssh-wrapper.sh"
 
-  # Intentionally NOT removed: ~/.ssh, keys, config, passwords (user data).
-  core::summary "    — retained ~/.ssh (keys, config, passwords are user data)"
+  # Intentionally NOT removed: ~/.ssh, keys, config, passwords (user data);
+  # sshpass, gh (other tools may depend on them).
+  core::summary "    — retained ~/.ssh, sshpass, gh (user data and shared tools)"
 }
