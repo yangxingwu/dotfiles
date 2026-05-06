@@ -134,12 +134,12 @@ core::remove_block() {
   local tmp
   tmp="$(mktemp -- "${file}.XXXXXX")"
   awk -v begin="${begin}" -v end="${end}" '
-    $0 == begin { skip=1; next }
-    $0 == end   { skip=0; next }
-    skip        { next }
-    /^$/        { blank=1; next }
-    blank && printed { print "" }
-    { blank=0; printed=1; print }
+    $0 == begin { skip=1; next }        # enter block — start skipping
+    $0 == end   { skip=0; next }        # exit block — stop skipping
+    skip        { next }                # inside block — discard line
+    /^$/        { blank=1; next }       # blank line — remember it, don't print yet
+    blank && printed { print "" }       # non-blank after blank(s) — emit ONE separator
+    { blank=0; printed=1; print }       # emit the content line, reset blank flag
   ' "${file}" >"${tmp}"
   chmod 644 "${tmp}"
   mv "${tmp}" "${file}"
