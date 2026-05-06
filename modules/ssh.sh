@@ -2,6 +2,7 @@
 # modules/ssh.sh — SSH client configuration and key management
 # Platform: all
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
+# shellcheck disable=SC2088  # tildes in log strings are intentional (display only)
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -22,15 +23,15 @@ _ssh::install_packages() {
   apt)
     # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian-ubuntu-linux-apt
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
-      (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
-        && sudo mkdir -p -m 755 /etc/apt/keyrings \
-        && out=$(mktemp) && wget -nv -O"${out}" https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-        && cat "${out}" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null \
-        && rm -f "${out}" \
-        && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-          | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null \
-        && sudo apt update >/dev/null 2>&1
+      (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
+        sudo mkdir -p -m 755 /etc/apt/keyrings &&
+        out=$(mktemp) && wget -nv -O"${out}" https://cli.github.com/packages/githubcli-archive-keyring.gpg &&
+        cat "${out}" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null &&
+        rm -f "${out}" &&
+        sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg &&
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
+        sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null &&
+        sudo apt update >/dev/null 2>&1
       core::log INFO "Added GitHub CLI APT repository"
     fi
     ;;
