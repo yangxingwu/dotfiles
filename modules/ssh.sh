@@ -36,8 +36,38 @@ _ssh::install_packages() {
   core::pkg_install gh
 }
 
+# Create ~/.ssh directory structure and write default config if absent.
+_ssh::setup_dirs_and_config() {
+  local ssh_dir="${HOME}/.ssh"
+
+  mkdir -p "${ssh_dir}" "${ssh_dir}/passwords" "${ssh_dir}/sockets"
+  chmod 700 "${ssh_dir}" "${ssh_dir}/passwords" "${ssh_dir}/sockets"
+  core::log INFO "Ensured directory structure: ~/.ssh, ~/.ssh/passwords, ~/.ssh/sockets"
+  core::summary "    ✓ directories: ~/.ssh, ~/.ssh/passwords, ~/.ssh/sockets (mode 700)"
+
+  if [[ -f "${ssh_dir}/config" ]]; then
+    core::log INFO "~/.ssh/config already exists — skipping (write-once policy)"
+    core::summary "    ✓ ~/.ssh/config already exists (not overwritten)"
+  else
+    cat >"${ssh_dir}/config" <<'SSH_CONFIG'
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    Compression yes
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h-%p
+    ControlPersist 10m
+    IdentityFile ~/.ssh/id_ed25519
+SSH_CONFIG
+    chmod 600 "${ssh_dir}/config"
+    core::log INFO "Wrote default ~/.ssh/config"
+    core::summary "    ✓ wrote ~/.ssh/config (Host * defaults)"
+  fi
+}
+
 install() {
   _ssh::install_packages
+  _ssh::setup_dirs_and_config
 }
 
 uninstall() {
