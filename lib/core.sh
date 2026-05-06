@@ -137,7 +137,7 @@ core::remove_block() {
     $0 == begin { skip=1; next }
     $0 == end   { skip=0; next }
     skip        { next }
-    /^$/        { blank++; next }
+    /^$/        { blank=1; next }
     blank && printed { print "" }
     { blank=0; printed=1; print }
   ' "${file}" >"${tmp}"
