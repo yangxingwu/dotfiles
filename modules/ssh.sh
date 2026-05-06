@@ -10,6 +10,9 @@ MODULE_DESC="SSH client configuration and key management"
 MODULE_PLATFORM="all"
 
 # Install sshpass and gh with platform-specific source setup.
+# gh install follows official docs:
+#   https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+#   https://github.com/cli/cli/blob/trunk/docs/install_macos.md
 _ssh::install_packages() {
   # sshpass: available in homebrew-core, apt, and dnf default repos.
   core::pkg_install sshpass
@@ -17,25 +20,31 @@ _ssh::install_packages() {
   # gh (GitHub CLI): platform-specific repository setup before install.
   case "${DOTFILES_PKG_MANAGER}" in
   apt)
+    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian-ubuntu-linux-apt
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
-      sudo mkdir -p -m 755 /etc/apt/keyrings
-      local tmp
-      tmp="$(mktemp)"
-      wget -nv -O "${tmp}" https://cli.github.com/packages/githubcli-archive-keyring.gpg
-      cat "${tmp}" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
-      rm -f "${tmp}"
-      sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-      printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
-        "$(dpkg --print-architecture)" \
-        | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
-      sudo apt-get update >/dev/null 2>&1
+      (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
+        && sudo mkdir -p -m 755 /etc/apt/keyrings \
+        && out=$(mktemp) && wget -nv -O"${out}" https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        && cat "${out}" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null \
+        && rm -f "${out}" \
+        && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+          | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null \
+        && sudo apt update >/dev/null 2>&1
       core::log INFO "Added GitHub CLI APT repository"
     fi
     ;;
   dnf)
+    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#fedora-centos-red-hat-enterprise-linux-dnf
     if [[ ! -f /etc/yum.repos.d/gh-cli.repo ]]; then
-      sudo dnf install -y dnf5-plugins 2>/dev/null || true
-      sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo
+      # Try dnf5 first (Fedora 41+), fall back to dnf4 (Fedora 40 and below).
+      if dnf5 --version >/dev/null 2>&1; then
+        sudo dnf install -y dnf5-plugins
+        sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo
+      else
+        sudo dnf install -y 'dnf-command(config-manager)'
+        sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+      fi
       core::log INFO "Added GitHub CLI DNF repository"
     fi
     ;;

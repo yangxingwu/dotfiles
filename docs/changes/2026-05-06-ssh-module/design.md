@@ -135,13 +135,43 @@ function body.
 
 ## gh (GitHub CLI) Installation — Platform Detail
 
-- **brew (macOS)**: `core::pkg_install gh` — available in homebrew-core.
-- **apt (Debian/Ubuntu)**: add keyring to `/etc/apt/keyrings/` and source list
-  via `wget`, then `core::pkg_install gh`. Per official docs:
-  https://github.com/cli/cli/blob/trunk/docs/install_linux.md
-- **dnf (Fedora)**: `dnf config-manager addrepo` with the official repo file,
-  then `core::pkg_install gh`. Per official docs:
-  https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+Official docs:
+- https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+- https://github.com/cli/cli/blob/trunk/docs/install_macos.md
+
+**brew (macOS):** `core::pkg_install gh` — available in homebrew-core.
+
+**apt (Debian/Ubuntu):** per official docs, add keyring + source list:
+
+```bash
+(type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
+  && sudo mkdir -p -m 755 /etc/apt/keyrings \
+  && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+  && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+  && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+  && sudo apt update
+```
+
+Then `core::pkg_install gh`.
+
+**dnf5 (Fedora 41+):** per official docs:
+
+```bash
+sudo dnf install dnf5-plugins
+sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo
+```
+
+**dnf4 (Fedora 40 and below):** per official docs:
+
+```bash
+sudo dnf install 'dnf-command(config-manager)'
+sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+```
+
+The module detects dnf version at runtime (`dnf5 --version`) and uses the
+appropriate commands. Then `core::pkg_install gh`.
 
 ## Security Considerations
 
