@@ -180,5 +180,12 @@ install() {
 }
 
 uninstall() {
-  :
+  core::remove_block "${HOME}/.zshrc" "ssh-wrapper"
+  core::summary "    ✓ removed ssh-wrapper block from ~/.zshrc"
+
+  rm -f "${HOME}/.ssh/ssh-wrapper.sh"
+  core::summary "    ✓ removed ~/.ssh/ssh-wrapper.sh"
+
+  # Intentionally NOT removed: ~/.ssh, keys, config, passwords (user data).
+  core::summary "    — retained ~/.ssh (keys, config, passwords are user data)"
 }
