@@ -65,9 +65,24 @@ SSH_CONFIG
   fi
 }
 
+# Generate ed25519 key pair if not already present.
+_ssh::generate_key() {
+  local key_file="${HOME}/.ssh/id_ed25519"
+
+  if [[ -f "${key_file}" ]]; then
+    core::log INFO "SSH key already exists: ${key_file}"
+    core::summary "    ✓ key already exists: ~/.ssh/id_ed25519"
+  else
+    ssh-keygen -t ed25519 -C "xingwu.yang@gmail.com" -f "${key_file}" -N ""
+    core::log INFO "Generated SSH key: ${key_file}"
+    core::summary "    ✓ generated key: ~/.ssh/id_ed25519"
+  fi
+}
+
 install() {
   _ssh::install_packages
   _ssh::setup_dirs_and_config
+  _ssh::generate_key
 }
 
 uninstall() {
