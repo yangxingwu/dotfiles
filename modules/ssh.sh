@@ -49,9 +49,15 @@ _ssh::install_packages() {
       fi
       core::log INFO "Added GitHub CLI DNF repository"
     fi
+    # gh-cli repo requires explicit --repo flag per official docs.
+    sudo dnf install -y gh --repo gh-cli
+    core::summary "    ✓ gh installed via dnf"
     ;;
   esac
-  core::pkg_install gh
+  # On brew/apt, core::pkg_install handles gh normally.
+  if [[ "${DOTFILES_PKG_MANAGER}" != "dnf" ]]; then
+    core::pkg_install gh
+  fi
 }
 
 # Create ~/.ssh directory structure and write default config if absent.
