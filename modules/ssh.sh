@@ -86,10 +86,36 @@ _ssh::generate_key() {
   fi
 }
 
+# Push public key to GitHub via gh CLI. Authenticates interactively if needed.
+_ssh::push_key_to_github() {
+  local pub_key="${HOME}/.ssh/id_ed25519.pub"
+  local key_title
+  key_title="$(hostname)"
+
+  # Ensure gh is authenticated — run interactive login if not.
+  if ! gh auth status >/dev/null 2>&1; then
+    core::log INFO "gh not authenticated — starting interactive login"
+    gh auth login
+  fi
+
+  # Check if this key is already registered on GitHub.
+  local pub_content
+  pub_content="$(cat "${pub_key}")"
+  if gh ssh-key list | grep -qF "${pub_content##* }"; then
+    core::log INFO "SSH key already registered on GitHub"
+    core::summary "    ✓ public key already on GitHub"
+  else
+    gh ssh-key add "${pub_key}" --title "${key_title}"
+    core::log INFO "Pushed SSH public key to GitHub (title: ${key_title})"
+    core::summary "    ✓ public key pushed to GitHub (title: ${key_title})"
+  fi
+}
+
 install() {
   _ssh::install_packages
   _ssh::setup_dirs_and_config
   _ssh::generate_key
+  _ssh::push_key_to_github
 }
 
 uninstall() {
