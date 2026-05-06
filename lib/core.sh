@@ -98,20 +98,28 @@ core::pkg_install() {
 
 # core::ensure_block <file> <id> <content>
 # Writes a managed block to <file>. Removes any existing block with the
-# same id first, then appends the new one.
+# same id first, then appends the new one. Adds a blank line separator
+# before the block if the file already has content.
 core::ensure_block() {
   local file="${1}" id="${2}" content="${3}"
   local begin="# BEGIN dotfiles:${id}"
   local end="# END dotfiles:${id}"
 
   core::remove_block "${file}" "${id}"
+
+  # Separate from previous content with a blank line.
+  if [[ -s "${file}" ]] && [[ -n "$(tail -n 1 "${file}")" ]]; then
+    printf '\n' >>"${file}"
+  fi
+
   printf '%s\n%s\n%s\n' "${begin}" "${content}" "${end}" >>"${file}"
   core::log INFO "Wrote block '${id}' to ${file}"
 }
 
 # core::remove_block <file> <id>
 # Removes the managed block with the given id from <file>.
-# No-op if the file or block is absent.
+# Normalizes blank lines: collapses consecutive blanks to one, strips
+# leading/trailing blanks. No-op if the file or block is absent.
 core::remove_block() {
   local file="${1}" id="${2}"
   local begin="# BEGIN dotfiles:${id}"
@@ -120,13 +128,18 @@ core::remove_block() {
   [[ -f "${file}" ]] || return 0
   grep -qxF "${begin}" "${file}" || return 0
 
-  # Write everything outside BEGIN..END to a temp file, then swap.
+  # Remove the block, then normalize blank lines:
+  # - Collapse consecutive blank lines to at most one
+  # - Strip leading and trailing blank lines
   local tmp
   tmp="$(mktemp -- "${file}.XXXXXX")"
   awk -v begin="${begin}" -v end="${end}" '
     $0 == begin { skip=1; next }
     $0 == end   { skip=0; next }
-    !skip       { print }
+    skip        { next }
+    /^$/        { blank++; next }
+    blank && printed { print "" }
+    { blank=0; printed=1; print }
   ' "${file}" >"${tmp}"
   chmod 644 "${tmp}"
   mv "${tmp}" "${file}"
