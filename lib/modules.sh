@@ -8,6 +8,7 @@ IFS=$'\n\t'
 DOTFILES_MODULES=(
   font-hack-nerd-font
   git
+  ssh              # after git: identity before connectivity
   rust             # before nvim: cargo is required for tree-sitter-cli
   golang           # before nvim: go install lazygit
   fzf              # before zoxide: zi interactive mode uses fzf
