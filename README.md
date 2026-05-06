@@ -41,6 +41,7 @@ system's package manager (sudo required).
 |---|---|---|
 | `font-hack-nerd-font` | macOS | Hack Nerd Font (Homebrew cask) |
 | `git` | all | Git global config (user.name, user.email) |
+| `ssh` | all | SSH client config, key generation, sshpass wrapper, GitHub pubkey |
 | `rust` | all | Rust toolchain via rustup |
 | `fzf` | all | fzf fuzzy finder + zsh key bindings |
 | `zoxide` | all | zoxide smarter cd command |
@@ -90,6 +91,7 @@ external side effects (oh-my-tmux clone, LazyVim config, etc.). The following ar
 **not** removed automatically — clean up manually if desired:
 
 - Rust toolchain: `rustup self uninstall`
+- SSH keys and config: `rm -rf ~/.ssh/` (caution: destroys all keys)
 - Installed packages: uninstall via your package manager
 - Backups: `rm -rf ~/.dotfiles-backup/`
 
