@@ -111,11 +111,63 @@ _ssh::push_key_to_github() {
   fi
 }
 
+# Write the ssh() wrapper function to ~/.ssh/ssh-wrapper.sh and source it
+# from .zshrc via a managed block.
+_ssh::install_wrapper() {
+  local wrapper_file="${HOME}/.ssh/ssh-wrapper.sh"
+
+  cat >"${wrapper_file}" <<'WRAPPER'
+# ssh-wrapper.sh — transparent password-based SSH via sshpass
+#
+# Credential layout:
+#   - Username: defined in ~/.ssh/config via "User" directive per Host.
+#   - Password: stored as plain text (one password per file, no other content)
+#     in ~/.ssh/passwords/<hostname> with mode 600.
+#
+# If a password file exists for the target host, sshpass feeds it automatically.
+# Otherwise, plain ssh runs as normal (key-based or interactive password prompt).
+
+ssh() {
+  local host
+
+  # Use 'ssh -G' to have ssh itself parse all arguments and tell us the final hostname.
+  # This avoids manually handling complex cases like -p, -vp, aliases, etc.
+  # '2>/dev/null' suppresses errors when the command doesn't include a hostname (e.g., 'ssh -V').
+  host=$(command ssh -G "$@" 2>/dev/null | awk '/^hostname / {print $2; exit}')
+
+  # If 'ssh -G' successfully parsed a hostname...
+  if [[ -n "${host}" ]]; then
+    local password_file="${HOME}/.ssh/passwords/${host}"
+
+    if [[ -f "${password_file}" ]]; then
+      # Password file found — execute with sshpass.
+      sshpass -f "${password_file}" command ssh "$@"
+    else
+      # No password file — execute normally (key-based auth).
+      command ssh "$@"
+    fi
+  else
+    # If 'ssh -G' couldn't resolve a hostname (e.g., for 'ssh -h' or 'ssh -V'),
+    # fall back to the original ssh command.
+    command ssh "$@"
+  fi
+}
+WRAPPER
+  chmod 644 "${wrapper_file}"
+  core::log INFO "Wrote ssh wrapper to ~/.ssh/ssh-wrapper.sh"
+
+  core::ensure_block "${HOME}/.zshrc" "ssh-wrapper" \
+    "source \"\${HOME}/.ssh/ssh-wrapper.sh\""
+  core::summary "    ✓ ssh-wrapper.sh → ~/.ssh/ssh-wrapper.sh"
+  core::summary "    ✓ config → ~/.zshrc (source ssh-wrapper.sh)"
+}
+
 install() {
   _ssh::install_packages
   _ssh::setup_dirs_and_config
   _ssh::generate_key
   _ssh::push_key_to_github
+  _ssh::install_wrapper
 }
 
 uninstall() {
