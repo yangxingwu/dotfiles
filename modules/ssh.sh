@@ -21,7 +21,7 @@ _ssh::install_packages() {
   # gh (GitHub CLI): platform-specific repository setup before install.
   case "${DOTFILES_PKG_MANAGER}" in
   apt)
-    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian-ubuntu-linux-apt
+    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
       (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
         sudo mkdir -p -m 755 /etc/apt/keyrings &&
@@ -36,13 +36,14 @@ _ssh::install_packages() {
     fi
     ;;
   dnf)
-    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#fedora-centos-red-hat-enterprise-linux-dnf
     if [[ ! -f /etc/yum.repos.d/gh-cli.repo ]]; then
       # Try dnf5 first (Fedora 41+), fall back to dnf4 (Fedora 40 and below).
       if dnf5 --version >/dev/null 2>&1; then
+        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf5
         sudo dnf install -y dnf5-plugins
         sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo
       else
+        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf4
         sudo dnf install -y 'dnf-command(config-manager)'
         sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
       fi
