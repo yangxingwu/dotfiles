@@ -128,18 +128,23 @@ core::remove_block() {
   [[ -f "${file}" ]] || return 0
   grep -qxF "${begin}" "${file}" || return 0
 
-  # Remove the block, then normalize blank lines:
-  # - Collapse consecutive blank lines to at most one
-  # - Strip leading and trailing blank lines
+  # Remove the BEGIN..END block and normalize blank lines.
+  #
+  # Blank lines use delayed printing: encountered blanks are not printed
+  # immediately, just flagged. When the next non-blank line arrives:
+  #   - If we already printed content before → emit one blank line (separator)
+  #   - If this is the first content → emit nothing (strip leading blanks)
+  # Trailing blanks are dropped because no content follows to trigger output.
+  # Consecutive blanks collapse to one because only one separator is emitted.
   local tmp
   tmp="$(mktemp -- "${file}.XXXXXX")"
   awk -v begin="${begin}" -v end="${end}" '
-    $0 == begin { skip=1; next }        # enter block — start skipping
-    $0 == end   { skip=0; next }        # exit block — stop skipping
-    skip        { next }                # inside block — discard line
-    /^$/        { blank=1; next }       # blank line — remember it, don't print yet
-    blank && printed { print "" }       # non-blank after blank(s) — emit ONE separator
-    { blank=0; printed=1; print }       # emit the content line, reset blank flag
+    $0 == begin { skip=1; next }              # enter block — start skipping
+    $0 == end   { skip=0; next }              # leave block — stop skipping
+    skip        { next }                      # inside block — discard
+    /^$/        { blank=1; next }             # blank line — flag it, do not print
+    blank && printed { print "" }             # emit one blank separator (then fall through)
+    { blank=0; printed=1; print }             # print current line content (not a blank)
   ' "${file}" >"${tmp}"
   chmod 644 "${tmp}"
   mv "${tmp}" "${file}"
