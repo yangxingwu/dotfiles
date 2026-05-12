@@ -315,7 +315,7 @@ core::run_module() {
     end_time="$(date +%s)"
     elapsed="$((end_time - start_time))"
     core::log ERROR "✗ ${name} failed (${elapsed}s)"
-    _CORE_MODULES_FAILED+=("${name}")
+    return 1
   fi
 }
 
@@ -324,7 +324,6 @@ _CORE_SUMMARY=()
 
 # Module outcome tracking for final summary.
 _CORE_MODULES_OK=0
-_CORE_MODULES_FAILED=()
 _CORE_INSTALL_START=""
 
 # core::summary <entry>
@@ -376,9 +375,6 @@ core::print_final_summary() {
   printf '\n══════════════════════════════════════════════════\n' >&2
   printf '  dotfiles install complete\n' >&2
   printf '  %d modules installed (%ds)\n' "${_CORE_MODULES_OK}" "${elapsed}" >&2
-  if [[ ${#_CORE_MODULES_FAILED[@]} -gt 0 ]]; then
-    printf '  %d module(s) failed: %s\n' "${#_CORE_MODULES_FAILED[@]}" "${_CORE_MODULES_FAILED[*]}" >&2
-  fi
   if [[ -n "${DOTFILES_LOG_FILE:-}" ]]; then
     printf '  Log: %s\n' "${DOTFILES_LOG_FILE}" >&2
   fi
