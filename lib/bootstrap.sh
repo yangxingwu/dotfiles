@@ -28,9 +28,9 @@ bootstrap::zsh() {
     case "${DOTFILES_OS}" in
     linux)
       if command -v apt-get >/dev/null 2>&1; then
-        sudo apt-get install -y zsh
+        core::run_cmd "Installing zsh" sudo apt-get install -y zsh
       elif command -v dnf >/dev/null 2>&1; then
-        sudo dnf install -y zsh
+        core::run_cmd "Installing zsh" sudo dnf install -y zsh
       else
         core::log ERROR "zsh not found and no supported package manager to install it"
         core::log ERROR "Supported Linux package managers: apt (Debian/Ubuntu), dnf (Fedora/RHEL)"
@@ -183,21 +183,21 @@ bootstrap::dev_tools() {
 
   case "${DOTFILES_PKG_MANAGER}" in
   brew)
-    core::pkg_install cmake meson ninja gettext
+    core::run_cmd "Installing dev tools" core::pkg_install cmake meson ninja gettext
     ;;
   apt)
-    core::pkg_install git curl cmake meson ninja-build gettext \
+    core::run_cmd "Installing dev tools" core::pkg_install git curl cmake meson ninja-build gettext \
       pkg-config libssl-dev libclang-dev build-essential
     ;;
   dnf)
-    core::pkg_install git curl cmake meson ninja-build gettext \
+    core::run_cmd "Installing dev tools" core::pkg_install git curl cmake meson ninja-build gettext \
       pkg-config openssl-devel clang-devel
     # @development-tools is a dnf group — check and install directly.
     if dnf group list --installed 2>/dev/null | grep -qi "development tools"; then
       core::log INFO "Already installed: @development-tools"
       core::summary "    ✓ @development-tools already installed"
     else
-      sudo dnf install -y @development-tools
+      core::run_cmd "Installing @development-tools" sudo dnf install -y @development-tools
       core::summary "    ✓ @development-tools installed via dnf"
     fi
     ;;
