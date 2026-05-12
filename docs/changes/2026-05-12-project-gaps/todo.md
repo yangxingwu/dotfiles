@@ -45,14 +45,31 @@ independent sub-project — implement in any order, one at a time.
 
 ## 6. Python Module
 
-- [ ] Create `modules/python.sh` — pyenv install + global python version
-- [ ] Handle platform differences (brew install pyenv vs apt/dnf)
+- [ ] Create `modules/python.sh` — install python3 + pip via system package manager
+- [ ] macOS: `core::pkg_install python3`; Linux: `core::pkg_install python3 python3-pip`
 - [ ] Configure pip (mirror source if needed)
 - [ ] Add `python` to lib/modules.sh
 - [ ] Write docs/modules/python.md
-- [ ] Add test assertions (assert_command python3 pyenv)
+- [ ] Add test assertions (assert_command python3 pip3)
 
-## 7. Dry-run Mode
+## 7. mise Module (optional — for multi-version management)
+
+Evaluate if needed: mise (https://github.com/jdx/mise) is a unified dev tool
+version manager. Currently the project uses rustup (Rust) and manual tarball
+(Go) which work fine for single-version setups. Consider mise if:
+- You need multiple Python/Node/Go versions on the same machine
+- You want per-project version pinning via .mise.toml
+
+If adding:
+- [ ] Create `modules/mise.sh` — install mise (brew/cargo), write config, add shell init
+- [ ] Optionally simplify `modules/golang.sh` (replace tarball logic with `mise use -g go@latest`)
+- [ ] Optionally replace Python module with `mise use -g python@3.x`
+- [ ] Keep `modules/rust.sh` as-is (mise wraps rustup anyway, no benefit)
+- [ ] Add `mise` to lib/modules.sh (after rust, before golang)
+- [ ] Write docs/modules/mise.md
+- [ ] Add test assertions (assert_command mise)
+
+## 8. Dry-run Mode
 
 - [ ] install.sh: parse `--dry-run` flag
 - [ ] Set global DOTFILES_DRY_RUN=1 when flag present
@@ -61,7 +78,7 @@ independent sub-project — implement in any order, one at a time.
 - [ ] Modules: ssh-keygen, gh auth, mkdir etc. check dry-run before executing
 - [ ] Update README
 
-## 8. Git Enhancement Tools Module
+## 9. Git Enhancement Tools Module
 
 - [ ] Create `modules/git-tools.sh` — install delta, configure git pager
 - [ ] git config --global core.pager delta
@@ -70,7 +87,7 @@ independent sub-project — implement in any order, one at a time.
 - [ ] Write docs/modules/git-tools.md
 - [ ] Add test assertions (assert_command delta)
 
-## 9. ASCII Progress Bar
+## 10. ASCII Progress Bar
 
 - [ ] Add `core::progress_bar <current> <total> <module_name>` to lib/core.sh
 - [ ] Output format: `[=====>    ] 3/12 ssh`
