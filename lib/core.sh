@@ -258,8 +258,11 @@ core::parse_args() {
   if [[ -n "${mode}" ]]; then
     modules::filter "${mode}" "${csv}" || return 1
   fi
+}
 
-  # Record the install start time for core::print_final_summary.
+# core::init — initialize runtime state (timing, log file).
+# Call once from install.sh / uninstall.sh after core::parse_args.
+core::init() {
   _CORE_INSTALL_START="$(date +%s)"
 }
 
