@@ -7,6 +7,10 @@
 *.swo
 *~
 
+# Patch/diff files
+*.patch
+*.diff
+
 # IDE project directories
 .vscode/
 .idea/
