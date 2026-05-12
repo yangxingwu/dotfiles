@@ -258,6 +258,9 @@ core::parse_args() {
   if [[ -n "${mode}" ]]; then
     modules::filter "${mode}" "${csv}" || return 1
   fi
+
+  # Record the install start time for core::print_final_summary.
+  _CORE_INSTALL_START="$(date +%s)"
 }
 
 # core::run_module <action> <name> <index> <total>

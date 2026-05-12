@@ -43,7 +43,6 @@ source "${DOTFILES_ROOT}/lib/bootstrap.sh"
 
 main() {
   core::parse_args "$@"
-  _CORE_INSTALL_START="$(date +%s)"
 
   # Detect OS first — bootstrap steps and the module loop both dispatch by it.
   detect::os
