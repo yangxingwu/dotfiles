@@ -20,6 +20,10 @@ IFS=$'\n\t'
 DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_ROOT
 
+# Verbosity: "normal" (default) suppresses command output; "verbose" passes it through.
+DOTFILES_VERBOSITY="normal"
+DOTFILES_LOG_FILE="/tmp/dotfiles-uninstall-$(date +%Y%m%d-%H%M%S).log"
+
 # shellcheck source=lib/modules.sh
 source "${DOTFILES_ROOT}/lib/modules.sh"
 # shellcheck source=lib/detect.sh
@@ -29,6 +33,7 @@ source "${DOTFILES_ROOT}/lib/core.sh"
 
 main() {
   core::parse_args "$@"
+  _CORE_INSTALL_START="$(date +%s)"
 
   # Only detect::os is needed: uninstall hooks clean up config files and
   # clones, not packages — so DOTFILES_PKG_MANAGER is never read.
@@ -58,7 +63,7 @@ main() {
   core::summary_file "${HOME}/.zshrc"
 
   core::print_summary
-  core::log INFO "Uninstall complete."
+  core::print_final_summary
 }
 
 main "$@"
