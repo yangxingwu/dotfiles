@@ -35,7 +35,6 @@ install() {
 # Disable cloud sync — history stays local only.
 auto_sync = false
 CONFIG
-  # shellcheck disable=SC2088  # tilde is display text, not a path expansion
   core::log INFO "Wrote atuin config → ~/.config/atuin/config.toml"
   core::summary "    ✓ config → ~/.config/atuin/config.toml"
 
