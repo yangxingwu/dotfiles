@@ -16,18 +16,18 @@ MODULE_PLATFORM="all"
 _nvim::install_deps() {
   case "${DOTFILES_OS}" in
   mac)
-    core::pkg_install ripgrep fd node shfmt shellcheck
+    core::run_cmd "Installing nvim dependencies" core::pkg_install ripgrep fd node shfmt shellcheck
     ;;
   linux)
-    core::pkg_install ripgrep fd-find nodejs npm shfmt shellcheck
+    core::run_cmd "Installing nvim dependencies" core::pkg_install ripgrep fd-find nodejs npm shfmt shellcheck
     ;;
   esac
 
   # lazygit and tree-sitter-cli are not in apt/dnf.
   # golang and rust modules run before nvim, so go and cargo are on PATH.
-  go install github.com/jesseduffield/lazygit@latest
+  core::run_cmd "Installing lazygit" go install github.com/jesseduffield/lazygit@latest
   core::summary "    ✓ lazygit installed via go"
-  cargo install --locked tree-sitter-cli
+  core::run_cmd "Installing tree-sitter-cli" cargo install --locked tree-sitter-cli
   core::summary "    ✓ tree-sitter-cli installed via cargo"
 }
 
@@ -43,12 +43,12 @@ _nvim::install_from_src() {
     return 1
   fi
 
-  git clone https://github.com/neovim/neovim.git "${src_dir}"
+  core::run_cmd "Cloning neovim source" git clone https://github.com/neovim/neovim.git "${src_dir}"
 
   pushd "${src_dir}" >/dev/null
-  git checkout stable
-  make CMAKE_BUILD_TYPE=RelWithDebInfo
-  sudo make install
+  core::run_cmd "Checking out stable branch" git checkout stable
+  core::run_cmd "Building neovim" make CMAKE_BUILD_TYPE=RelWithDebInfo
+  core::run_cmd "Installing neovim" sudo make install
   popd >/dev/null
 
   core::log INFO "Neovim built and installed from source (stable)"
@@ -64,7 +64,7 @@ _nvim::install_nvim() {
 
   case "${DOTFILES_OS}" in
   mac)
-    core::pkg_install neovim
+    core::run_cmd "Installing neovim via brew" core::pkg_install neovim
     ;;
   linux)
     local pkg_version
@@ -82,7 +82,7 @@ _nvim::install_nvim() {
       read -r choice
       case "${choice:-1}" in
       1)
-        core::pkg_install neovim
+        core::run_cmd "Installing neovim via package manager" core::pkg_install neovim
         return
         ;;
       2)
@@ -112,7 +112,7 @@ _nvim::clone_config() {
   mv ~/.local/state/nvim{,.bak} 2>/dev/null || true
   mv ~/.cache/nvim{,.bak} 2>/dev/null || true
 
-  git clone --branch "${branch}" "${repo}" ~/.config/nvim
+  core::run_cmd "Cloning neovim config" git clone --branch "${branch}" "${repo}" ~/.config/nvim
   core::log INFO "Cloned neovim config to ~/.config/nvim"
   core::summary "    ✓ config → ~/.config/nvim (cloned)"
 }
