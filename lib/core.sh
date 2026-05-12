@@ -91,6 +91,43 @@ core::pkg_install() {
   done
 }
 
+# core::run_cmd <description> <command> [args...]
+# Execute a command with output control based on DOTFILES_VERBOSITY.
+# In normal mode: output goes to log file only; on failure, tail 20 lines.
+# In verbose mode: output streams to terminal AND log file.
+# Always appends to DOTFILES_LOG_FILE. Returns the command's exit code.
+core::run_cmd() {
+  local description="${1}"
+  shift
+
+  local start_time end_time elapsed exit_code=0
+
+  core::log INFO "${description}..."
+  printf '\n=== %s ===\n' "${description}" >>"${DOTFILES_LOG_FILE}"
+
+  start_time="$(date +%s)"
+
+  if [[ "${DOTFILES_VERBOSITY}" == "verbose" ]]; then
+    "$@" 2>&1 | tee -a "${DOTFILES_LOG_FILE}" || exit_code="${PIPESTATUS[0]}"
+  else
+    "$@" >>"${DOTFILES_LOG_FILE}" 2>&1 || exit_code=$?
+  fi
+
+  end_time="$(date +%s)"
+  elapsed="$((end_time - start_time))"
+
+  if [[ "${exit_code}" -eq 0 ]]; then
+    core::log INFO "Done: ${description} (${elapsed}s)"
+  else
+    core::log ERROR "Failed: ${description} (exit ${exit_code}, ${elapsed}s)"
+    printf '── last 20 lines ──────────────────────────────────\n' >&2
+    tail -20 "${DOTFILES_LOG_FILE}" >&2
+    printf '───────────────────────────────────────────────────\n' >&2
+    printf 'Full log: %s\n' "${DOTFILES_LOG_FILE}" >&2
+    return "${exit_code}"
+  fi
+}
+
 # Managed blocks in shell init files are delimited by:
 #   # BEGIN dotfiles:<id>
 #   <content>
