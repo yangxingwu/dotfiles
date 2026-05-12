@@ -53,7 +53,8 @@ install() {
   # Activate for the rest of this install run.
   export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"
 
-  # Persist for future login shells.
+  # Content is single-quoted: written literally to .zprofile, expanded by zsh at login.
+  # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zprofile" "golang" \
     'export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"'
   core::summary "    ✓ config → ~/.zprofile (Go PATH)"

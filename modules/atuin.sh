@@ -44,7 +44,8 @@ CONFIG
     core::summary "    ✓ config already exists (not overwritten)"
   fi
 
-  # Add init to .zshrc via managed block.
+  # Content is single-quoted: written literally to .zshrc, expanded by zsh at login.
+  # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zshrc" "atuin" \
     'eval "$(atuin init zsh)"'
   core::summary "    ✓ config → ~/.zshrc (atuin init)"

@@ -57,10 +57,12 @@ install() {
   done
   core::summary "    ✓ plugins: ${plugin_names}"
 
+  # Content is single-quoted: written literally to .zshrc, expanded by zsh at login.
+  # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zshrc" "sheldon" \
     'eval "$(sheldon source)"
-# Required by zsh-completions plugin: it only adds fpath entries, compinit
-# must run afterwards to register the completion functions.
+# zsh-completions plugin only adds fpath entries (completion definition dirs).
+# compinit must run after sheldon to actually register those completions.
 autoload -Uz compinit && compinit'
   core::summary "    ✓ config → ~/.zshrc (sheldon source, compinit)"
 }
