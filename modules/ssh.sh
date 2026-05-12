@@ -16,7 +16,7 @@ MODULE_PLATFORM="all"
 #   https://github.com/cli/cli/blob/trunk/docs/install_macos.md
 _ssh::install_packages() {
   # sshpass: available in homebrew-core, apt, and dnf default repos.
-  core::pkg_install sshpass
+  core::run_cmd "Installing sshpass" core::pkg_install sshpass
 
   # gh (GitHub CLI): platform-specific repository setup before install.
   case "${DOTFILES_PKG_MANAGER}" in
@@ -56,7 +56,7 @@ _ssh::install_packages() {
   esac
   # On brew/apt, core::pkg_install handles gh normally.
   if [[ "${DOTFILES_PKG_MANAGER}" != "dnf" ]]; then
-    core::pkg_install gh
+    core::run_cmd "Installing gh" core::pkg_install gh
   fi
 }
 

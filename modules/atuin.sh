@@ -19,7 +19,7 @@ install() {
       core::log ERROR "cargo not found — install the rust module first"
       return 1
     fi
-    cargo install atuin --locked
+    core::run_cmd "Installing atuin" cargo install atuin --locked
     core::log INFO "atuin installed via cargo"
     core::summary "    ✓ installed via cargo"
   else
