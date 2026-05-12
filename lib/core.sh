@@ -159,7 +159,11 @@ core::run_module() {
   local action="${1}" name="${2}" index="${3}" total="${4}"
   local module_file="${DOTFILES_ROOT}/modules/${name}.sh"
 
+  # Reset hooks to no-op defaults before sourcing the module file.
+  # The module's install()/uninstall() definitions will overwrite these.
+  # shellcheck disable=SC2329  # invoked indirectly via "${action}" below
   install() { :; }
+  # shellcheck disable=SC2329
   uninstall() { :; }
   unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
 
