@@ -28,6 +28,11 @@ core::log() {
   fi
 
   printf '%s %s\n' "${color}[${level}]${reset}" "${message}" >&"${fd}"
+
+  # Mirror to log file when active (no colour codes in log).
+  if [[ -n "${DOTFILES_LOG_FILE:-}" ]]; then
+    printf '[%s] %s\n' "${level}" "${message}" >>"${DOTFILES_LOG_FILE}"
+  fi
 }
 
 # core::check_installed <binary> — returns 0 if on PATH.
