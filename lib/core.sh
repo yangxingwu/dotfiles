@@ -5,6 +5,11 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Verbosity: "normal" (default) suppresses command output; "verbose" passes it through.
+# Set before any function runs; core::parse_args may upgrade to "verbose".
+_CORE_VERBOSITY="${_CORE_VERBOSITY:-normal}"
+_CORE_LOG_FILE="${_CORE_LOG_FILE:-}"
+
 # core::log <level> <message>
 # Levels: INFO (stdout), WARN/ERROR (stderr). Colours when output fd is a TTY.
 core::log() {
@@ -30,8 +35,8 @@ core::log() {
   printf '%s %s\n' "${color}[${level}]${reset}" "${message}" >&"${fd}"
 
   # Mirror to log file when active (no colour codes in log).
-  if [[ -n "${DOTFILES_LOG_FILE:-}" ]]; then
-    printf '[%s] %s\n' "${level}" "${message}" >>"${DOTFILES_LOG_FILE}"
+  if [[ -n "${_CORE_LOG_FILE:-}" ]]; then
+    printf '[%s] %s\n' "${level}" "${message}" >>"${_CORE_LOG_FILE}"
   fi
 }
 
@@ -97,10 +102,10 @@ core::pkg_install() {
 }
 
 # core::run_cmd <description> <command> [args...]
-# Execute a command with output control based on DOTFILES_VERBOSITY.
+# Execute a command with output control based on _CORE_VERBOSITY.
 # In normal mode: output goes to log file only; on failure, tail 20 lines.
 # In verbose mode: output streams to terminal AND log file.
-# Always appends to DOTFILES_LOG_FILE. Returns the command's exit code.
+# Always appends to _CORE_LOG_FILE. Returns the command's exit code.
 core::run_cmd() {
   local description="${1}"
   shift
@@ -108,14 +113,14 @@ core::run_cmd() {
   local start_time end_time elapsed exit_code=0
 
   core::log INFO "${description}..."
-  printf '\n=== %s ===\n' "${description}" >>"${DOTFILES_LOG_FILE}"
+  printf '\n=== %s ===\n' "${description}" >>"${_CORE_LOG_FILE}"
 
   start_time="$(date +%s)"
 
-  if [[ "${DOTFILES_VERBOSITY}" == "verbose" ]]; then
-    "$@" 2>&1 | tee -a "${DOTFILES_LOG_FILE}" || exit_code="${PIPESTATUS[0]}"
+  if [[ "${_CORE_VERBOSITY}" == "verbose" ]]; then
+    "$@" 2>&1 | tee -a "${_CORE_LOG_FILE}" || exit_code="${PIPESTATUS[0]}"
   else
-    "$@" >>"${DOTFILES_LOG_FILE}" 2>&1 || exit_code=$?
+    "$@" >>"${_CORE_LOG_FILE}" 2>&1 || exit_code=$?
   fi
 
   end_time="$(date +%s)"
@@ -126,9 +131,9 @@ core::run_cmd() {
   else
     core::log ERROR "Failed: ${description} (exit ${exit_code}, ${elapsed}s)"
     printf '── last 20 lines ──────────────────────────────────\n' >&2
-    tail -20 "${DOTFILES_LOG_FILE}" >&2
+    tail -20 "${_CORE_LOG_FILE}" >&2
     printf '───────────────────────────────────────────────────\n' >&2
-    printf 'Full log: %s\n' "${DOTFILES_LOG_FILE}" >&2
+    printf 'Full log: %s\n' "${_CORE_LOG_FILE}" >&2
     return "${exit_code}"
   fi
 }
@@ -243,7 +248,7 @@ core::parse_args() {
       shift 2
       ;;
     --verbose | -v)
-      DOTFILES_VERBOSITY="verbose"
+      _CORE_VERBOSITY="verbose"
       shift
       ;;
     *)
@@ -263,6 +268,9 @@ core::parse_args() {
 # core::init — initialize runtime state (timing, log file).
 # Call once from install.sh / uninstall.sh after core::parse_args.
 core::init() {
+  local script_name
+  script_name="$(basename "${0}" .sh)"
+  _CORE_LOG_FILE="/tmp/dotfiles-${script_name}-$(date +%Y%m%d-%H%M%S).log"
   _CORE_INSTALL_START="$(date +%s)"
 }
 
@@ -375,8 +383,8 @@ core::print_final_summary() {
   printf '\n══════════════════════════════════════════════════\n' >&2
   printf '  dotfiles install complete\n' >&2
   printf '  %d modules installed (%ds)\n' "${_CORE_MODULES_OK}" "${elapsed}" >&2
-  if [[ -n "${DOTFILES_LOG_FILE:-}" ]]; then
-    printf '  Log: %s\n' "${DOTFILES_LOG_FILE}" >&2
+  if [[ -n "${_CORE_LOG_FILE:-}" ]]; then
+    printf '  Log: %s\n' "${_CORE_LOG_FILE}" >&2
   fi
   printf '══════════════════════════════════════════════════\n' >&2
 }

@@ -28,10 +28,6 @@ IFS=$'\n\t'
 DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES_ROOT
 
-# Verbosity: "normal" (default) suppresses command output; "verbose" passes it through.
-DOTFILES_VERBOSITY="normal"
-DOTFILES_LOG_FILE="/tmp/dotfiles-install-$(date +%Y%m%d-%H%M%S).log"
-
 # shellcheck source=lib/modules.sh
 source "${DOTFILES_ROOT}/lib/modules.sh"
 # shellcheck source=lib/detect.sh
