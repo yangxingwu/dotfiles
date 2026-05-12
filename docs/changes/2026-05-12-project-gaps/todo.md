@@ -9,9 +9,9 @@ independent sub-project — implement in any order, one at a time.
 
 ## 1. Project Housekeeping
 
-- [ ] Add LICENSE file (MIT, copyright yangxingwu)
-- [ ] Expand .gitignore (*.swp, *.swo, *~, .env, .env.*)
-- [ ] Fix README.md: `<your-username>` → `yangxingwu`
+- [x] Add LICENSE file (MIT, copyright yangxingwu)
+- [x] Expand .gitignore (*.swp, *.swo, *~, .env, .env.*)
+- [x] Fix README.md: `<your-username>` → `yangxingwu`
 
 ## 2. Modern CLI Tools Module
 
@@ -30,11 +30,11 @@ independent sub-project — implement in any order, one at a time.
 
 ## 4. Selective Module Install
 
-- [ ] install.sh: parse `--skip module1,module2` argument
-- [ ] uninstall.sh: same support
-- [ ] Skip matched modules in the loop (log "skipped by --skip")
-- [ ] Update README with usage example
-- [ ] Test: run with --skip, verify skipped module has no side effects
+- [x] install.sh: parse `--skip module1,module2` argument
+- [x] uninstall.sh: same support
+- [x] Skip matched modules in the loop (log "skipped by --skip")
+- [x] Update README with usage example
+- [x] Test: run with --skip, verify skipped module has no side effects
 
 ## 5. Shell Aliases/Functions Module
 
