@@ -294,14 +294,32 @@ core::run_module() {
     return 0
   fi
 
+  local start_time end_time elapsed
+  start_time="$(date +%s)"
+
   core::log INFO "▶ [${index}/${total}] ${name} — ${MODULE_DESC}"
   core::summary "  ${name}"
-  "${action}"
-  core::log INFO "✓ ${name}"
+
+  if "${action}"; then
+    end_time="$(date +%s)"
+    elapsed="$((end_time - start_time))"
+    core::log INFO "✓ ${name} (${elapsed}s)"
+    _CORE_MODULES_OK=$((_CORE_MODULES_OK + 1))
+  else
+    end_time="$(date +%s)"
+    elapsed="$((end_time - start_time))"
+    core::log ERROR "✗ ${name} failed (${elapsed}s)"
+    _CORE_MODULES_FAILED+=("${name}")
+  fi
 }
 
 # Summary tracking — populated by bootstrap, core::run_module, and modules.
 _CORE_SUMMARY=()
+
+# Module outcome tracking for final summary.
+_CORE_MODULES_OK=0
+_CORE_MODULES_FAILED=()
+_CORE_INSTALL_START=""
 
 # core::summary <entry>
 # Appends a line to the summary buffer.
@@ -340,4 +358,25 @@ core::print_summary() {
     fi
   done
   printf '══════════════════════════════════════════════════\n'
+}
+
+# core::print_final_summary
+# Prints the final install/uninstall result with timing and log path.
+core::print_final_summary() {
+  local end_time elapsed
+  end_time="$(date +%s)"
+  elapsed="$((end_time - _CORE_INSTALL_START))"
+
+  local total_modules=$((_CORE_MODULES_OK + ${#_CORE_MODULES_FAILED[@]}))
+
+  printf '\n══════════════════════════════════════════════════\n' >&2
+  printf '  dotfiles install complete\n' >&2
+  printf '  %d modules installed (%ds)\n' "${_CORE_MODULES_OK}" "${elapsed}" >&2
+  if [[ ${#_CORE_MODULES_FAILED[@]} -gt 0 ]]; then
+    printf '  %d module(s) failed: %s\n' "${#_CORE_MODULES_FAILED[@]}" "${_CORE_MODULES_FAILED[*]}" >&2
+  fi
+  if [[ -n "${DOTFILES_LOG_FILE:-}" ]]; then
+    printf '  Log: %s\n' "${DOTFILES_LOG_FILE}" >&2
+  fi
+  printf '══════════════════════════════════════════════════\n' >&2
 }

@@ -43,6 +43,7 @@ source "${DOTFILES_ROOT}/lib/bootstrap.sh"
 
 main() {
   core::parse_args "$@"
+  _CORE_INSTALL_START="$(date +%s)"
 
   # Detect OS first — bootstrap steps and the module loop both dispatch by it.
   detect::os
@@ -76,7 +77,7 @@ main() {
   core::summary_file "${HOME}/.zshrc"
 
   core::print_summary
-  core::log INFO "Install complete."
+  core::print_final_summary
 }
 
 main "$@"
