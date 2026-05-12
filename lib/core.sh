@@ -367,8 +367,6 @@ core::print_final_summary() {
   end_time="$(date +%s)"
   elapsed="$((end_time - _CORE_INSTALL_START))"
 
-  local total_modules=$((_CORE_MODULES_OK + ${#_CORE_MODULES_FAILED[@]}))
-
   printf '\n══════════════════════════════════════════════════\n' >&2
   printf '  dotfiles install complete\n' >&2
   printf '  %d modules installed (%ds)\n' "${_CORE_MODULES_OK}" "${elapsed}" >&2
