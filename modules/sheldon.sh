@@ -2,7 +2,6 @@
 # modules/sheldon.sh — sheldon zsh plugin manager with curated plugin set
 # Platform: all
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
-# shellcheck disable=SC2016  # single-quoted block content is passed literally to ensure_block
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -60,7 +59,8 @@ install() {
 
   core::ensure_block "${HOME}/.zshrc" "sheldon" \
     'eval "$(sheldon source)"
-# zsh-completions: initialize completion system after sheldon adds fpath entries
+# Required by zsh-completions plugin: it only adds fpath entries, compinit
+# must run afterwards to register the completion functions.
 autoload -Uz compinit && compinit'
   core::summary "    ✓ config → ~/.zshrc (sheldon source, compinit)"
 }

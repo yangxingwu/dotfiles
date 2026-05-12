@@ -4,7 +4,6 @@
 # Platform: all
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 # shellcheck disable=SC2088  # tildes in log strings are intentional (display only)
-# shellcheck disable=SC2016  # single-quoted block content is passed literally to ensure_block
 set -euo pipefail
 IFS=$'\n\t'
 
