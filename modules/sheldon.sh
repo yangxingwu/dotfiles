@@ -26,7 +26,7 @@ install() {
       core::log ERROR "cargo not found — install the rust module first"
       return 1
     fi
-    cargo install sheldon --locked
+    core::run_cmd "Installing sheldon" cargo install sheldon --locked
     core::log INFO "sheldon installed"
     core::summary "    ✓ installed via cargo"
   else
@@ -35,20 +35,20 @@ install() {
 
   # Initialize config if absent. sheldon init prompts [y/N] interactively,
   # so pipe 'y' to handle non-interactive environments (CI).
-  printf 'y\n' | sheldon init --shell zsh
+  core::run_cmd "Initializing sheldon" bash -c 'printf "y\n" | sheldon init --shell zsh'
 
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
     # zsh-completions must use fpath instead of source to avoid permission errors.
     if [[ "${name}" == "zsh-completions" ]]; then
-      sheldon add "${name}" --github "${plugin}" --apply fpath
+      core::run_cmd "Adding plugin ${name}" sheldon add "${name}" --github "${plugin}" --apply fpath
     else
-      sheldon add "${name}" --github "${plugin}"
+      core::run_cmd "Adding plugin ${name}" sheldon add "${name}" --github "${plugin}"
     fi
   done
 
-  sheldon lock --update
+  core::run_cmd "Locking sheldon plugins" sheldon lock --update
 
   local plugin_names=""
   local p
