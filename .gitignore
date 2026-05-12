@@ -1,1 +1,16 @@
+# macOS system files
 .DS_Store
+._*
+
+# Editor swap/backup files
+*.swp
+*.swo
+*~
+
+# IDE project directories
+.vscode/
+.idea/
+
+# Environment and secrets (should never be committed)
+.env
+.env.*

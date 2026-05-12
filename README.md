@@ -24,7 +24,7 @@ meson, ninja, gettext — is installed automatically on first run.
 ## Quick Install
 
 ```bash
-git clone https://github.com/<your-username>/dotfiles.git ~/.dotfiles
+git clone https://github.com/yangxingwu/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
 ```
