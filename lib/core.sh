@@ -161,9 +161,9 @@ core::run_module() {
 
   # Reset hooks to no-op defaults before sourcing the module file.
   # The module's install()/uninstall() definitions will overwrite these.
-  # shellcheck disable=SC2329  # invoked indirectly via "${action}" below
+  # shellcheck disable=SC2317
   install() { :; }
-  # shellcheck disable=SC2329
+  # shellcheck disable=SC2317
   uninstall() { :; }
   unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
 
