@@ -28,8 +28,8 @@ source "${DOTFILES_ROOT}/lib/detect.sh"
 source "${DOTFILES_ROOT}/lib/core.sh"
 
 main() {
-  core::parse_args "$@"
   core::init
+  core::parse_args "$@"
 
   # Only detect::os is needed: uninstall hooks clean up config files and
   # clones, not packages — so DOTFILES_PKG_MANAGER is never read.

@@ -261,9 +261,9 @@ core::parse_args() {
 }
 
 # core::init — initialize runtime state (verbosity default, log file, timing).
-# Call once from install.sh / uninstall.sh after core::parse_args.
+# Call once from install.sh / uninstall.sh before core::parse_args.
 core::init() {
-  _CORE_VERBOSITY="${_CORE_VERBOSITY:-normal}"
+  _CORE_VERBOSITY="normal"
   local script_name
   script_name="$(basename "${0}" .sh)"
   _CORE_LOG_FILE="/tmp/dotfiles-${script_name}-$(date +%Y%m%d-%H%M%S).log"
