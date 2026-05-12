@@ -160,6 +160,7 @@ core::usage() {
   printf 'Options:\n'
   printf '  --only mod1,mod2   Only process specified modules\n'
   printf '  --skip mod1,mod2   Skip specified modules\n'
+  printf '  -v, --verbose      Show full command output (default: summary only)\n'
   printf '  --list, -l         List available modules\n'
   printf '  --help, -h         Show this help\n'
 }
@@ -198,6 +199,10 @@ core::parse_args() {
       mode="${1#--}"
       csv="${2}"
       shift 2
+      ;;
+    --verbose | -v)
+      DOTFILES_VERBOSITY="verbose"
+      shift
       ;;
     *)
       printf 'error: unknown option: %s\n' "${1}" >&2
