@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # install.sh — dotfiles orchestrator
-# Usage: ./install.sh
+# Usage: ./install.sh [--only mod1,mod2] [--skip mod1,mod2] [--list] [--help]
 #
-# Installs every module in ${DOTFILES_MODULES} for the current platform. Idempotent.
+# Installs modules for the current platform. Supports --only/--skip filtering.
+# Idempotent.
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -19,6 +20,8 @@ source "${DOTFILES_ROOT}/lib/core.sh"
 source "${DOTFILES_ROOT}/lib/bootstrap.sh"
 
 main() {
+  core::parse_args "$@"
+
   # Detect OS first — bootstrap steps and the module loop both dispatch by it.
   detect::os
 
@@ -41,8 +44,8 @@ main() {
 
   core::summary "---"
 
-  local total=${#DOTFILES_MODULES[@]} i=0 name
-  for name in "${DOTFILES_MODULES[@]}"; do
+  local total=${#DOTFILES_SELECTED_MODULES[@]} i=0 name
+  for name in "${DOTFILES_SELECTED_MODULES[@]}"; do
     i=$((i + 1))
     core::run_module install "${name}" "${i}" "${total}"
   done

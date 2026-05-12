@@ -68,8 +68,20 @@ inside the markers is overwritten on re-run.
 # Install all modules for the current platform
 ./install.sh
 
+# Install only specific modules
+./install.sh --only ssh,git,rust
+
+# Install all except specified modules
+./install.sh --skip ghostty,font-hack-nerd-font
+
+# List available modules
+./install.sh --list
+
 # Remove all dotfile configurations and clean up module side effects
 ./uninstall.sh
+
+# Uninstall only specific modules
+./uninstall.sh --only tmux,nvim
 ```
 
 ## Idempotency

@@ -152,6 +152,67 @@ core::remove_block() {
   core::log INFO "Removed block '${id}' from ${file}"
 }
 
+# ── Argument parsing for install.sh / uninstall.sh ─────────────────────
+
+# core::usage — print usage information.
+core::usage() {
+  printf 'Usage: %s [options]\n\n' "$(basename "${0}")"
+  printf 'Options:\n'
+  printf '  --only mod1,mod2   Only process specified modules\n'
+  printf '  --skip mod1,mod2   Skip specified modules\n'
+  printf '  --list, -l         List available modules\n'
+  printf '  --help, -h         Show this help\n'
+}
+
+# core::parse_args — parse CLI options and apply --only/--skip to
+# DOTFILES_SELECTED_MODULES. Exits 0 on --help/--list. Returns 1 on any
+# parse error. Side effects on DOTFILES_SELECTED_MODULES happen only after
+# the full arg list parses cleanly, so a later bad option never leaves the
+# global half-modified.
+core::parse_args() {
+  local mode="" csv=""
+
+  while (($# > 0)); do
+    case "${1}" in
+    --help | -h)
+      core::usage
+      exit 0
+      ;;
+    --list | -l)
+      modules::list_modules
+      exit 0
+      ;;
+    --only | --skip)
+      if [[ -n "${mode}" ]]; then
+        if [[ "${1#--}" == "${mode}" ]]; then
+          printf 'error: %s may only be specified once\n' "${1}" >&2
+        else
+          printf 'error: --only and --skip are mutually exclusive\n' >&2
+        fi
+        return 1
+      fi
+      if (($# < 2)); then
+        printf 'error: %s requires a comma-separated module list\n' "${1}" >&2
+        return 1
+      fi
+      mode="${1#--}"
+      csv="${2}"
+      shift 2
+      ;;
+    *)
+      printf 'error: unknown option: %s\n' "${1}" >&2
+      core::usage >&2
+      return 1
+      ;;
+    esac
+  done
+
+  # Apply the filter only after the full arg list parses cleanly.
+  if [[ -n "${mode}" ]]; then
+    modules::filter "${mode}" "${csv}" || return 1
+  fi
+}
+
 # core::run_module <action> <name> <index> <total>
 # Sources modules/<name>.sh, validates the module interface, skips if the
 # platform doesn't match, then calls the given action (install or uninstall).

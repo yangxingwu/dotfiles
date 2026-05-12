@@ -15,6 +15,8 @@ source "${DOTFILES_ROOT}/lib/detect.sh"
 source "${DOTFILES_ROOT}/lib/core.sh"
 
 main() {
+  core::parse_args "$@"
+
   # Only detect::os is needed: uninstall hooks clean up config files and
   # clones, not packages — so DOTFILES_PKG_MANAGER is never read.
   detect::os
@@ -27,8 +29,8 @@ main() {
   # shellcheck source=/dev/null
   [[ -f "${HOME}/.zprofile" ]] && source "${HOME}/.zprofile"
 
-  local total=${#DOTFILES_MODULES[@]} i=0 name
-  for name in "${DOTFILES_MODULES[@]}"; do
+  local total=${#DOTFILES_SELECTED_MODULES[@]} i=0 name
+  for name in "${DOTFILES_SELECTED_MODULES[@]}"; do
     i=$((i + 1))
     core::run_module uninstall "${name}" "${i}" "${total}"
   done
