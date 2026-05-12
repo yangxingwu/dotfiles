@@ -5,11 +5,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Verbosity: "normal" (default) suppresses command output; "verbose" passes it through.
-# Set before any function runs; core::parse_args may upgrade to "verbose".
-_CORE_VERBOSITY="${_CORE_VERBOSITY:-normal}"
-_CORE_LOG_FILE="${_CORE_LOG_FILE:-}"
-
 # core::log <level> <message>
 # Levels: INFO (stdout), WARN/ERROR (stderr). Colours when output fd is a TTY.
 core::log() {
@@ -265,9 +260,10 @@ core::parse_args() {
   fi
 }
 
-# core::init — initialize runtime state (timing, log file).
+# core::init — initialize runtime state (verbosity default, log file, timing).
 # Call once from install.sh / uninstall.sh after core::parse_args.
 core::init() {
+  _CORE_VERBOSITY="${_CORE_VERBOSITY:-normal}"
   local script_name
   script_name="$(basename "${0}" .sh)"
   _CORE_LOG_FILE="/tmp/dotfiles-${script_name}-$(date +%Y%m%d-%H%M%S).log"
