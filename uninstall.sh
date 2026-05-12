@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 # uninstall.sh — runs each module's uninstall() hook.
 # Usage: ./uninstall.sh
+
+# Bash version gate. See install.sh for rationale (kept identical so users
+# hitting either entry point get the same actionable error).
+_have_major="${BASH_VERSINFO[0]:-0}"
+_have_minor="${BASH_VERSINFO[1]:-0}"
+if [ "${_have_major}" -lt 4 ] ||
+  { [ "${_have_major}" -eq 4 ] && [ "${_have_minor}" -lt 3 ]; }; then
+  echo "error: bash >= 4.3 required (current: ${BASH_VERSION:-unknown})" >&2
+  echo "       on macOS: run ./bootstrap-macos.sh first" >&2
+  exit 1
+fi
+unset _have_major _have_minor
+
 set -euo pipefail
 IFS=$'\n\t'
 

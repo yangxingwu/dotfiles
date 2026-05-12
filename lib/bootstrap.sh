@@ -121,6 +121,14 @@ bootstrap::xcode_clt() {
 # managed "homebrew" block to ~/.zprofile (so brew stays on PATH for future
 # login shells), and eval shellenv for the rest of this install run.
 #
+# On a fresh machine Homebrew should already be present at this point —
+# ./bootstrap-macos.sh installs it as a prerequisite for getting bash >= 4.3.
+# This function is kept as a defence-in-depth: it still installs brew if
+# missing (e.g. user reached install.sh via a system bash that already
+# satisfied the version gate without going through bootstrap-macos.sh), and
+# it always re-writes the .zprofile shellenv block, which is needed even
+# when brew was installed earlier (e.g. by an OS image).
+#
 # Apple Silicon installs to /opt/homebrew; Intel to /usr/local. A user who
 # migrates machines will see core::ensure_block rewrite the block to match
 # the new prefix on next run.

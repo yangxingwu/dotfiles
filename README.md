@@ -16,16 +16,26 @@ archive. Re-running is safe: the installer is fully idempotent.
 
 ## Prerequisites
 
-- bash 4+
+- bash >= 4.3
 
-Everything else — Xcode CLT, Homebrew, git, curl, zsh, a C toolchain, cmake,
-meson, ninja, gettext — is installed automatically on first run.
+Linux distros (Ubuntu, Fedora, RHEL) ship a recent bash by default, so no
+preparation is needed. **macOS** ships bash 3.2 system-wide and Apple does
+not update it; run `./bootstrap-macos.sh` once on a fresh Mac to install
+Homebrew + a modern bash before running `./install.sh`.
+
+Everything else — Xcode CLT, the rest of Homebrew's footprint, git, curl,
+zsh, a C toolchain, cmake, meson, ninja, gettext — is installed automatically
+by `./install.sh` on first run.
 
 ## Quick Install
 
 ```bash
 git clone https://github.com/yangxingwu/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
+
+# macOS only: one-time prerequisites (Homebrew + bash >= 4.3).
+./bootstrap-macos.sh
+
 ./install.sh
 ```
 
