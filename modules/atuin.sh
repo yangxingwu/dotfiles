@@ -3,7 +3,6 @@
 # https://github.com/atuinsh/atuin
 # Platform: all
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
-# shellcheck disable=SC2088  # tildes in log strings are intentional (display only)
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -27,22 +26,18 @@ install() {
     core::summary "    ✓ atuin already installed"
   fi
 
-  # Write config (disable cloud sync).
+  # Write config (always overwrite — this file is fully managed by dotfiles).
   mkdir -p "$(dirname "${_ATUIN_CONFIG}")"
-  if [[ ! -f "${_ATUIN_CONFIG}" ]]; then
-    cat >"${_ATUIN_CONFIG}" <<'CONFIG'
+  cat >"${_ATUIN_CONFIG}" <<'CONFIG'
 ## Atuin configuration
 ## See: https://docs.atuin.sh/configuration/config/
 
 # Disable cloud sync — history stays local only.
 auto_sync = false
 CONFIG
-    core::log INFO "Wrote atuin config (sync disabled)"
-    core::summary "    ✓ config → ~/.config/atuin/config.toml"
-  else
-    core::log INFO "~/.config/atuin/config.toml already exists — skipping"
-    core::summary "    ✓ config already exists (not overwritten)"
-  fi
+  # shellcheck disable=SC2088  # tilde is display text, not a path expansion
+  core::log INFO "Wrote atuin config → ~/.config/atuin/config.toml"
+  core::summary "    ✓ config → ~/.config/atuin/config.toml"
 
   # Content is single-quoted: written literally to .zshrc, expanded by zsh at login.
   # shellcheck disable=SC2016
