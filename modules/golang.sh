@@ -42,9 +42,9 @@ install() {
   url="https://go.dev/dl/${tarball}"
 
   core::log INFO "Installing Go ${version} from ${url}"
-  curl -fsSL "${url}" -o "/tmp/${tarball}"
+  core::run_cmd "Downloading Go ${version}" curl -fsSL "${url}" -o "/tmp/${tarball}"
   sudo rm -rf /usr/local/go
-  sudo tar -C /usr/local -xzf "/tmp/${tarball}"
+  core::run_cmd "Extracting Go ${version}" sudo tar -C /usr/local -xzf "/tmp/${tarball}"
   rm "/tmp/${tarball}"
 
   core::log INFO "Go ${version} installed to /usr/local/go"
