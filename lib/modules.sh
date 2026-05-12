@@ -15,6 +15,7 @@ DOTFILES_MODULES=(
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide
   sheldon
+  atuin            # after rust (cargo), after sheldon (replaces its history-substring-search)
   starship
   ghostty          # after font/sheldon/zoxide/starship: config assumes these are installed
   nvim             # after rust (cargo) and golang (go install lazygit)

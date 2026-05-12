@@ -133,7 +133,13 @@ assert "tmux.conf is a symlink" test -L "${HOME}/.config/tmux/tmux.conf"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:fzf"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:sheldon"
+assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:atuin"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:starship"
+
+# Atuin
+assert_command atuin
+assert_file_exists "${HOME}/.config/atuin/config.toml"
+assert_file_contains "${HOME}/.config/atuin/config.toml" "auto_sync = false"
 
 # Shell init blocks in ~/.zprofile
 assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
@@ -165,7 +171,11 @@ assert_file_missing "${HOME}/.config/tmux/tmux.conf.local"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:fzf"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:sheldon"
+assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:atuin"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:starship"
+
+# Atuin uninstall
+assert_file_missing "${HOME}/.config/atuin/config.toml"
 
 # Managed blocks removed from ~/.zprofile
 assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"

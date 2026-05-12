@@ -46,6 +46,7 @@ system's package manager (sudo required).
 | `fzf` | all | fzf fuzzy finder + zsh key bindings |
 | `zoxide` | all | zoxide smarter cd command |
 | `sheldon` | all | zsh plugin manager + curated plugins |
+| `atuin` | all | Atuin shell history with fuzzy search (replaces history-substring-search) |
 | `starship` | all | Starship prompt (catppuccin-powerline preset) |
 | `ghostty` | macOS | Ghostty terminal emulator + config |
 | `nvim` | all | Neovim + LazyVim configuration |

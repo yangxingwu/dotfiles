@@ -2,6 +2,7 @@
 # modules/sheldon.sh — sheldon zsh plugin manager with curated plugin set
 # Platform: all
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
+# shellcheck disable=SC2016  # single-quoted block content is passed literally to ensure_block
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -16,7 +17,6 @@ _SHELDON_PLUGINS=(
   "zsh-users/zsh-completions"
   "Aloxaf/fzf-tab"
   "mattmc3/zsh-safe-rm"
-  "zsh-users/zsh-history-substring-search"
 )
 
 install() {
@@ -61,11 +61,8 @@ install() {
   core::ensure_block "${HOME}/.zshrc" "sheldon" \
     'eval "$(sheldon source)"
 # zsh-completions: initialize completion system after sheldon adds fpath entries
-autoload -Uz compinit && compinit
-# zsh-history-substring-search: bind arrow keys to substring search
-bindkey "^[[A" history-substring-search-up
-bindkey "^[[B" history-substring-search-down'
-  core::summary "    ✓ config → ~/.zshrc (sheldon source, compinit, history-substring-search)"
+autoload -Uz compinit && compinit'
+  core::summary "    ✓ config → ~/.zshrc (sheldon source, compinit)"
 }
 
 uninstall() {
