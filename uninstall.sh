@@ -44,10 +44,17 @@ main() {
   [[ -f "${HOME}/.zprofile" ]] && source "${HOME}/.zprofile"
 
   local total=${#DOTFILES_SELECTED_MODULES[@]} i=0 name
+  local failed=()
   for name in "${DOTFILES_SELECTED_MODULES[@]}"; do
     i=$((i + 1))
-    core::run_module uninstall "${name}" "${i}" "${total}"
+    if ! core::run_module uninstall "${name}" "${i}" "${total}"; then
+      failed+=("${name}")
+    fi
   done
+
+  if [[ ${#failed[@]} -gt 0 ]]; then
+    core::log WARN "Failed modules: ${failed[*]}"
+  fi
 
   core::summary "---"
   core::summary "  Note: binaries installed by modules (brew/apt/dnf packages,"
