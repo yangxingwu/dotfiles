@@ -208,6 +208,7 @@ core::usage() {
   printf '  --only mod1,mod2   Only process specified modules\n'
   printf '  --skip mod1,mod2   Skip specified modules\n'
   printf '  -v, --verbose      Show full command output (default: summary only)\n'
+  printf '  --summary          Show detailed summary after completion\n'
   printf '  --list, -l         List available modules\n'
   printf '  --help, -h         Show this help\n'
 }
@@ -251,6 +252,10 @@ core::parse_args() {
       _CORE_VERBOSITY="verbose"
       shift
       ;;
+    --summary)
+      _CORE_SHOW_SUMMARY="true"
+      shift
+      ;;
     *)
       printf 'error: unknown option: %s\n' "${1}" >&2
       core::usage >&2
@@ -269,6 +274,7 @@ core::parse_args() {
 # Call once from install.sh / uninstall.sh before core::parse_args.
 core::init() {
   _CORE_VERBOSITY="normal"
+  _CORE_SHOW_SUMMARY="false"
   local script_name
   script_name="$(basename "${0}" .sh)"
   _CORE_LOG_FILE="/tmp/dotfiles-${script_name}-$(date +%Y%m%d-%H%M%S).log"
@@ -341,51 +347,35 @@ core::summary() {
   _CORE_SUMMARY+=("${1}")
 }
 
-# core::summary_file <file>
-# Appends the content of <file> to the summary buffer, indented.
-# No-op if the file is missing or empty.
-core::summary_file() {
-  local file="${1}"
-  [[ -f "${file}" ]] || return 0
-  [[ -s "${file}" ]] || return 0
-
-  core::summary "---"
-  core::summary "  ${file}"
-  local line
-  while IFS= read -r line; do
-    core::summary "    ${line}"
-  done <"${file}"
-}
-
 # core::print_summary
-# Prints the accumulated summary between box-drawing borders.
+# In --summary mode: prints the detailed summary box with all collected
+# entries plus timing/log path. In default mode: prints a single INFO line.
 core::print_summary() {
-  printf '\n══════════════════════════════════════════════════\n'
-  printf '  Summary\n'
-  printf '══════════════════════════════════════════════════\n'
-  local line
-  for line in "${_CORE_SUMMARY[@]}"; do
-    if [[ "${line}" == "---" ]]; then
-      printf '──────────────────────────────────────────────────\n'
-    else
-      printf '%s\n' "${line}"
-    fi
-  done
-  printf '══════════════════════════════════════════════════\n'
-}
-
-# core::print_final_summary
-# Prints the final install/uninstall result with timing and log path.
-core::print_final_summary() {
   local end_time elapsed
   end_time="$(date +%s)"
   elapsed="$((end_time - _CORE_INSTALL_START))"
 
-  printf '\n══════════════════════════════════════════════════\n' >&2
-  printf '  dotfiles install complete\n' >&2
-  printf '  %d modules installed (%ds)\n' "${_CORE_MODULES_OK}" "${elapsed}" >&2
+  local stats="${_CORE_MODULES_OK} modules (${elapsed}s)"
   if [[ -n "${_CORE_LOG_FILE:-}" ]]; then
-    printf '  Log: %s\n' "${_CORE_LOG_FILE}" >&2
+    stats="${stats}. Log: ${_CORE_LOG_FILE}"
   fi
-  printf '══════════════════════════════════════════════════\n' >&2
+
+  if [[ "${_CORE_SHOW_SUMMARY}" == "true" ]]; then
+    printf '\n══════════════════════════════════════════════════\n'
+    printf '  Summary\n'
+    printf '══════════════════════════════════════════════════\n'
+    local line
+    for line in "${_CORE_SUMMARY[@]}"; do
+      if [[ "${line}" == "---" ]]; then
+        printf '──────────────────────────────────────────────────\n'
+      else
+        printf '%s\n' "${line}"
+      fi
+    done
+    printf '──────────────────────────────────────────────────\n'
+    printf '  %s\n' "${stats}"
+    printf '══════════════════════════════════════════════════\n'
+  else
+    core::log INFO "Install complete: ${stats}"
+  fi
 }

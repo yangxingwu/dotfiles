@@ -56,11 +56,7 @@ main() {
     core::run_module install "${name}" "${i}" "${total}"
   done
 
-  core::summary_file "${HOME}/.zprofile"
-  core::summary_file "${HOME}/.zshrc"
-
   core::print_summary
-  core::print_final_summary
 }
 
 main "$@"
