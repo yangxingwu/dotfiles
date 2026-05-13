@@ -23,6 +23,7 @@ _ssh::install_packages() {
   apt)
     # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
+      # shellcheck disable=SC2016
       core::run_cmd "Adding GitHub CLI APT repository" bash -c '
         (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
         sudo mkdir -p -m 755 /etc/apt/keyrings &&
