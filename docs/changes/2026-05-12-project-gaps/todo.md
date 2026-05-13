@@ -17,11 +17,45 @@ independent sub-project — implement in any order, one at a time.
 
 ## Priority 1 — High value, low effort
 
+### Bootstrap Refactor
+
+Separate "environment preparation" from "module installation" cleanly.
+
+Current problem: install.sh runs bootstrap (zsh, xcode clt, brew, dev_tools)
+every time, even with --only. This adds noise and 3s overhead for stuff
+that's already done.
+
+Design:
+- [ ] install.sh stops running bootstrap — only does module installation
+- [ ] install.sh checks prerequisites at startup (zsh, pkg manager, dev tools)
+      and fails fast with a message: "Run ./bootstrap-macos.sh (or bootstrap-linux.sh) first"
+- [ ] bootstrap-macos.sh (existing) — rework to cover all prerequisites:
+      Xcode CLT, Homebrew, modern bash, zsh as login shell, dev tools
+- [ ] Create bootstrap-linux.sh — same role for Linux:
+      zsh, login shell, git, curl, build-essential/@development-tools
+- [ ] Both bootstrap scripts are idempotent and fast when already satisfied
+- [ ] Remove lib/bootstrap.sh (its logic moves into the bootstrap-* scripts)
+
+### Output Optimization (install.sh / uninstall.sh)
+
+Current problem: even after verbosity framework, output is noisy with
+redundant summary and file dumps.
+
+Design:
+- [ ] Remove default Summary block (the big box with per-module details)
+- [ ] Add --summary flag to opt-in to the detailed summary
+- [ ] Remove core::summary_file (dump of .zprofile/.zshrc) entirely —
+      file contents are not useful in output; use `cat` if needed
+- [ ] Keep the final summary (module count, timing, log path) — it's concise
+- [ ] Bootstrap "already satisfied" checks become silent (after refactor,
+      they won't run in install.sh at all)
+
 ### README Update
 
 - [ ] Document --verbose flag and output behavior
 - [ ] Document final summary (module count, timing, log path)
 - [ ] Document --only/--skip with examples
+- [ ] Document bootstrap-first workflow
 
 ### Uninstall Failure Behavior
 
