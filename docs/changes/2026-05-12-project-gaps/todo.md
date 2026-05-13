@@ -11,57 +11,23 @@ independent sub-project — implement in any order, one at a time.
 
 - [x] Project Housekeeping (LICENSE, .gitignore, README username)
 - [x] Selective Module Install (--only/--skip)
-- [x] Output Verbosity Control (core::run_cmd, --verbose, log file, timing)
+- [x] Output Verbosity Control (core::run_cmd, --verbose, --summary, log file, timing)
+- [x] Bootstrap Refactor (separate bootstrap-*.sh from install.sh, homebrew module)
+- [x] Output Optimization (merge summary functions, --summary flag, remove file dumps)
+- [x] Uninstall Failure Behavior (continue on failure, report at end)
+- [x] Sheldon Declarative Config (replace sheldon add with direct TOML generation)
 
 ---
 
 ## Priority 1 — High value, low effort
 
-### Bootstrap Refactor
-
-Separate "environment preparation" from "module installation" cleanly.
-
-Current problem: install.sh runs bootstrap (zsh, xcode clt, brew, dev_tools)
-every time, even with --only. This adds noise and 3s overhead for stuff
-that's already done.
-
-Design:
-- [ ] install.sh stops running bootstrap — only does module installation
-- [ ] install.sh checks prerequisites at startup (zsh, pkg manager, dev tools)
-      and fails fast with a message: "Run ./bootstrap-macos.sh (or bootstrap-linux.sh) first"
-- [ ] bootstrap-macos.sh (existing) — rework to cover all prerequisites:
-      Xcode CLT, Homebrew, modern bash, zsh as login shell, dev tools
-- [ ] Create bootstrap-linux.sh — same role for Linux:
-      zsh, login shell, git, curl, build-essential/@development-tools
-- [ ] Both bootstrap scripts are idempotent and fast when already satisfied
-- [ ] Remove lib/bootstrap.sh (its logic moves into the bootstrap-* scripts)
-
-### Output Optimization (install.sh / uninstall.sh)
-
-Current problem: even after verbosity framework, output is noisy with
-redundant summary and file dumps.
-
-Design:
-- [ ] Remove default Summary block (the big box with per-module details)
-- [ ] Add --summary flag to opt-in to the detailed summary
-- [ ] Remove core::summary_file (dump of .zprofile/.zshrc) entirely —
-      file contents are not useful in output; use `cat` if needed
-- [ ] Keep the final summary (module count, timing, log path) — it's concise
-- [ ] Bootstrap "already satisfied" checks become silent (after refactor,
-      they won't run in install.sh at all)
-
 ### README Update
 
-- [ ] Document --verbose flag and output behavior
-- [ ] Document final summary (module count, timing, log path)
-- [ ] Document --only/--skip with examples
-- [ ] Document bootstrap-first workflow
-
-### Uninstall Failure Behavior
-
-- [ ] core::run_module: don't exit on uninstall failure (continue remaining modules)
-- [ ] Log failed modules, report in final summary
-- [ ] Rationale: uninstall hooks are independent (no dependency chain)
+- [x] Document bootstrap-first workflow (bootstrap-macos.sh / bootstrap-linux.sh)
+- [x] Document --verbose flag and output behavior
+- [x] Document --summary flag
+- [x] Document --only/--skip with examples
+- [x] Document module list and order
 
 ### Modern CLI Tools Module
 
@@ -95,11 +61,6 @@ Design:
 - [ ] Add `python` to lib/modules.sh
 - [ ] Add test assertions (assert_command python3 pip3)
 
-### Log File Rotation
-
-- [ ] In core::init, delete log files older than 7 days from /tmp/dotfiles-*
-- [ ] One line: find /tmp -name 'dotfiles-*.log' -mtime +7 -delete
-
 ## Priority 3 — Optional / situational
 
 ### Shell Aliases
@@ -122,3 +83,6 @@ to every side-effect path for negligible safety benefit.
 ### ASCII Progress Bar
 Already have `▶ [3/13] ssh` + per-module timing + final summary. A `\r`-based
 progress bar conflicts with log output and doesn't work in CI.
+
+### Log File Rotation
+Not worth the complexity. /tmp is cleaned by the OS on reboot anyway.
