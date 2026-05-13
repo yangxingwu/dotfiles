@@ -20,7 +20,6 @@ install() {
       return 1
     fi
     core::run_cmd "Installing atuin" cargo install atuin --locked
-    core::log INFO "atuin installed via cargo"
     core::summary "    ✓ installed via cargo"
   else
     core::summary "    ✓ atuin already installed"

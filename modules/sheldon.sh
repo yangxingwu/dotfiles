@@ -27,7 +27,6 @@ install() {
       return 1
     fi
     core::run_cmd "Installing sheldon" cargo install sheldon --locked
-    core::log INFO "sheldon installed"
     core::summary "    ✓ installed via cargo"
   else
     core::summary "    ✓ sheldon already installed"

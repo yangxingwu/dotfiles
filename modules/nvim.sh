@@ -50,8 +50,6 @@ _nvim::install_from_src() {
   core::run_cmd "Building neovim" make CMAKE_BUILD_TYPE=RelWithDebInfo
   core::run_cmd "Installing neovim" sudo make install
   popd >/dev/null
-
-  core::log INFO "Neovim built and installed from source (stable)"
 }
 
 # Install Neovim. macOS uses brew; Linux offers package manager or source build.
@@ -113,7 +111,6 @@ _nvim::clone_config() {
   mv ~/.cache/nvim{,.bak} 2>/dev/null || true
 
   core::run_cmd "Cloning neovim config" git clone --branch "${branch}" "${repo}" ~/.config/nvim
-  core::log INFO "Cloned neovim config to ~/.config/nvim"
   core::summary "    ✓ config → ~/.config/nvim (cloned)"
 }
 
