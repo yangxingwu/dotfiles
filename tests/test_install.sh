@@ -99,7 +99,7 @@ assert_file_contains "${HOME}/.gitconfig" "yangxingwu"
 
 # SSH module
 assert_dir_exists "${HOME}/.ssh"
-assert "~/.ssh mode 700" test "$(stat -c '%a' "${HOME}/.ssh" 2>/dev/null || stat -f '%Lp' "${HOME}/.ssh")" = "700"
+assert "${HOME}/.ssh mode 700" test "$(stat -c '%a' "${HOME}/.ssh" 2>/dev/null || stat -f '%Lp' "${HOME}/.ssh")" = "700"
 assert_dir_exists "${HOME}/.ssh/sockets"
 assert_dir_exists "${HOME}/.ssh/passwords"
 assert_file_exists "${HOME}/.ssh/id_ed25519"
