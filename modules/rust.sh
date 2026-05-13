@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # modules/rust.sh — Rust toolchain via rustup
 # Platform: all
-# shellcheck disable=SC2034,SC2016  # module interface vars + intentional literal shell expansion in zprofile block
+# shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -33,6 +33,7 @@ install() {
   source "${HOME}/.cargo/env"
 
   # Persist for future login shells.
+  # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zprofile" "rust" \
     '. "${HOME}/.cargo/env"'
   core::summary "    ✓ config → ~/.zprofile (cargo env)"

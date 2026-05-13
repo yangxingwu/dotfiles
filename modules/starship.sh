@@ -2,7 +2,7 @@
 # modules/starship.sh — Starship prompt (catppuccin-powerline preset)
 # https://github.com/starship/starship
 # Platform: all
-# shellcheck disable=SC2034,SC2016  # module interface vars + intentional literal shell expansion in zsh init block
+# shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -28,6 +28,7 @@ install() {
   starship preset "${_STARSHIP_PRESET}" --output "${_STARSHIP_CONFIG}"
   core::log INFO "Generated starship.toml from preset ${_STARSHIP_PRESET}"
 
+  # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zshrc" "starship" 'eval "$(starship init zsh)"'
   core::summary "    ✓ config → ~/.config/starship.toml (${_STARSHIP_PRESET})"
   core::summary "    ✓ config → ~/.zshrc (starship init zsh)"
