@@ -23,7 +23,8 @@ _ssh::install_packages() {
   apt)
     # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
-      (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
+      core::run_cmd "Adding GitHub CLI APT repository" bash -c '
+        (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
         sudo mkdir -p -m 755 /etc/apt/keyrings &&
         out=$(mktemp) && wget -nv -O"${out}" https://cli.github.com/packages/githubcli-archive-keyring.gpg &&
         cat "${out}" | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null &&
@@ -31,8 +32,8 @@ _ssh::install_packages() {
         sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg &&
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
         sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null &&
-        sudo apt update >/dev/null 2>&1
-      core::log INFO "Added GitHub CLI APT repository"
+        sudo apt update
+      '
     fi
     ;;
   dnf)
@@ -40,17 +41,14 @@ _ssh::install_packages() {
       # Try dnf5 first (Fedora 41+), fall back to dnf4 (Fedora 40 and below).
       if dnf5 --version >/dev/null 2>&1; then
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf5
-        sudo dnf install -y dnf5-plugins
-        sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo
+        core::run_cmd "Adding GitHub CLI DNF repository" bash -c 'sudo dnf install -y dnf5-plugins && sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo'
       else
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf4
-        sudo dnf install -y 'dnf-command(config-manager)'
-        sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+        core::run_cmd "Adding GitHub CLI DNF repository" bash -c "sudo dnf install -y 'dnf-command(config-manager)' && sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo"
       fi
-      core::log INFO "Added GitHub CLI DNF repository"
     fi
     # gh-cli repo requires explicit --repo flag per official docs.
-    sudo dnf install -y gh --repo gh-cli
+    core::run_cmd "Installing gh" sudo dnf install -y gh --repo gh-cli
     core::summary "    ✓ gh installed via dnf"
     ;;
   esac

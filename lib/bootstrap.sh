@@ -65,8 +65,7 @@ bootstrap::zsh() {
   local current_shell
   current_shell="$(basename "${SHELL:-/bin/sh}")"
   if [[ "${current_shell}" != "zsh" ]]; then
-    core::log INFO "Changing login shell to zsh"
-    sudo chsh -s "$(command -v zsh)" "$(whoami)"
+    core::run_cmd "Changing login shell to zsh" sudo chsh -s "$(command -v zsh)" "$(whoami)"
   else
     core::log INFO "Login shell already zsh"
   fi
