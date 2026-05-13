@@ -71,6 +71,12 @@ _nvim::install_nvim() {
     dnf) pkg_version="$(dnf info neovim 2>/dev/null | awk '/^Version/{print $NF; exit}')" ;;
     esac
 
+    # Non-interactive (CI, pipe): default to package manager install.
+    if [[ ! -t 0 ]]; then
+      core::run_cmd "Installing neovim via package manager" core::pkg_install neovim
+      return
+    fi
+
     local choice
     while :; do
       printf '\nNeovim not found. Install options:\n' >&2
