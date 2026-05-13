@@ -178,6 +178,9 @@ assert_file_missing "${HOME}/.config/atuin/config.toml"
 
 # Managed blocks removed from ~/.zprofile
 assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
+if [[ "${OS}" == "mac" ]]; then
+  assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:homebrew"
+fi
 
 # Git config entries removed
 assert_file_not_contains "${HOME}/.gitconfig" "yangxingwu"

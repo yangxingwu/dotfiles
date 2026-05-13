@@ -34,34 +34,21 @@ source "${DOTFILES_ROOT}/lib/modules.sh"
 source "${DOTFILES_ROOT}/lib/detect.sh"
 # shellcheck source=lib/core.sh
 source "${DOTFILES_ROOT}/lib/core.sh"
-# shellcheck source=lib/bootstrap.sh
-source "${DOTFILES_ROOT}/lib/bootstrap.sh"
 
 main() {
   core::init
   core::parse_args "$@"
 
-  # Detect OS first — bootstrap steps and the module loop both dispatch by it.
   detect::os
 
-  # Stage A: ensure zsh + shell skeleton files exist.
-  bootstrap::zsh
+  case "${DOTFILES_OS}" in
+  mac) core::log INFO "Prerequisites: run ./bootstrap-macos.sh on a fresh machine" ;;
+  linux) core::log INFO "Prerequisites: run ./bootstrap-linux.sh on a fresh machine" ;;
+  esac
 
-  # Stage B: ensure a package manager exists (macOS only).
-  if [[ "${DOTFILES_OS}" == "mac" ]]; then
-    bootstrap::xcode_clt
-    bootstrap::homebrew
-  fi
-
-  # Stage C: identify the package manager now that one is guaranteed present.
   detect::pkg_manager
 
-  # Stage D: install dev tools every module assumes exist.
-  bootstrap::dev_tools
-
   core::log INFO "Platform: ${DOTFILES_OS} | Package manager: ${DOTFILES_PKG_MANAGER}"
-
-  core::summary "---"
 
   local total=${#DOTFILES_SELECTED_MODULES[@]} i=0 name
   for name in "${DOTFILES_SELECTED_MODULES[@]}"; do

@@ -6,4 +6,5 @@ RUN useradd -m -s /bin/bash testuser \
 USER testuser
 WORKDIR /home/testuser/dotfiles
 COPY --chown=testuser:testuser . .
+RUN bash bootstrap-linux.sh
 CMD ["bash", "tests/test_install.sh"]

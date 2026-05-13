@@ -6,6 +6,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 DOTFILES_MODULES=(
+  homebrew             # mac only: .zprofile shellenv (must be first for brew PATH)
   font-hack-nerd-font
   git
   ssh              # after git: identity before connectivity
