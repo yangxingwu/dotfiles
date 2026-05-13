@@ -13,7 +13,7 @@ MODULE_PLATFORM="all"
 # Installs fzf and writes the zsh integration block to ~/.zshrc.
 # fzf must be installed before sheldon (sheldon's fzf-tab plugin needs the binary).
 install() {
-  core::pkg_install fzf
+  core::run_cmd "Installing fzf" core::pkg_install fzf
   core::ensure_block "${HOME}/.zshrc" "fzf" 'eval "$(fzf --zsh)"'
   core::summary "    ✓ config → ~/.zshrc (fzf --zsh)"
 }
