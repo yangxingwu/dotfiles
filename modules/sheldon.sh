@@ -9,14 +9,7 @@ MODULE_NAME="sheldon"
 MODULE_DESC="sheldon plugin manager with curated plugin set"
 MODULE_PLATFORM="all"
 
-# Plugin list shared by install and uninstall.
-_SHELDON_PLUGINS=(
-  "zsh-users/zsh-autosuggestions"
-  "zsh-users/zsh-syntax-highlighting"
-  "zsh-users/zsh-completions"
-  "Aloxaf/fzf-tab"
-  "mattmc3/zsh-safe-rm"
-)
+_SHELDON_CONFIG="${HOME}/.config/sheldon/plugins.toml"
 
 install() {
   # sheldon is not in apt/dnf — install via cargo on all platforms for
@@ -32,29 +25,31 @@ install() {
     core::summary "    ✓ sheldon already installed"
   fi
 
-  # Initialize config if absent. sheldon init prompts [y/N] interactively,
-  # so pipe 'y' to handle non-interactive environments (CI).
-  core::run_cmd "Initializing sheldon" bash -c 'printf "y\n" | sheldon init --shell zsh'
+  # Write plugin config (declarative — always overwrites to desired state).
+  mkdir -p "$(dirname "${_SHELDON_CONFIG}")"
+  cat >"${_SHELDON_CONFIG}" <<'TOML'
+shell = "zsh"
 
-  local plugin name
-  for plugin in "${_SHELDON_PLUGINS[@]}"; do
-    name="${plugin##*/}"
-    # zsh-completions must use fpath instead of source to avoid permission errors.
-    if [[ "${name}" == "zsh-completions" ]]; then
-      core::run_cmd "Adding plugin ${name}" sheldon add "${name}" --github "${plugin}" --apply fpath
-    else
-      core::run_cmd "Adding plugin ${name}" sheldon add "${name}" --github "${plugin}"
-    fi
-  done
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+apply = ["fpath"]
+
+[plugins.fzf-tab]
+github = "Aloxaf/fzf-tab"
+
+[plugins.zsh-safe-rm]
+github = "mattmc3/zsh-safe-rm"
+TOML
+  core::log INFO "Wrote sheldon config → ${_SHELDON_CONFIG}"
 
   core::run_cmd "Locking sheldon plugins" sheldon lock --update
-
-  local plugin_names=""
-  local p
-  for p in "${_SHELDON_PLUGINS[@]}"; do
-    plugin_names="${plugin_names:+${plugin_names}, }${p##*/}"
-  done
-  core::summary "    ✓ plugins: ${plugin_names}"
+  core::summary "    ✓ plugins: zsh-autosuggestions, zsh-syntax-highlighting, zsh-completions, fzf-tab, zsh-safe-rm"
 
   # Content is single-quoted: written literally to .zshrc, expanded by zsh at login.
   # shellcheck disable=SC2016
@@ -67,13 +62,10 @@ autoload -Uz compinit && compinit'
 }
 
 uninstall() {
-  local plugin name
-  for plugin in "${_SHELDON_PLUGINS[@]}"; do
-    name="${plugin##*/}"
-    core::run_cmd "Removing plugin ${name}" sheldon remove "${name}"
-  done
-  core::run_cmd "Locking sheldon plugins" sheldon lock --update
-
+  rm -rf "${HOME}/.config/sheldon" "${HOME}/.local/share/sheldon"
+  core::log INFO "Removed sheldon config and plugin data"
   core::remove_block "${HOME}/.zshrc" "sheldon"
-  core::summary "    ✓ removed plugins and block from ~/.zshrc"
+  core::summary "    ✓ removed ~/.config/sheldon"
+  core::summary "    ✓ removed ~/.local/share/sheldon"
+  core::summary "    ✓ removed sheldon block from ~/.zshrc"
 }
