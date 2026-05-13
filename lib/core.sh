@@ -122,7 +122,12 @@ core::run_cmd() {
   elapsed="$((end_time - start_time))"
 
   if [[ "${exit_code}" -eq 0 ]]; then
-    core::log INFO "Done: ${description} (${elapsed}s)"
+    if [[ "${elapsed}" -eq 0 ]]; then
+      # Fast command: replace the "..." line with a single completion line.
+      core::log INFO "✓ ${description}"
+    else
+      core::log INFO "Done: ${description} (${elapsed}s)"
+    fi
   else
     core::log ERROR "Failed: ${description} (exit ${exit_code}, ${elapsed}s)"
     printf '── last 20 lines ──────────────────────────────────\n' >&2
