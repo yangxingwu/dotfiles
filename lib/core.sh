@@ -204,10 +204,11 @@ core::remove_block() {
 # core::usage — print usage information.
 core::usage() {
   printf 'Usage: %s [options]\n\n' "$(basename "${0}")"
+  printf 'Processes all modules by default. Use --only/--skip to filter.\n\n'
   printf 'Options:\n'
   printf '  --only mod1,mod2   Only process specified modules\n'
   printf '  --skip mod1,mod2   Skip specified modules\n'
-  printf '  -v, --verbose      Show full command output (default: summary only)\n'
+  printf '  -v, --verbose      Show full command output (default: progress only)\n'
   printf '  --summary          Show detailed summary after completion\n'
   printf '  --list, -l         List available modules\n'
   printf '  --help, -h         Show this help\n'
