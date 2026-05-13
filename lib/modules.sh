@@ -96,5 +96,6 @@ modules::filter() {
     done
     ;;
   esac
+  # shellcheck disable=SC2034  # read by install.sh / uninstall.sh after sourcing
   DOTFILES_SELECTED_MODULES=("${result[@]}")
 }
