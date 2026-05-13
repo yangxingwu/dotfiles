@@ -30,25 +30,23 @@ _golang::latest_version() {
 }
 
 install() {
-  if core::check_installed go; then
+  if ! core::check_installed go; then
+    local version tarball url
+    version="$(_golang::latest_version)"
+    tarball="$(_golang::tarball_name "${version}")"
+    url="https://go.dev/dl/${tarball}"
+
+    core::log INFO "Installing Go ${version} from ${url}"
+    core::run_cmd "Downloading Go ${version}" curl -fsSL "${url}" -o "/tmp/${tarball}"
+    sudo rm -rf /usr/local/go
+    core::run_cmd "Extracting Go ${version}" sudo tar -C /usr/local -xzf "/tmp/${tarball}"
+    rm "/tmp/${tarball}"
+
+    core::summary "    ✓ installed Go ${version} from go.dev"
+  else
     core::log INFO "Go already installed: $(go version)"
     core::summary "    ✓ $(go version) already installed"
-    return 0
   fi
-
-  local version tarball url
-  version="$(_golang::latest_version)"
-  tarball="$(_golang::tarball_name "${version}")"
-  url="https://go.dev/dl/${tarball}"
-
-  core::log INFO "Installing Go ${version} from ${url}"
-  core::run_cmd "Downloading Go ${version}" curl -fsSL "${url}" -o "/tmp/${tarball}"
-  sudo rm -rf /usr/local/go
-  core::run_cmd "Extracting Go ${version}" sudo tar -C /usr/local -xzf "/tmp/${tarball}"
-  rm "/tmp/${tarball}"
-
-  core::log INFO "Go ${version} installed to /usr/local/go"
-  core::summary "    ✓ installed Go ${version} from go.dev"
 
   # Activate for the rest of this install run.
   export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"
