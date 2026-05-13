@@ -1,97 +1,90 @@
 # Dotfiles Project Gaps — TODO
 
-Date: 2026-05-12
+Date: 2026-05-12 | Updated: 2026-05-13
 
 Identified gaps for the "full daily dev environment" goal. Each section is an
 independent sub-project — implement in any order, one at a time.
 
 ---
 
-## 1. Project Housekeeping
+## Completed
 
-- [x] Add LICENSE file (MIT, copyright yangxingwu)
-- [x] Expand .gitignore (*.swp, *.swo, *~, .env, .env.*)
-- [x] Fix README.md: `<your-username>` → `yangxingwu`
+- [x] Project Housekeeping (LICENSE, .gitignore, README username)
+- [x] Selective Module Install (--only/--skip)
+- [x] Output Verbosity Control (core::run_cmd, --verbose, log file, timing)
 
-## 2. Modern CLI Tools Module
+---
 
-- [ ] Create `modules/cli-tools.sh` — install bat, eza, ripgrep, fd
-- [ ] Add `cli-tools` to lib/modules.sh
-- [ ] Write docs/modules/cli-tools.md
-- [ ] Add test assertions (assert_command bat eza rg fd)
+## Priority 1 — High value, low effort
 
-## 3. Zsh Configuration Module
+### README Update
 
-- [ ] Create `modules/zsh-config.sh` — HISTSIZE, HISTFILE, SAVEHIST, setopt options
-- [ ] Write settings via core::ensure_block into ~/.zshrc
-- [ ] Add `zsh-config` to lib/modules.sh (after sheldon — needs shell to exist)
-- [ ] Write docs/modules/zsh-config.md
-- [ ] Add test assertions
+- [ ] Document --verbose flag and output behavior
+- [ ] Document final summary (module count, timing, log path)
+- [ ] Document --only/--skip with examples
 
-## 4. Selective Module Install
+### Uninstall Failure Behavior
 
-- [x] install.sh: parse `--skip module1,module2` argument
-- [x] uninstall.sh: same support
-- [x] Skip matched modules in the loop (log "skipped by --skip")
-- [x] Update README with usage example
-- [x] Test: run with --skip, verify skipped module has no side effects
+- [ ] core::run_module: don't exit on uninstall failure (continue remaining modules)
+- [ ] Log failed modules, report in final summary
+- [ ] Rationale: uninstall hooks are independent (no dependency chain)
 
-## 5. Shell Aliases/Functions Module
+### Modern CLI Tools Module
 
-- [ ] Create `modules/aliases.sh` — common aliases and utility functions
-- [ ] Store function body in ~/.shell-aliases.sh, source via managed block
-- [ ] Add `aliases` to lib/modules.sh
-- [ ] Write docs/modules/aliases.md
+- [ ] Create `modules/cli-tools.sh` — install bat, eza
+- [ ] Note: ripgrep and fd are already installed by nvim module
+- [ ] Add `cli-tools` to lib/modules.sh (before nvim)
+- [ ] Add test assertions (assert_command bat eza)
 
-## 6. Python Module
+### Git Enhancement Module (delta)
 
-- [ ] Create `modules/python.sh` — install python3 + pip via system package manager
-- [ ] macOS: `core::pkg_install python3`; Linux: `core::pkg_install python3 python3-pip`
-- [ ] Configure pip (mirror source if needed)
-- [ ] Add `python` to lib/modules.sh
-- [ ] Write docs/modules/python.md
-- [ ] Add test assertions (assert_command python3 pip3)
-
-## 7. mise Module (optional — for multi-version management)
-
-Evaluate if needed: mise (https://github.com/jdx/mise) is a unified dev tool
-version manager. Currently the project uses rustup (Rust) and manual tarball
-(Go) which work fine for single-version setups. Consider mise if:
-- You need multiple Python/Node/Go versions on the same machine
-- You want per-project version pinning via .mise.toml
-
-If adding:
-- [ ] Create `modules/mise.sh` — install mise (brew/cargo), write config, add shell init
-- [ ] Optionally simplify `modules/golang.sh` (replace tarball logic with `mise use -g go@latest`)
-- [ ] Optionally replace Python module with `mise use -g python@3.x`
-- [ ] Keep `modules/rust.sh` as-is (mise wraps rustup anyway, no benefit)
-- [ ] Add `mise` to lib/modules.sh (after rust, before golang)
-- [ ] Write docs/modules/mise.md
-- [ ] Add test assertions (assert_command mise)
-
-## 8. Dry-run Mode
-
-- [ ] install.sh: parse `--dry-run` flag
-- [ ] Set global DOTFILES_DRY_RUN=1 when flag present
-- [ ] core::pkg_install: print "[dry-run] would install: <pkg>" and return
-- [ ] core::ensure_block: print "[dry-run] would write block '<id>' to <file>"
-- [ ] Modules: ssh-keygen, gh auth, mkdir etc. check dry-run before executing
-- [ ] Update README
-
-## 9. Git Enhancement Tools Module
-
-- [ ] Create `modules/git-tools.sh` — install delta, configure git pager
+- [ ] Create `modules/git-tools.sh` — install delta
 - [ ] git config --global core.pager delta
 - [ ] git config --global interactive.diffFilter "delta --color-only"
-- [ ] Add `git-tools` to lib/modules.sh (after git module)
-- [ ] Write docs/modules/git-tools.md
+- [ ] Add `git-tools` to lib/modules.sh (after git)
 - [ ] Add test assertions (assert_command delta)
 
-## 10. ASCII Progress Bar
+## Priority 2 — Moderate value
 
-- [ ] Add `core::progress_bar <current> <total> <module_name>` to lib/core.sh
-- [ ] Output format: `[=====>    ] 3/12 ssh`
-- [ ] Call from core::run_module before running each module
-- [ ] Use `\r` to overwrite in-place (only when stdout is a TTY)
-- [ ] Print newline after each module completes (so log output stays readable)
-- [ ] Works for both install.sh and uninstall.sh
+### Zsh Configuration Module
+
+- [ ] Create `modules/zsh-config.sh`
+- [ ] HISTSIZE, HISTFILE, SAVEHIST, setopt (share_history, hist_ignore_dups, etc.)
+- [ ] Write via core::ensure_block into ~/.zshrc
+- [ ] Add `zsh-config` to lib/modules.sh (after sheldon)
+- [ ] Add test assertions
+
+### Python Module
+
+- [ ] Create `modules/python.sh`
+- [ ] macOS: core::pkg_install python3; Linux: python3 + python3-pip
+- [ ] Add `python` to lib/modules.sh
+- [ ] Add test assertions (assert_command python3 pip3)
+
+### Log File Rotation
+
+- [ ] In core::init, delete log files older than 7 days from /tmp/dotfiles-*
+- [ ] One line: find /tmp -name 'dotfiles-*.log' -mtime +7 -delete
+
+## Priority 3 — Optional / situational
+
+### Shell Aliases
+
+- [ ] Instead of a full module, add optional source line in zsh-config:
+      `[[ -f ~/.aliases ]] && source ~/.aliases`
+- [ ] User maintains ~/.aliases manually — not managed by dotfiles
+
+---
+
+## Rejected (with rationale)
+
+### mise Module
+YAGNI. Current setup (rustup + Go tarball) works. No multi-version needs.
+
+### Dry-run Mode
+Scripts are idempotent and support --only filtering. Dry-run adds complexity
+to every side-effect path for negligible safety benefit.
+
+### ASCII Progress Bar
+Already have `▶ [3/13] ssh` + per-module timing + final summary. A `\r`-based
+progress bar conflicts with log output and doesn't work in CI.
