@@ -97,7 +97,7 @@ _ssh::generate_key() {
     core::log INFO "SSH key already exists: ${key_file}"
     core::summary "    ✓ key already exists: ~/.ssh/id_ed25519"
   else
-    ssh-keygen -t ed25519 -C "xingwu.yang@gmail.com" -f "${key_file}" -N ""
+    core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "xingwu.yang@gmail.com" -f "${key_file}" -N ""
     core::log INFO "Generated SSH key: ${key_file}"
     core::summary "    ✓ generated key: ~/.ssh/id_ed25519"
   fi
