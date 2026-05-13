@@ -71,9 +71,9 @@ uninstall() {
   local plugin name
   for plugin in "${_SHELDON_PLUGINS[@]}"; do
     name="${plugin##*/}"
-    sheldon remove "${name}"
+    core::run_cmd "Removing plugin ${name}" sheldon remove "${name}"
   done
-  sheldon lock --update
+  core::run_cmd "Locking sheldon plugins" sheldon lock --update
 
   core::remove_block "${HOME}/.zshrc" "sheldon"
   core::summary "    ✓ removed plugins and block from ~/.zshrc"
