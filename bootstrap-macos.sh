@@ -123,7 +123,7 @@ if [ "${CURRENT_SHELL}" = "${ZSH_PATH}" ]; then
   log "Login shell already set to zsh"
 else
   log "Setting login shell to ${ZSH_PATH}..."
-  chsh -s "${ZSH_PATH}"
+  sudo chsh -s "${ZSH_PATH}" "$(whoami)"
   log "Login shell changed to zsh (takes effect on next login)"
 fi
 

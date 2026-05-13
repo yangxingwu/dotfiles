@@ -100,7 +100,7 @@ dnf)
     pkg-config \
     openssl-devel \
     clang-devel
-  sudo dnf group install -y "Development Tools"
+  sudo dnf install -y @development-tools
   ;;
 esac
 log "Development tools installed"
