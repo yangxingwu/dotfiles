@@ -63,10 +63,9 @@ OS="$(detect_os)"
 # ─── Phase 1: Install ──────────────────────────────────────────────
 printf '\n══ Phase 1: Running install.sh ══\n'
 
-# Pipe "1" for nvim's interactive prompt (choose package manager).
-printf '1\n' | "${DOTFILES_ROOT}/install.sh"
+"${DOTFILES_ROOT}/install.sh"
 
-# install.sh runs in a pipe subprocess, so PATH changes made by modules
+# install.sh runs as a child process, so PATH changes made by modules
 # (e.g. rust sourcing ~/.cargo/env, golang exporting /usr/local/go/bin)
 # only affect that subprocess. Source ~/.zprofile here to pick them up
 # in the test process before Phase 2 checks for those binaries.
