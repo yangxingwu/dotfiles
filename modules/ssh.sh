@@ -50,6 +50,7 @@ _ssh::install_packages() {
     fi
     # gh-cli repo requires explicit --repo flag per official docs.
     core::run_cmd "Installing gh" sudo dnf install -y gh --repo gh-cli
+    core::log INFO "Installed gh via dnf (--repo gh-cli)"
     core::summary "    ✓ gh installed via dnf"
     ;;
   esac
@@ -174,6 +175,7 @@ WRAPPER
 
   core::ensure_block "${HOME}/.zshrc" "ssh-wrapper" \
     "source \"\${HOME}/.ssh/ssh-wrapper.sh\""
+  core::log INFO "Ensured ssh-wrapper source block in ~/.zshrc"
   core::summary "    ✓ ssh-wrapper.sh → ~/.ssh/ssh-wrapper.sh"
   core::summary "    ✓ config → ~/.zshrc (source ssh-wrapper.sh)"
 }
@@ -188,12 +190,15 @@ install() {
 
 uninstall() {
   core::remove_block "${HOME}/.zshrc" "ssh-wrapper"
+  core::log INFO "Removed ssh-wrapper block from ~/.zshrc"
   core::summary "    ✓ removed ssh-wrapper block from ~/.zshrc"
 
   rm -f "${HOME}/.ssh/ssh-wrapper.sh"
+  core::log INFO "Removed ~/.ssh/ssh-wrapper.sh"
   core::summary "    ✓ removed ~/.ssh/ssh-wrapper.sh"
 
   # Intentionally NOT removed: ~/.ssh, keys, config, passwords (user data);
   # sshpass, gh (other tools may depend on them).
+  core::log INFO "Retained ~/.ssh, sshpass, gh (user data and shared tools)"
   core::summary "    — retained ~/.ssh, sshpass, gh (user data and shared tools)"
 }
