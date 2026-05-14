@@ -177,9 +177,8 @@ WRAPPER
   chmod 644 "${wrapper_file}"
   core::log INFO "Wrote ssh wrapper to ~/.ssh/ssh-wrapper.sh"
 
-  core::ensure_block "${HOME}/.zshrc" "ssh-wrapper" \
+  core::ensure_block "${HOME}/.zshrc" "ssh" \
     "source \"\${HOME}/.ssh/ssh-wrapper.sh\""
-  core::log INFO "Ensured ssh-wrapper source block in ~/.zshrc"
   core::summary "    ✓ ssh-wrapper.sh → ~/.ssh/ssh-wrapper.sh"
   core::summary "    ✓ config → ~/.zshrc (source ssh-wrapper.sh)"
 }
@@ -193,9 +192,8 @@ install() {
 }
 
 uninstall() {
-  core::remove_block "${HOME}/.zshrc" "ssh-wrapper"
-  core::log INFO "Removed ssh-wrapper block from ~/.zshrc"
-  core::summary "    ✓ removed ssh-wrapper block from ~/.zshrc"
+  core::remove_block "${HOME}/.zshrc" "ssh"
+  core::summary "    ✓ removed ssh block from ~/.zshrc"
 
   rm -f "${HOME}/.ssh/ssh-wrapper.sh"
   core::log INFO "Removed ~/.ssh/ssh-wrapper.sh"

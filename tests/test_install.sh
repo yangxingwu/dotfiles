@@ -108,7 +108,7 @@ assert_file_contains "${HOME}/.ssh/config" "ServerAliveInterval 60"
 assert_file_contains "${HOME}/.ssh/config" "ControlMaster auto"
 assert_file_contains "${HOME}/.ssh/config" "ControlPersist 10m"
 assert_file_exists "${HOME}/.ssh/ssh-wrapper.sh"
-assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh-wrapper"
+assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh"
 assert_command sshpass
 assert_command gh
 
@@ -186,7 +186,7 @@ fi
 assert_file_not_contains "${HOME}/.gitconfig" "yangxingwu"
 
 # SSH module uninstall — wrapper removed, user data retained
-assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh-wrapper"
+assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh"
 assert_file_missing "${HOME}/.ssh/ssh-wrapper.sh"
 assert_dir_exists "${HOME}/.ssh"
 assert_file_exists "${HOME}/.ssh/id_ed25519"
