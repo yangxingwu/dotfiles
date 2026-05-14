@@ -89,6 +89,7 @@ Host *
     ControlPath ~/.ssh/sockets/%r@%h-%p
     ControlPersist 10m
     IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
 SSH_DEFAULTS
   chmod 600 "${defaults_file}"
   core::log INFO "Wrote managed defaults to ~/.ssh/config.d/dotfiles-defaults"
