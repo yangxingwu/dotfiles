@@ -60,20 +60,27 @@ _ssh::install_packages() {
   fi
 }
 
-# Create ~/.ssh directory structure and write default config if absent.
+# Create ~/.ssh directory structure and write managed defaults via Include.
 _ssh::setup_dirs_and_config() {
   local ssh_dir="${HOME}/.ssh"
+  local ssh_config_dir="${ssh_dir}/config.d"
+  local defaults_file="${ssh_config_dir}/dotfiles-defaults"
 
-  mkdir -p "${ssh_dir}" "${ssh_dir}/passwords" "${ssh_dir}/sockets"
-  chmod 700 "${ssh_dir}" "${ssh_dir}/passwords" "${ssh_dir}/sockets"
-  core::log INFO "Ensured directory structure: ~/.ssh, ~/.ssh/passwords, ~/.ssh/sockets"
-  core::summary "    ✓ directories: ~/.ssh, ~/.ssh/passwords, ~/.ssh/sockets (mode 700)"
+  mkdir -p "${ssh_dir}" "${ssh_dir}/passwords" "${ssh_dir}/sockets" "${ssh_config_dir}"
+  chmod 700 "${ssh_dir}" "${ssh_dir}/passwords" "${ssh_dir}/sockets" "${ssh_config_dir}"
+  core::log INFO "Ensured directory structure: ~/.ssh, ~/.ssh/{passwords,sockets,config.d} (mode 700)"
+  core::summary "    ✓ directories: ~/.ssh, ~/.ssh/{passwords,sockets,config.d} (mode 700)"
 
-  if [[ -f "${ssh_dir}/config" ]]; then
-    core::log INFO "~/.ssh/config already exists — skipping (write-once policy)"
-    core::summary "    ✓ ~/.ssh/config already exists (not overwritten)"
-  else
-    cat >"${ssh_dir}/config" <<'SSH_CONFIG'
+  # Create config file if absent (user may already have one).
+  if [[ ! -f "${ssh_dir}/config" ]]; then
+    touch "${ssh_dir}/config"
+    chmod 600 "${ssh_dir}/config"
+  fi
+
+  # Write fully-managed defaults file (overwritten each run).
+  cat >"${defaults_file}" <<'SSH_DEFAULTS'
+# Managed by dotfiles — do not edit manually.
+# Override any value by setting it in ~/.ssh/config above the Include line.
 Host *
     ServerAliveInterval 60
     ServerAliveCountMax 3
@@ -82,11 +89,16 @@ Host *
     ControlPath ~/.ssh/sockets/%r@%h-%p
     ControlPersist 10m
     IdentityFile ~/.ssh/id_ed25519
-SSH_CONFIG
-    chmod 600 "${ssh_dir}/config"
-    core::log INFO "Wrote default ~/.ssh/config"
-    core::summary "    ✓ wrote ~/.ssh/config (Host * defaults)"
-  fi
+SSH_DEFAULTS
+  chmod 600 "${defaults_file}"
+  core::log INFO "Wrote managed defaults to ~/.ssh/config.d/dotfiles-defaults"
+
+  # Append Include directive at the end of ~/.ssh/config so user's own
+  # Host entries (earlier in the file) take precedence (SSH first-match-wins).
+  core::ensure_block "${ssh_dir}/config" "ssh" \
+    "Include config.d/dotfiles-defaults"
+  core::summary "    ✓ ~/.ssh/config.d/dotfiles-defaults (managed Host * defaults)"
+  core::summary "    ✓ ~/.ssh/config Include directive (managed block)"
 }
 
 # Generate ed25519 key pair if not already present.
@@ -192,12 +204,21 @@ install() {
 }
 
 uninstall() {
-  core::remove_block "${HOME}/.zshrc" "ssh"
-  core::summary "    ✓ removed ssh block from ~/.zshrc"
-
+  # ssh-wrapper: remove file first, then the zshrc source line that references it.
   rm -f "${HOME}/.ssh/ssh-wrapper.sh"
   core::log INFO "Removed ~/.ssh/ssh-wrapper.sh"
   core::summary "    ✓ removed ~/.ssh/ssh-wrapper.sh"
+
+  core::remove_block "${HOME}/.zshrc" "ssh"
+  core::summary "    ✓ removed ssh block from ~/.zshrc"
+
+  # ssh config defaults: remove managed file first, then the Include directive.
+  rm -f "${HOME}/.ssh/config.d/dotfiles-defaults"
+  core::log INFO "Removed ~/.ssh/config.d/dotfiles-defaults"
+  core::summary "    ✓ removed ~/.ssh/config.d/dotfiles-defaults"
+
+  core::remove_block "${HOME}/.ssh/config" "ssh"
+  core::summary "    ✓ removed ssh block from ~/.ssh/config"
 
   # Intentionally NOT removed: ~/.ssh, keys, config, passwords (user data);
   # sshpass, gh (other tools may depend on them).
