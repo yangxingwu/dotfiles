@@ -226,8 +226,9 @@ uninstall() {
   core::remove_block "${HOME}/.ssh/config" "ssh"
   core::summary "    ✓ removed ssh block from ~/.ssh/config"
 
-  # Intentionally NOT removed: ~/.ssh, keys, config, passwords (user data);
-  # sshpass, gh (other tools may depend on them).
-  core::log INFO "Retained ~/.ssh, sshpass, gh (user data and shared tools)"
-  core::summary "    — retained ~/.ssh, sshpass, gh (user data and shared tools)"
+  # Intentionally NOT removed:
+  #   ~/.ssh, keys, config, passwords — user data that may predate this module
+  #   sshpass, gh — packages are not removed per the module uninstall contract
+  core::log INFO "Retained ~/.ssh (keys, config, passwords) and packages (sshpass, gh)"
+  core::summary "    — retained ~/.ssh (keys, config, passwords) and packages (sshpass, gh)"
 }
