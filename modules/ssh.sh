@@ -120,7 +120,11 @@ _ssh::push_key_to_github() {
       return 0
     fi
     core::log INFO "gh not authenticated — starting interactive login"
-    gh auth login
+    if ! gh auth login; then
+      core::log WARN "GitHub authentication failed — skipping key push"
+      core::summary "    — skipped GitHub key push (auth failed)"
+      return 0
+    fi
   fi
 
   # Check if this key is already registered on GitHub.
