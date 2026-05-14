@@ -40,6 +40,14 @@ core::check_installed() {
   command -v "${1}" >/dev/null 2>&1
 }
 
+# core::file_mode <file> — returns octal permission string (e.g. "600").
+core::file_mode() {
+  case "${DOTFILES_OS}" in
+  mac) stat -f '%Lp' "${1}" ;;
+  linux) stat -c '%a' "${1}" ;;
+  esac
+}
+
 # core::pkg_install <package> [package ...]
 # Installs one or more packages via the detected package manager.
 # Skips packages that are already installed (checked via brew list / dpkg -s /
@@ -193,7 +201,7 @@ core::remove_block() {
     blank && printed { print "" }             # emit one blank separator (then fall through)
     { blank=0; printed=1; print }             # print current line content (not a blank)
   ' "${file}" >"${tmp}"
-  chmod 644 "${tmp}"
+  chmod "$(core::file_mode "${file}")" "${tmp}"
   mv "${tmp}" "${file}"
 
   core::log INFO "Removed block '${id}' from ${file}"
