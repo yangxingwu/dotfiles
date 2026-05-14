@@ -14,12 +14,13 @@ MODULE_PLATFORM="all"
 # Install LazyVim requirements.
 # https://www.lazyvim.org/ — Requirements section.
 _nvim::install_deps() {
+  # rg and fd are provided by the cli-tools module (runs before nvim).
   case "${DOTFILES_OS}" in
   mac)
-    core::run_cmd "Installing nvim dependencies" core::pkg_install ripgrep fd node shfmt shellcheck
+    core::run_cmd "Installing nvim dependencies" core::pkg_install node shfmt shellcheck
     ;;
   linux)
-    core::run_cmd "Installing nvim dependencies" core::pkg_install ripgrep fd-find nodejs npm shfmt shellcheck
+    core::run_cmd "Installing nvim dependencies" core::pkg_install nodejs npm shfmt shellcheck
     ;;
   esac
 

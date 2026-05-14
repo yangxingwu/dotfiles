@@ -87,6 +87,16 @@ assert_command rustup
 assert_command sheldon
 assert_command starship
 
+# cli-tools
+assert_command bat
+assert_command eza
+assert_command rg
+assert_command fd
+assert_command jq
+assert_command tldr
+assert_file_exists "${HOME}/.config/bat/config"
+assert_file_contains "${HOME}/.config/bat/config" "Catppuccin Mocha"
+
 # macOS-only binaries
 if [[ "${OS}" == "mac" ]]; then
   assert "ghostty installed" brew list --cask ghostty
@@ -192,6 +202,15 @@ fi
 
 # Git config entries removed
 assert_file_not_contains "${HOME}/.gitconfig" "yangxingwu"
+
+# cli-tools uninstall — config removed, binaries retained
+assert_file_missing "${HOME}/.config/bat/config"
+assert_command bat
+assert_command eza
+assert_command rg
+assert_command fd
+assert_command jq
+assert_command tldr
 
 # SSH module uninstall — wrapper removed, user data retained
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh"

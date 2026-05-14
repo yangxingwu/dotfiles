@@ -12,6 +12,7 @@ DOTFILES_MODULES=(
   ssh              # after git: identity before connectivity
   rust             # before nvim: cargo is required for tree-sitter-cli
   golang           # before nvim: go install lazygit
+  cli-tools        # after rust/golang: cargo tools; before fzf: fzf preview uses bat/fd
   fzf              # before zoxide: zi interactive mode uses fzf
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide
