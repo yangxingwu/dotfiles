@@ -8,10 +8,10 @@ IFS=$'\n\t'
 DOTFILES_MODULES=(
   homebrew             # mac only: .zprofile shellenv (must be first for brew PATH)
   font-hack-nerd-font
-  git
-  ssh              # after git: identity before connectivity
-  rust             # before nvim: cargo is required for tree-sitter-cli
-  golang           # before nvim: go install lazygit
+  ssh              # before git: SSH key needed for git commit signing
+  rust             # before git/nvim: cargo for delta, tree-sitter-cli
+  golang           # before git/nvim: go install lazygit
+  git              # after ssh/rust/golang: needs SSH key, cargo, go
   cli-tools        # after rust/golang: cargo tools; before fzf: fzf preview uses bat/fd
   fzf              # before zoxide: zi interactive mode uses fzf
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
@@ -20,7 +20,7 @@ DOTFILES_MODULES=(
   atuin            # after rust (cargo), after sheldon (replaces its history-substring-search)
   starship
   ghostty          # after font/sheldon/zoxide/starship: config assumes these are installed
-  nvim             # after rust (cargo) and golang (go install lazygit)
+  nvim             # after rust (cargo), golang, git (lazygit), cli-tools (rg, fd)
   tmux
 )
 

@@ -106,6 +106,20 @@ fi
 # Git config
 assert_file_contains "${HOME}/.gitconfig" "yangxingwu"
 
+# git module — tools and config
+assert_command delta
+assert_command lazygit
+assert_file_exists "${HOME}/.config/lazygit/config.yml"
+assert_file_contains "${HOME}/.config/lazygit/config.yml" "nerdFontsVersion"
+assert_dir_exists "${HOME}/.local/share/lazygit/catppuccin"
+assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:lazygit"
+assert_file_exists "${HOME}/.config/git/ignore"
+assert_file_contains "${HOME}/.config/git/ignore" ".DS_Store"
+assert "git core.pager is delta" test "$(git config --global core.pager)" = "delta"
+assert "git pull.rebase is true" test "$(git config --global pull.rebase)" = "true"
+assert "git commit.gpgsign is true" test "$(git config --global commit.gpgsign)" = "true"
+assert "git gpg.format is ssh" test "$(git config --global gpg.format)" = "ssh"
+
 # SSH module
 assert_dir_exists "${HOME}/.ssh"
 assert "${HOME}/.ssh mode 700" test "$(stat -c '%a' "${HOME}/.ssh" 2>/dev/null || stat -f '%Lp' "${HOME}/.ssh")" = "700"
@@ -202,6 +216,14 @@ fi
 
 # Git config entries removed
 assert_file_not_contains "${HOME}/.gitconfig" "yangxingwu"
+assert_file_not_contains "${HOME}/.gitconfig" "defaultBranch"
+assert_file_missing "${HOME}/.config/lazygit/config.yml"
+assert_dir_missing "${HOME}/.local/share/lazygit/catppuccin"
+assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:lazygit"
+assert_file_missing "${HOME}/.config/git/ignore"
+# git binaries retained
+assert_command delta
+assert_command lazygit
 
 # cli-tools uninstall — config removed, binaries retained
 assert_file_missing "${HOME}/.config/bat/config"

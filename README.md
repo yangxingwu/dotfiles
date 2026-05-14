@@ -54,7 +54,7 @@ After bootstrap, run `./install.sh` to install modules.
 |---|---|---|
 | `homebrew` | macOS | Homebrew shell environment (.zprofile block) |
 | `font-hack-nerd-font` | macOS | Hack Nerd Font (Homebrew cask) |
-| `git` | all | Git global config (user.name, user.email) |
+| `git` | all | Git config, delta, lazygit, SSH signing, global gitignore |
 | `ssh` | all | SSH client config, key generation, sshpass wrapper, GitHub pubkey |
 | `rust` | all | Rust toolchain via rustup |
 | `golang` | all | Go toolchain from go.dev |
