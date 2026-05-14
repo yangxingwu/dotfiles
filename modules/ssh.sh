@@ -109,9 +109,13 @@ _ssh::generate_key() {
     core::log INFO "SSH key already exists: ${key_file}"
     core::summary "    ✓ key already exists: ~/.ssh/id_ed25519"
   else
-    core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "xingwu.yang@gmail.com" -f "${key_file}" -N ""
+    # Comment includes user@hostname-date for easy identification when
+    # multiple keys are registered on GitHub/GitLab (one per device).
+    local comment
+    comment="$(whoami)@$(uname -n)-$(date +%Y%m%d)"
+    core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "${comment}" -f "${key_file}" -N "" -a 64
     core::log INFO "Generated SSH key: ${key_file}"
-    core::summary "    ✓ generated key: ~/.ssh/id_ed25519"
+    core::summary "    ✓ generated key: ~/.ssh/id_ed25519 (${comment})"
   fi
 }
 
