@@ -128,7 +128,7 @@ _ssh::generate_key() {
 _ssh::push_key_to_github() {
   local pub_key="${HOME}/.ssh/id_ed25519.pub"
   local key_title
-  key_title="$(uname -n)"
+  key_title="$(awk '{print $3}' "${pub_key}")"
 
   # Ensure gh is authenticated — run interactive login if not.
   if ! gh auth status >/dev/null 2>&1; then
