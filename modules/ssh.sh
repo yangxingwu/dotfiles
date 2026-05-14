@@ -94,12 +94,14 @@ SSH_DEFAULTS
   chmod 600 "${defaults_file}"
   core::log INFO "Wrote managed defaults to ~/.ssh/config.d/dotfiles-defaults"
 
-  # Append Include directive at the end of ~/.ssh/config so user's own
-  # Host entries (earlier in the file) take precedence (SSH first-match-wins).
+  # Insert Include directive at the TOP of ~/.ssh/config. OpenSSH uses
+  # first-match-wins: an Include at the bottom would be shadowed by any
+  # Host block above it that already set the same keys. Placing it at
+  # the top means the defaults file acts as a fallback for all hosts.
   core::ensure_block "${ssh_dir}/config" "ssh" \
-    "Include config.d/dotfiles-defaults"
+    "Include config.d/dotfiles-defaults" "prepend"
   core::summary "    ✓ ~/.ssh/config.d/dotfiles-defaults (managed Host * defaults)"
-  core::summary "    ✓ ~/.ssh/config Include directive (managed block)"
+  core::summary "    ✓ ~/.ssh/config Include directive (top of file)"
 }
 
 # Generate ed25519 key pair if not already present.

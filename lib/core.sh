@@ -151,23 +151,40 @@ core::run_cmd() {
 #   <content>
 #   # END dotfiles:<id>
 
-# core::ensure_block <file> <id> <content>
+# core::ensure_block <file> <id> <content> [position]
 # Writes a managed block to <file>. Removes any existing block with the
-# same id first, then appends the new one. Adds a blank line separator
-# before the block if the file already has content.
+# same id first, then inserts the new one. position is "append" (default)
+# or "prepend". A blank line separates the block from surrounding content.
 core::ensure_block() {
-  local file="${1}" id="${2}" content="${3}"
+  local file="${1}" id="${2}" content="${3}" position="${4:-append}"
   local begin="# BEGIN dotfiles:${id}"
   local end="# END dotfiles:${id}"
 
   core::remove_block "${file}" "${id}"
 
-  # Separate from previous content with a blank line.
-  if [[ -s "${file}" ]] && [[ -n "$(tail -n 1 "${file}")" ]]; then
-    printf '\n' >>"${file}"
-  fi
+  case "${position}" in
+  prepend)
+    local tmp
+    tmp="$(mktemp -- "${file}.XXXXXX")"
+    {
+      printf '%s\n%s\n%s\n' "${begin}" "${content}" "${end}"
+      if [[ -s "${file}" ]]; then
+        printf '\n'
+        cat "${file}"
+      fi
+    } >"${tmp}"
+    chmod "$(core::file_mode "${file}")" "${tmp}"
+    mv "${tmp}" "${file}"
+    ;;
+  *)
+    # Separate from previous content with a blank line.
+    if [[ -s "${file}" ]] && [[ -n "$(tail -n 1 "${file}")" ]]; then
+      printf '\n' >>"${file}"
+    fi
+    printf '%s\n%s\n%s\n' "${begin}" "${content}" "${end}" >>"${file}"
+    ;;
+  esac
 
-  printf '%s\n%s\n%s\n' "${begin}" "${content}" "${end}" >>"${file}"
   core::log INFO "Wrote block '${id}' to ${file}"
 }
 
