@@ -97,7 +97,9 @@ uninstall() {
 
   # Intentionally NOT removed: binaries installed by this module.
   # Other tools may depend on them; remove manually if needed.
-  local retained="${_CLI_CARGO_BINARIES[*]} ${_CLI_PKG_TOOLS[*]}"
+  local retained
+  retained="$(printf '%s, ' "${_CLI_CARGO_BINARIES[@]}" "${_CLI_PKG_TOOLS[@]}")"
+  retained="${retained%, }"
   core::log INFO "Retained binaries: ${retained}"
   core::summary "    — retained binaries: ${retained}"
 }
