@@ -54,12 +54,12 @@ After bootstrap, run `./install.sh` to install modules.
 |---|---|---|
 | `homebrew` | macOS | Homebrew shell environment (.zprofile block) |
 | `font-hack-nerd-font` | macOS | Hack Nerd Font (Homebrew cask) |
-| `git` | all | Git config, delta, lazygit, SSH signing, global gitignore |
 | `ssh` | all | SSH client config, key generation, sshpass wrapper, GitHub pubkey |
 | `rust` | all | Rust toolchain via rustup |
 | `golang` | all | Go toolchain from go.dev |
+| `git` | all | Git config, delta, lazygit, SSH signing, global gitignore |
 | `cli-tools` | all | Modern CLI tools: bat, eza, rg, fd, jq, tldr (catppuccin theme) |
-| `fzf` | all | fzf fuzzy finder + zsh key bindings |
+| `fzf` | all | fzf fuzzy finder with fd/bat/eza integration (catppuccin theme) |
 | `zoxide` | all | zoxide smarter cd command |
 | `sheldon` | all | zsh plugin manager + curated plugins |
 | `atuin` | all | Atuin shell history with fuzzy search |
