@@ -81,6 +81,9 @@ assert_command zsh
 assert_command nvim
 assert_command tmux
 assert_command fzf
+assert_dir_exists "${HOME}/.local/share/fzf/catppuccin"
+assert_file_contains "${HOME}/.zshrc" "FZF_DEFAULT_COMMAND"
+assert_file_contains "${HOME}/.zshrc" "catppuccin-fzf-mocha"
 assert_command zoxide
 assert_command cargo
 assert_command rustup
@@ -200,6 +203,7 @@ assert_file_missing "${HOME}/.config/tmux/tmux.conf.local"
 
 # Managed blocks removed from ~/.zshrc
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:fzf"
+assert_dir_missing "${HOME}/.local/share/fzf/catppuccin"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:sheldon"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:atuin"
