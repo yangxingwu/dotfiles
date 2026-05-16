@@ -13,7 +13,7 @@ assert() {
   if "$@"; then
     printf '  ✓ %s\n' "${desc}"
   else
-    printf '  ✗ %s\n' "${desc}" >&2
+    printf '  ✗ %s\n' "${desc}"
     FAILURES=$((FAILURES + 1))
   fi
 }
@@ -44,7 +44,7 @@ assert_file_contains() {
 
 assert_file_not_contains() {
   if grep -q "${2}" "${1}"; then
-    printf '  ✗ file %s still contains %s\n' "${1}" "${2}" >&2
+    printf '  ✗ file %s still contains %s\n' "${1}" "${2}"
     FAILURES=$((FAILURES + 1))
   else
     printf '  ✓ file %s missing %s\n' "${1}" "${2}"
@@ -84,7 +84,7 @@ printf '  ✓ install.sh second run completed without error\n'
 for block_id in fzf zoxide sheldon atuin starship ssh lazygit; do
   count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zshrc" 2>/dev/null)" || count=0
   if [[ "${count}" -gt 1 ]]; then
-    printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}" >&2
+    printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}"
     FAILURES=$((FAILURES + 1))
   else
     printf '  ✓ no duplicate block: %s\n' "${block_id}"
@@ -99,7 +99,7 @@ for block_id in rust golang homebrew; do
   fi
   count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zprofile" 2>/dev/null)" || count=0
   if [[ "${count}" -gt 1 ]]; then
-    printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}" >&2
+    printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}"
     FAILURES=$((FAILURES + 1))
   else
     printf '  ✓ no duplicate block: %s\n' "${block_id}"
@@ -299,7 +299,7 @@ assert_file_not_contains "${HOME}/.config/dotfiles/installed-modules" "rust"
 # ─── Result ─────────────────────────────────────────────────────────
 printf '\n══ Result ══\n'
 if ((FAILURES > 0)); then
-  printf '%d test(s) failed\n' "${FAILURES}" >&2
+  printf '%d test(s) failed\n' "${FAILURES}"
   exit 1
 else
   printf 'All tests passed\n'
