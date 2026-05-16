@@ -228,6 +228,26 @@ core::remove_block() {
   core::log INFO "Removed block '${id}' from ${file}"
 }
 
+# core::backup <path>
+# Backs up a file or directory by appending a timestamp suffix.
+# Creates: <path>.bak.<YYYYMMDD-HHMMSS>
+# No-op if <path> does not exist.
+# Logs the backup path so the user knows where to find it for restoration.
+#
+# Restore example:
+#   rm -rf <path>
+#   mv <path>.bak.<timestamp> <path>
+core::backup() {
+  local path="${1}"
+  [[ -e "${path}" ]] || return 0
+
+  local backup
+  backup="${path}.bak.$(date +%Y%m%d-%H%M%S)"
+  mv "${path}" "${backup}"
+  core::log INFO "Backed up ${path} → ${backup}"
+  core::summary "    ✓ backed up → ${backup}"
+}
+
 # ── Argument parsing for install.sh / uninstall.sh ─────────────────────
 
 # core::usage — print usage information.

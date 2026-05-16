@@ -160,6 +160,9 @@ assert_file_exists "${HOME}/.config/starship.toml"
 # Nvim config (cloned repo)
 assert_dir_exists "${HOME}/.config/nvim/.git"
 
+# nvim headless init
+assert_dir_exists "${HOME}/.local/share/nvim/lazy"
+
 # tmux (oh-my-tmux)
 assert_dir_exists "${HOME}/.local/share/tmux/oh-my-tmux"
 assert "tmux.conf is a symlink" test -L "${HOME}/.config/tmux/tmux.conf"
