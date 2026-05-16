@@ -165,10 +165,10 @@ _nvim::headless_init() {
 }
 
 install() {
-  _nvim::install_deps
-  _nvim::install_nvim
-  _nvim::clone_config
-  _nvim::headless_init
+  _nvim::install_deps || return 1
+  _nvim::install_nvim || return 1
+  _nvim::clone_config || return 1
+  _nvim::headless_init || return 1
 }
 
 uninstall() {

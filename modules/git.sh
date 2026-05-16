@@ -247,12 +247,12 @@ _git::push_signing_key_to_github() {
 }
 
 install() {
-  _git::configure_identity
-  _git::install_tools
-  _git::configure_lazygit
-  _git::write_global_gitignore
-  _git::configure_workflow
-  _git::push_signing_key_to_github
+  _git::configure_identity || return 1
+  _git::install_tools || return 1
+  _git::configure_lazygit || return 1
+  _git::write_global_gitignore || return 1
+  _git::configure_workflow || return 1
+  _git::push_signing_key_to_github || return 1
 }
 
 uninstall() {

@@ -117,8 +117,8 @@ FZF_CONFIG
 
 install() {
   core::run_cmd "Installing fzf" core::pkg_install fzf || return 1
-  _fzf::clone_theme
-  _fzf::write_config
+  _fzf::clone_theme || return 1
+  _fzf::write_config || return 1
 }
 
 uninstall() {

@@ -203,11 +203,11 @@ WRAPPER
 }
 
 install() {
-  _ssh::install_packages
-  _ssh::setup_dirs_and_config
-  _ssh::generate_key
-  _ssh::push_key_to_github
-  _ssh::install_wrapper
+  _ssh::install_packages || return 1
+  _ssh::setup_dirs_and_config || return 1
+  _ssh::generate_key || return 1
+  _ssh::push_key_to_github || return 1
+  _ssh::install_wrapper || return 1
 }
 
 uninstall() {

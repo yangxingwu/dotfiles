@@ -82,10 +82,10 @@ _cli::update_tealdeer_cache() {
 }
 
 install() {
-  _cli::install_cargo_tools
-  _cli::install_pkg_tools
-  _cli::configure_bat
-  _cli::update_tealdeer_cache
+  _cli::install_cargo_tools || return 1
+  _cli::install_pkg_tools || return 1
+  _cli::configure_bat || return 1
+  _cli::update_tealdeer_cache || return 1
 }
 
 uninstall() {
