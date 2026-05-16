@@ -52,12 +52,30 @@ _nvim::install_from_src() {
   popd >/dev/null
 }
 
-# Install Neovim. macOS uses brew; Linux offers package manager or source build.
+# Compare two version strings: returns 0 if $1 >= $2.
+# Uses sort -V (version sort) which compares major.minor.patch correctly.
+_nvim::version_ge() {
+  [[ "$(printf '%s\n%s' "${1}" "${2}" | sort -V | head -1)" == "${2}" ]]
+}
+
+# Install Neovim. macOS uses brew; Linux checks repo version and falls back
+# to source build if too old for LazyVim (requires >= 0.8.0).
+# See: https://www.lazyvim.org/ — Requirements section.
 _nvim::install_nvim() {
+  local min_version="0.8.0"
+
+  # Already installed — check version is sufficient.
   if core::check_installed nvim; then
-    core::log INFO "Neovim already installed: $(nvim --version | head -1)"
-    core::summary "    ✓ $(nvim --version | head -1) already installed"
-    return 0
+    local current
+    current="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+    if _nvim::version_ge "${current}" "${min_version}"; then
+      core::log INFO "Neovim already installed: NVIM v${current}"
+      core::summary "    ✓ NVIM v${current} already installed"
+      return 0
+    fi
+    core::log WARN "Neovim ${current} too old (need >= ${min_version}), removing and reinstalling"
+    core::pkg_remove neovim
+    # Fall through to fresh install below
   fi
 
   case "${DOTFILES_OS}" in
@@ -65,38 +83,21 @@ _nvim::install_nvim() {
     core::run_cmd "Installing neovim via brew" core::pkg_install neovim || return 1
     ;;
   linux)
-    local pkg_version
+    local pkg_version=""
     case "${DOTFILES_PKG_MANAGER}" in
     apt) pkg_version="$(apt-cache show neovim 2>/dev/null | awk '/^Version:/{print $2; exit}')" ;;
     dnf) pkg_version="$(dnf info neovim 2>/dev/null | awk '/^Version/{print $NF; exit}')" ;;
     esac
 
-    # Non-interactive (CI, pipe): default to package manager install.
-    if [[ ! -t 0 ]]; then
-      core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
-      return
-    fi
+    local pkg_semver
+    pkg_semver="$(printf '%s' "${pkg_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
 
-    local choice
-    while :; do
-      printf '\nNeovim not found. Install options:\n' >&2
-      printf '  1) Package manager — %s\n' "${pkg_version:-version unknown}" >&2
-      printf '  2) Build from source (latest stable)\n' >&2
-      printf 'Choice [1]: ' >&2
-      read -r choice
-      case "${choice:-1}" in
-      1)
-        core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
-        return
-        ;;
-      2)
-        _nvim::install_from_src
-        core::summary "    ✓ installed from source"
-        return
-        ;;
-      *) core::log WARN "Invalid choice: ${choice}" ;;
-      esac
-    done
+    if [[ -n "${pkg_semver}" ]] && _nvim::version_ge "${pkg_semver}" "${min_version}"; then
+      core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
+    else
+      core::log INFO "Repo neovim (${pkg_version:-unknown}) < ${min_version}, building from source"
+      _nvim::install_from_src
+    fi
     ;;
   esac
 }

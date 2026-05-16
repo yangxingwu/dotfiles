@@ -108,6 +108,44 @@ core::pkg_install() {
   done
 }
 
+# core::pkg_remove <package> [package ...]
+# Removes packages via the detected package manager. No-op if not installed.
+core::pkg_remove() {
+  local package
+
+  for package in "$@"; do
+    case "${DOTFILES_PKG_MANAGER}" in
+    brew)
+      if brew list "${package}" >/dev/null 2>&1; then
+        brew uninstall "${package}" || {
+          core::log ERROR "brew uninstall failed: ${package}"
+          return 1
+        }
+        core::log INFO "Removed: ${package}"
+      fi
+      ;;
+    apt)
+      if dpkg -s "${package}" >/dev/null 2>&1; then
+        sudo apt-get remove -y "${package}" || {
+          core::log ERROR "apt-get remove failed: ${package}"
+          return 1
+        }
+        core::log INFO "Removed: ${package}"
+      fi
+      ;;
+    dnf)
+      if rpm -q "${package}" >/dev/null 2>&1; then
+        sudo dnf remove -y "${package}" || {
+          core::log ERROR "dnf remove failed: ${package}"
+          return 1
+        }
+        core::log INFO "Removed: ${package}"
+      fi
+      ;;
+    esac
+  done
+}
+
 # core::run_cmd <description> <command> [args...]
 # Execute a command with output control based on _CORE_VERBOSITY.
 # In normal mode: output goes to log file only; on failure, tail 20 lines.
