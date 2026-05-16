@@ -8,6 +8,7 @@
 #   - fd as default search source (respects .gitignore)
 #   - bat as file preview for Ctrl+T
 #   - eza as directory preview for Alt+C
+#   - Ctrl+G: interactive ripgrep content search (rg + fzf + bat preview)
 #   - Layout defaults (height, reverse, border)
 #   - Ctrl+R disabled (atuin handles history search)
 #
@@ -63,8 +64,45 @@ export FZF_ALT_C_COMMAND='\''fd --type d --hidden --follow --exclude .git'\''
 export FZF_ALT_C_OPTS="--preview '\''eza --tree --level=2 --color=always {}'\'' "
 
 # Activate fzf key bindings and completion for zsh
-eval "$(fzf --zsh)"'
-  core::summary "    ✓ config → ~/.zshrc (fzf with fd/bat/eza/catppuccin)"
+eval "$(fzf --zsh)"
+
+# ── Ctrl+G: interactive ripgrep content search ──────────────────────────
+# Uses the "Interactive Ripgrep" pattern from fzf official documentation:
+#   https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interactive-ripgrep-launcher
+#
+# How it works:
+#   - fzf starts in "disabled" mode (no fuzzy filtering — rg does the searching)
+#   - Every keystroke triggers rg to re-search with the current query
+#   - Results shown with bat syntax-highlighted preview at the matching line
+#   - Press Enter to open the file in nvim at the exact line number
+#
+# Key binding follows the same zsh widget pattern as fzf'\''s own Ctrl+T/Alt+C:
+#   1. Define function  2. Register as zle widget  3. bindkey
+#   (See output of `fzf --zsh` for reference implementation)
+fzf-grep-widget() {
+  local RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+  local selected
+  selected="$(
+    fzf --ansi --disabled --query "" \
+        --bind "start:reload:${RG_PREFIX} {q} || true" \
+        --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
+        --delimiter : \
+        --preview '\''bat --color=always {1} --highlight-line {2}'\'' \
+        --preview-window '\''up,60%,border-bottom,+{2}+3/3,~3'\'' \
+        --bind '\''enter:become(echo {1} {2})'\''
+  )"
+  if [[ -n "${selected}" ]]; then
+    local file line
+    file="$(echo "${selected}" | awk '\''{print $1}'\'')"
+    line="$(echo "${selected}" | awk '\''{print $2}'\'')"
+    BUFFER="nvim +${line} ${file}"
+    zle accept-line
+  fi
+  zle reset-prompt
+}
+zle -N fzf-grep-widget
+bindkey '\''^G'\'' fzf-grep-widget'
+  core::summary "    ✓ config → ~/.zshrc (fzf with fd/bat/eza/catppuccin + Ctrl+G grep)"
 }
 
 install() {

@@ -29,6 +29,7 @@ The managed block in `~/.zshrc` configures:
 - **Ctrl+T**: fuzzy file picker (with bat syntax-highlighted preview)
 - **Ctrl+R**: handled by atuin (fzf Ctrl+R is disabled)
 - **Alt+C**: fuzzy directory jump (with eza tree preview)
+- **Ctrl+G**: interactive ripgrep content search (rg + fzf + bat preview, opens nvim at match)
 
 ## Dependencies
 
@@ -46,3 +47,5 @@ The managed block in `~/.zshrc` configures:
 - If catppuccin theme file is missing, fzf works normally with default colors.
 - Ctrl+R is explicitly disabled via `FZF_CTRL_R_COMMAND=""` to avoid conflict
   with atuin's superior history search.
+- Ctrl+G grep widget uses the "Interactive Ripgrep Launcher" pattern from
+  fzf ADVANCED.md: https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interactive-ripgrep-launcher
