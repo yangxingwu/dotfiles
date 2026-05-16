@@ -160,11 +160,12 @@ _ssh::push_key_to_github() {
   fi
 }
 
-# Write the ssh() wrapper function to ~/.ssh/ssh-wrapper.sh and source it
-# from .zshrc via a managed block.
+# Write the ssh() wrapper function to ~/.config/dotfiles/ssh-wrapper.sh and
+# source it from .zshrc via a managed block.
 _ssh::install_wrapper() {
-  local wrapper_file="${HOME}/.ssh/ssh-wrapper.sh"
+  local wrapper_file="${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
 
+  mkdir -p "${DOTFILES_CONFIG_DIR}"
   cat >"${wrapper_file}" <<'WRAPPER'
 # ssh-wrapper.sh — transparent password-based SSH via sshpass
 #
@@ -193,11 +194,11 @@ ssh() {
 }
 WRAPPER
   chmod 644 "${wrapper_file}"
-  core::log INFO "Wrote ssh wrapper to ~/.ssh/ssh-wrapper.sh"
+  core::log INFO "Wrote ssh wrapper to ${wrapper_file}"
 
   core::ensure_block "${HOME}/.zshrc" "ssh" \
-    "source \"\${HOME}/.ssh/ssh-wrapper.sh\""
-  core::summary "    ✓ ssh-wrapper.sh → ~/.ssh/ssh-wrapper.sh"
+    "source \"\${HOME}/.config/dotfiles/ssh-wrapper.sh\""
+  core::summary "    ✓ ssh-wrapper.sh → ~/.config/dotfiles/ssh-wrapper.sh"
   core::summary "    ✓ config → ~/.zshrc (source ssh-wrapper.sh)"
 }
 
@@ -211,9 +212,9 @@ install() {
 
 uninstall() {
   # ssh-wrapper: remove file first, then the zshrc source line that references it.
-  rm -f "${HOME}/.ssh/ssh-wrapper.sh"
-  core::log INFO "Removed ~/.ssh/ssh-wrapper.sh"
-  core::summary "    ✓ removed ~/.ssh/ssh-wrapper.sh"
+  rm -f "${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
+  core::log INFO "Removed ${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
+  core::summary "    ✓ removed ${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
 
   core::remove_block "${HOME}/.zshrc" "ssh"
   core::summary "    ✓ removed ssh block from ~/.zshrc"

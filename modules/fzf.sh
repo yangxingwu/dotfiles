@@ -22,6 +22,7 @@ MODULE_PLATFORM="all"
 
 _FZF_THEME_REPO="https://github.com/catppuccin/fzf.git"
 _FZF_THEME_DIR="${HOME}/.local/share/fzf/catppuccin"
+_FZF_INIT_SCRIPT="${DOTFILES_CONFIG_DIR}/fzf.zsh"
 
 # Clone or update catppuccin/fzf theme repository.
 _fzf::clone_theme() {
@@ -34,11 +35,11 @@ _fzf::clone_theme() {
   core::summary "    ✓ catppuccin theme → ~/.local/share/fzf/catppuccin"
 }
 
-# Write fzf configuration block to .zshrc.
+# Write fzf configuration to ~/.config/dotfiles/fzf.zsh and source from .zshrc.
 _fzf::write_config() {
-  # shellcheck disable=SC2016
-  core::ensure_block "${HOME}/.zshrc" "fzf" \
-    '# FZF configuration
+  mkdir -p "${DOTFILES_CONFIG_DIR}"
+  cat >"${_FZF_INIT_SCRIPT}" <<'FZF_CONFIG'
+# fzf.zsh — fzf configuration managed by dotfiles
 # See: https://github.com/junegunn/fzf#environment-variables
 
 # Catppuccin Mocha theme
@@ -50,18 +51,18 @@ _fzf::write_config() {
 export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS} --height=60% --layout=reverse --border --info=inline"
 
 # Use fd as default source (respects .gitignore, fast, hidden files included)
-export FZF_DEFAULT_COMMAND='\''fd --type f --hidden --follow --exclude .git'\''
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 
 # Ctrl+T: file picker with bat preview
-export FZF_CTRL_T_COMMAND='\''fd --type f --hidden --follow --exclude .git'\''
-export FZF_CTRL_T_OPTS="--preview '\''bat --color=always --style=numbers --line-range :300 {}'\'' --select-1 --exit-0"
+export FZF_CTRL_T_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range :300 {}' --select-1 --exit-0"
 
 # Ctrl+R: disabled — atuin handles history search (runs after fzf in module order)
 export FZF_CTRL_R_COMMAND=""
 
 # Alt+C: directory jump with eza tree preview
-export FZF_ALT_C_COMMAND='\''fd --type d --hidden --follow --exclude .git'\''
-export FZF_ALT_C_OPTS="--preview '\''eza --tree --level=2 --color=always {}'\'' "
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --color=always {}' "
 
 # Activate fzf key bindings and completion for zsh
 eval "$(fzf --zsh)"
@@ -76,7 +77,7 @@ eval "$(fzf --zsh)"
 #   - Results shown with bat syntax-highlighted preview at the matching line
 #   - Press Enter to open the file in nvim at the exact line number
 #
-# Key binding follows the same zsh widget pattern as fzf'\''s own Ctrl+T/Alt+C:
+# Key binding follows the same zsh widget pattern as fzf's own Ctrl+T/Alt+C:
 #   1. Define function  2. Register as zle widget  3. bindkey
 #   (See output of `fzf --zsh` for reference implementation)
 fzf-grep-widget() {
@@ -87,22 +88,30 @@ fzf-grep-widget() {
         --bind "start:reload:${RG_PREFIX} {q} || true" \
         --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
         --delimiter : \
-        --preview '\''bat --color=always {1} --highlight-line {2}'\'' \
-        --preview-window '\''up,60%,border-bottom,+{2}+3/3,~3'\'' \
-        --bind '\''enter:become(echo {1} {2})'\''
+        --preview 'bat --color=always {1} --highlight-line {2}' \
+        --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+        --bind 'enter:become(echo {1} {2})'
   )"
   if [[ -n "${selected}" ]]; then
     local file line
-    file="$(echo "${selected}" | awk '\''{print $1}'\'')"
-    line="$(echo "${selected}" | awk '\''{print $2}'\'')"
+    file="$(echo "${selected}" | awk '{print $1}')"
+    line="$(echo "${selected}" | awk '{print $2}')"
     BUFFER="nvim +${line} ${file}"
     zle accept-line
   fi
   zle reset-prompt
 }
 zle -N fzf-grep-widget
-bindkey '\''^G'\'' fzf-grep-widget'
-  core::summary "    ✓ config → ~/.zshrc (fzf with fd/bat/eza/catppuccin + Ctrl+G grep)"
+bindkey '^G' fzf-grep-widget
+FZF_CONFIG
+  chmod 644 "${_FZF_INIT_SCRIPT}"
+  core::log INFO "Wrote fzf config: ${_FZF_INIT_SCRIPT}"
+
+  # shellcheck disable=SC2016
+  core::ensure_block "${HOME}/.zshrc" "fzf" \
+    'source "${HOME}/.config/dotfiles/fzf.zsh"'
+  core::summary "    ✓ config → ~/.config/dotfiles/fzf.zsh"
+  core::summary "    ✓ config → ~/.zshrc (source fzf.zsh)"
 }
 
 install() {
@@ -114,6 +123,10 @@ install() {
 uninstall() {
   core::remove_block "${HOME}/.zshrc" "fzf"
   core::summary "    ✓ removed fzf block from ~/.zshrc"
+
+  rm -f "${_FZF_INIT_SCRIPT}"
+  core::log INFO "Removed ${_FZF_INIT_SCRIPT}"
+  core::summary "    ✓ removed ~/.config/dotfiles/fzf.zsh"
 
   rm -rf "${_FZF_THEME_DIR}"
   core::log INFO "Removed catppuccin theme: ${_FZF_THEME_DIR}"

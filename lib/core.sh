@@ -5,6 +5,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Shared directory for dotfiles-managed shell scripts (sourced from .zshrc).
+# shellcheck disable=SC2034  # used by modules that source this lib
+DOTFILES_CONFIG_DIR="${HOME}/.config/dotfiles"
+
 # core::log <level> <message>
 # Levels: INFO (stdout), WARN/ERROR (stderr). Colours when output fd is a TTY.
 core::log() {

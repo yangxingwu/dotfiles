@@ -82,8 +82,9 @@ assert_command nvim
 assert_command tmux
 assert_command fzf
 assert_dir_exists "${HOME}/.local/share/fzf/catppuccin"
-assert_file_contains "${HOME}/.zshrc" "FZF_DEFAULT_COMMAND"
-assert_file_contains "${HOME}/.zshrc" "catppuccin-fzf-mocha"
+assert_file_exists "${HOME}/.config/dotfiles/fzf.zsh"
+assert_file_contains "${HOME}/.config/dotfiles/fzf.zsh" "FZF_DEFAULT_COMMAND"
+assert_file_contains "${HOME}/.config/dotfiles/fzf.zsh" "catppuccin-fzf-mocha"
 assert_command zoxide
 assert_command cargo
 assert_command rustup
@@ -142,7 +143,7 @@ assert_file_contains "${HOME}/.ssh/config.d/dotfiles-defaults" "ControlPersist 1
 assert_file_contains "${HOME}/.ssh/config.d/dotfiles-defaults" "IdentityFile ~/.ssh/id_ed25519"
 assert_file_contains "${HOME}/.ssh/config.d/dotfiles-defaults" "IdentitiesOnly yes"
 assert_file_contains "${HOME}/.ssh/config" "Include config.d/dotfiles-defaults"
-assert_file_exists "${HOME}/.ssh/ssh-wrapper.sh"
+assert_file_exists "${HOME}/.config/dotfiles/ssh-wrapper.sh"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh"
 assert_command sshpass
 assert_command gh
@@ -204,6 +205,7 @@ assert_file_missing "${HOME}/.config/tmux/tmux.conf.local"
 # Managed blocks removed from ~/.zshrc
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:fzf"
 assert_dir_missing "${HOME}/.local/share/fzf/catppuccin"
+assert_file_missing "${HOME}/.config/dotfiles/fzf.zsh"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:sheldon"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:atuin"
@@ -240,7 +242,7 @@ assert_command tldr
 
 # SSH module uninstall — wrapper removed, user data retained
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:ssh"
-assert_file_missing "${HOME}/.ssh/ssh-wrapper.sh"
+assert_file_missing "${HOME}/.config/dotfiles/ssh-wrapper.sh"
 assert_file_missing "${HOME}/.ssh/config.d/dotfiles-defaults"
 assert_file_not_contains "${HOME}/.ssh/config" "Include config.d/dotfiles-defaults"
 assert_dir_exists "${HOME}/.ssh"
