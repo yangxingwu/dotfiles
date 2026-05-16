@@ -29,6 +29,8 @@ Items are ordered by priority. Within each tier, items are ordered by impact.
 - [x] ~~Module Dependency Declaration~~ — MODULE_DEPS + core::module_is_installed check
 - [x] ~~Module Status Query~~ — installed-modules file + --status flag
 - [x] ~~CI Idempotency Test~~ — Phase 1b runs install.sh twice, checks no duplicate blocks
+- [x] ~~tmux Module Crashes on Re-run~~ — guard clone (pull if exists), ln -sf, unlink guard
+- [x] ~~CI Cargo Cache~~ — actions/cache on ~/.cargo/bin + ~/go/bin, Docker volume mount
 
 ---
 
@@ -36,17 +38,17 @@ Items are ordered by priority. Within each tier, items are ordered by impact.
 
 These contradict the project's own description. Fix before any new features.
 
-### tmux Module Crashes on Re-run
+### ~~tmux Module Crashes on Re-run~~
 
-`tmux.sh install()` unconditionally runs `git clone` and `ln -s`. Second run:
+~~`tmux.sh install()` unconditionally runs `git clone` and `ln -s`. Second run:
 git clone fails ("destination path already exists"), ln fails ("File exists").
-`uninstall()` calls bare `unlink` — crashes if symlink already gone.
+`uninstall()` calls bare `unlink` — crashes if symlink already gone.~~
 
-Violates: **Idempotent**.
+~~Violates: **Idempotent**.~~
 
-- [ ] Guard `git clone`: if dir exists, do `git -C pull` or skip
-- [ ] Guard `ln -s`: if symlink exists with correct target, skip
-- [ ] Guard `unlink`: `[[ -L ... ]] && unlink ... || true`
+- [x] Guard `git clone`: if dir exists, do `git -C pull` or skip
+- [x] Guard `ln -s`: if symlink exists with correct target, skip
+- [x] Guard `unlink`: `[[ -L ... ]] && unlink ... || true`
 
 ### ~~CI Doesn't Test Idempotency~~
 
@@ -223,12 +225,12 @@ curl calls have no timeout. Hangs forever on flaky networks.
 - [ ] Cache in ~/.config/dotfiles/identity for re-runs
 - [ ] CI: skip entirely (non-interactive)
 
-### CI Cargo Cache
+### ~~CI Cargo Cache~~
 
-sheldon + atuin + tree-sitter-cli via `cargo install` = 3–5 min (60%+ of CI).
+~~sheldon + atuin + tree-sitter-cli via `cargo install` = 3–5 min (60%+ of CI).~~
 
-- [ ] actions/cache on ~/.cargo/bin + ~/.cargo/registry
-- [ ] Key on crate names + versions
+- [x] actions/cache on ~/.cargo/bin + ~/.cargo/registry
+- [x] Key on crate names + versions
 
 ### Faster Sheldon/Atuin Install
 
