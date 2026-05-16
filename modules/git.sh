@@ -160,8 +160,6 @@ _git::configure_workflow() {
   git config --global delta.navigate true
   # Tell delta we use a dark terminal background (affects syntax theme selection)
   git config --global delta.dark true
-  # Show base + ours + theirs in merge conflicts (part of delta recommended setup)
-  git config --global merge.conflictstyle zdiff3
 
   # -- SSH commit signing (Git 2.34+, no GPG needed) --
   local git_version
@@ -170,6 +168,14 @@ _git::configure_workflow() {
   git_major="${git_version%%.*}"
   git_minor="${git_version#*.}"
   git_minor="${git_minor%%.*}"
+
+  # zdiff3 conflict style requires git >= 2.35.
+  if [[ "${git_major}" -gt 2 ]] || { [[ "${git_major}" -eq 2 ]] && [[ "${git_minor}" -ge 35 ]]; }; then
+    git config --global merge.conflictstyle zdiff3
+  else
+    core::log WARN "Git ${git_version} < 2.35 — skipping merge.conflictstyle=zdiff3"
+  fi
+
   if [[ "${git_major}" -lt 2 ]] || { [[ "${git_major}" -eq 2 ]] && [[ "${git_minor}" -lt 34 ]]; }; then
     core::log WARN "Git ${git_version} < 2.34 — skipping SSH signing config"
     core::summary "    — skipped SSH signing (git ${git_version} < 2.34)"

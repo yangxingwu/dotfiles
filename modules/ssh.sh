@@ -23,7 +23,7 @@ _ssh::install_packages() {
     # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
       # shellcheck disable=SC2016
-      core::run_cmd "Adding GitHub CLI APT repository" bash -c ' || return 1
+      core::run_cmd "Adding GitHub CLI APT repository" bash -c '
         (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
         sudo mkdir -p -m 755 /etc/apt/keyrings &&
         out=$(mktemp) && wget -nv -O"${out}" https://cli.github.com/packages/githubcli-archive-keyring.gpg &&
@@ -33,7 +33,7 @@ _ssh::install_packages() {
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
         sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null &&
         sudo apt update
-      '
+      ' || return 1
     fi
     ;;
   dnf)
