@@ -72,6 +72,36 @@ printf '\n══ Phase 1: Running install.sh ══\n'
 # shellcheck source=/dev/null
 [[ -f "${HOME}/.zprofile" ]] && source "${HOME}/.zprofile"
 
+# ─── Phase 1b: Idempotency — run install.sh a second time ─────────
+printf '\n══ Phase 1b: Running install.sh again (idempotency check) ══\n'
+
+"${DOTFILES_ROOT}/install.sh"
+
+# If we got here without error, the second run didn't crash.
+printf '  ✓ install.sh second run completed without error\n'
+
+# Verify no duplicate managed blocks in .zshrc
+for block_id in fzf zoxide sheldon atuin starship ssh lazygit; do
+  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zshrc" 2>/dev/null || echo 0)"
+  if [[ "${count}" -gt 1 ]]; then
+    printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}" >&2
+    FAILURES=$((FAILURES + 1))
+  else
+    printf '  ✓ no duplicate block: %s\n' "${block_id}"
+  fi
+done
+
+# Verify no duplicate managed blocks in .zprofile
+for block_id in rust golang homebrew; do
+  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zprofile" 2>/dev/null || echo 0)"
+  if [[ "${count}" -gt 1 ]]; then
+    printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}" >&2
+    FAILURES=$((FAILURES + 1))
+  else
+    printf '  ✓ no duplicate block: %s\n' "${block_id}"
+  fi
+done
+
 # ─── Phase 2: Verify install ───────────────────────────────────────
 printf '\n══ Phase 2: Verifying install ══\n'
 
