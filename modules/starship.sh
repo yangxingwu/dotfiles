@@ -20,6 +20,7 @@ install() {
     core::run_cmd "Installing starship" bash -c 'curl -sS https://starship.rs/install.sh | sh -s -- --yes' || return 1
     core::summary "    ✓ installed via curl (official installer)"
   else
+    core::log INFO "starship already installed"
     core::summary "    ✓ starship already installed"
   fi
 
