@@ -18,16 +18,16 @@ _nvim::install_deps() {
   # rg and fd are provided by the cli-tools module (runs before nvim).
   case "${DOTFILES_OS}" in
   mac)
-    core::run_cmd "Installing nvim dependencies" core::pkg_install node shfmt shellcheck
+    core::run_cmd "Installing nvim dependencies" core::pkg_install node shfmt shellcheck || return 1
     ;;
   linux)
-    core::run_cmd "Installing nvim dependencies" core::pkg_install nodejs npm shfmt shellcheck
+    core::run_cmd "Installing nvim dependencies" core::pkg_install nodejs npm shfmt shellcheck || return 1
     ;;
   esac
 
   # lazygit is provided by the git module (runs before nvim).
   # tree-sitter-cli is not in apt/dnf; rust module ensures cargo is on PATH.
-  core::run_cmd "Installing tree-sitter-cli" cargo install --locked tree-sitter-cli
+  core::run_cmd "Installing tree-sitter-cli" cargo install --locked tree-sitter-cli || return 1
   core::summary "    ✓ tree-sitter-cli installed via cargo"
 }
 
@@ -43,12 +43,12 @@ _nvim::install_from_src() {
     return 1
   fi
 
-  core::run_cmd "Cloning neovim source" git clone https://github.com/neovim/neovim.git "${src_dir}"
+  core::run_cmd "Cloning neovim source" git clone https://github.com/neovim/neovim.git "${src_dir}" || return 1
 
   pushd "${src_dir}" >/dev/null
-  core::run_cmd "Checking out stable branch" git checkout stable
-  core::run_cmd "Building neovim" make CMAKE_BUILD_TYPE=RelWithDebInfo
-  core::run_cmd "Installing neovim" sudo make install
+  core::run_cmd "Checking out stable branch" git checkout stable || return 1
+  core::run_cmd "Building neovim" make CMAKE_BUILD_TYPE=RelWithDebInfo || return 1
+  core::run_cmd "Installing neovim" sudo make install || return 1
   popd >/dev/null
 }
 
@@ -62,7 +62,7 @@ _nvim::install_nvim() {
 
   case "${DOTFILES_OS}" in
   mac)
-    core::run_cmd "Installing neovim via brew" core::pkg_install neovim
+    core::run_cmd "Installing neovim via brew" core::pkg_install neovim || return 1
     ;;
   linux)
     local pkg_version
@@ -73,7 +73,7 @@ _nvim::install_nvim() {
 
     # Non-interactive (CI, pipe): default to package manager install.
     if [[ ! -t 0 ]]; then
-      core::run_cmd "Installing neovim via package manager" core::pkg_install neovim
+      core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
       return
     fi
 
@@ -86,7 +86,7 @@ _nvim::install_nvim() {
       read -r choice
       case "${choice:-1}" in
       1)
-        core::run_cmd "Installing neovim via package manager" core::pkg_install neovim
+        core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
         return
         ;;
       2)
@@ -114,7 +114,7 @@ _nvim::clone_config() {
     local current_remote
     current_remote="$(git -C "${nvim_dir}" remote get-url origin 2>/dev/null)"
     if [[ "${current_remote}" == "${repo}" ]]; then
-      core::run_cmd "Updating neovim config" git -C "${nvim_dir}" pull --quiet
+      core::run_cmd "Updating neovim config" git -C "${nvim_dir}" pull --quiet || return 1
       core::summary "    ✓ config updated: ~/.config/nvim"
       return 0
     fi
@@ -133,7 +133,7 @@ _nvim::clone_config() {
   core::backup "${HOME}/.local/state/nvim"
   core::backup "${HOME}/.cache/nvim"
 
-  core::run_cmd "Cloning neovim config" git clone --branch "${branch}" "${repo}" "${nvim_dir}"
+  core::run_cmd "Cloning neovim config" git clone --branch "${branch}" "${repo}" "${nvim_dir}" || return 1
   core::summary "    ✓ config → ~/.config/nvim (cloned)"
 }
 
@@ -150,11 +150,11 @@ _nvim::headless_init() {
   # Mason LSP servers won't be configured. The LazyVim starter template does NOT
   # gitignore this file by default; committing it is the intended workflow.
   # See: https://github.com/LazyVim/starter/blob/main/.gitignore
-  core::run_cmd "Installing nvim plugins (headless)" nvim --headless "+Lazy! sync" +qa
+  core::run_cmd "Installing nvim plugins (headless)" nvim --headless "+Lazy! sync" +qa || return 1
 
   # Compile treesitter parsers declared in ensure_installed.
   # See: https://github.com/nvim-treesitter/nvim-treesitter#commands
-  core::run_cmd "Compiling treesitter parsers" nvim --headless "+TSUpdate" +qa
+  core::run_cmd "Compiling treesitter parsers" nvim --headless "+TSUpdate" +qa || return 1
 
   # NOTE: Mason LSP servers are NOT installed here.
   # LazyVim uses mason-lspconfig which triggers async installation during normal

@@ -20,7 +20,7 @@ install() {
       core::log ERROR "cargo not found — install the rust module first"
       return 1
     fi
-    core::run_cmd "Installing sheldon" cargo install sheldon --locked
+    core::run_cmd "Installing sheldon" cargo install sheldon --locked || return 1
     core::summary "    ✓ installed via cargo"
   else
     core::summary "    ✓ sheldon already installed"
@@ -49,7 +49,7 @@ github = "mattmc3/zsh-safe-rm"
 TOML
   core::log INFO "Wrote sheldon config → ${_SHELDON_CONFIG}"
 
-  core::run_cmd "Locking sheldon plugins" sheldon lock --update
+  core::run_cmd "Locking sheldon plugins" sheldon lock --update || return 1
   core::summary "    ✓ plugins: zsh-autosuggestions, zsh-syntax-highlighting, zsh-completions, fzf-tab, zsh-safe-rm"
 
   # Content is single-quoted: written literally to .zshrc, expanded by zsh at login.

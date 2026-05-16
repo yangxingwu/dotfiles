@@ -47,7 +47,7 @@ _cli::install_cargo_tools() {
       core::log INFO "Already installed: ${_CLI_CARGO_BINARIES[${i}]}"
       core::summary "    ✓ ${_CLI_CARGO_BINARIES[${i}]} already installed"
     else
-      core::run_cmd "Installing ${_CLI_CARGO_CRATES[${i}]}" cargo install "${_CLI_CARGO_CRATES[${i}]}"
+      core::run_cmd "Installing ${_CLI_CARGO_CRATES[${i}]}" cargo install "${_CLI_CARGO_CRATES[${i}]}" || return 1
       core::summary "    ✓ ${_CLI_CARGO_BINARIES[${i}]} installed via cargo"
     fi
   done
@@ -55,7 +55,7 @@ _cli::install_cargo_tools() {
 
 # Install tools that are not available via cargo.
 _cli::install_pkg_tools() {
-  core::run_cmd "Installing ${_CLI_PKG_TOOLS[*]}" core::pkg_install "${_CLI_PKG_TOOLS[@]}"
+  core::run_cmd "Installing ${_CLI_PKG_TOOLS[*]}" core::pkg_install "${_CLI_PKG_TOOLS[@]}" || return 1
 }
 
 # Write bat config file with catppuccin-mocha theme (built-in since bat 0.25+).

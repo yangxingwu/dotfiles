@@ -12,7 +12,7 @@ MODULE_PLATFORM="mac"
 # Hack Nerd Font is a Homebrew cask — core::pkg_install handles cask detection
 # transparently (brew list --cask / brew install).
 install() {
-  core::run_cmd "Installing font-hack-nerd-font" core::pkg_install font-hack-nerd-font
+  core::run_cmd "Installing font-hack-nerd-font" core::pkg_install font-hack-nerd-font || return 1
 }
 
 uninstall() {

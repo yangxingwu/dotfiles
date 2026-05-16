@@ -13,7 +13,7 @@ MODULE_PLATFORM="mac"
 _GHOSTTY_CONFIG="${HOME}/.config/ghostty/config"
 
 install() {
-  core::run_cmd "Installing ghostty" core::pkg_install ghostty
+  core::run_cmd "Installing ghostty" core::pkg_install ghostty || return 1
 
   mkdir -p "$(dirname "${_GHOSTTY_CONFIG}")"
   cat >"${_GHOSTTY_CONFIG}" <<'CONF'

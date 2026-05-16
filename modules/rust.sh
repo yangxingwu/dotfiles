@@ -18,7 +18,7 @@ install() {
     core::log INFO "rustup already installed — skipping"
     core::summary "    ✓ rustup already installed"
   else
-    core::run_cmd "Installing rustup" bash -c 'curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y'
+    core::run_cmd "Installing rustup" bash -c 'curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y' || return 1
     core::summary "    ✓ installed via rustup"
   fi
 

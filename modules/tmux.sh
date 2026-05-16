@@ -11,14 +11,14 @@ MODULE_DESC="tmux configuration (oh-my-tmux)"
 MODULE_PLATFORM="all"
 
 install() {
-  core::run_cmd "Installing tmux" core::pkg_install tmux
+  core::run_cmd "Installing tmux" core::pkg_install tmux || return 1
 
   # Manual installation per oh-my-tmux README.md
   # (section: "Manual installation `~/.config/tmux`")
   local clone_dir="${HOME}/.local/share/tmux/oh-my-tmux"
   local config_dir="${HOME}/.config/tmux"
 
-  core::run_cmd "Cloning oh-my-tmux" git clone --single-branch https://github.com/gpakosz/.tmux.git "${clone_dir}"
+  core::run_cmd "Cloning oh-my-tmux" git clone --single-branch https://github.com/gpakosz/.tmux.git "${clone_dir}" || return 1
   mkdir -p "${config_dir}"
   ln -s "${clone_dir}/.tmux.conf" "${config_dir}/tmux.conf"
   cp "${clone_dir}/.tmux.conf.local" "${config_dir}/tmux.conf.local"

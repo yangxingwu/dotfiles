@@ -12,7 +12,7 @@ MODULE_PLATFORM="all"
 # Installs zoxide and writes the zsh init block to ~/.zshrc.
 # `eval "$(zoxide init zsh)"` defines the `z` and `zi` shell functions.
 install() {
-  core::run_cmd "Installing zoxide" core::pkg_install zoxide
+  core::run_cmd "Installing zoxide" core::pkg_install zoxide || return 1
   # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zshrc" "zoxide" 'eval "$(zoxide init zsh)"'
   core::summary "    ✓ config → ~/.zshrc (zoxide init zsh)"

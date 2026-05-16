@@ -15,7 +15,7 @@ MODULE_PLATFORM="all"
 #   https://github.com/cli/cli/blob/trunk/docs/install_macos.md
 _ssh::install_packages() {
   # sshpass: available in homebrew-core, apt, and dnf default repos.
-  core::run_cmd "Installing sshpass" core::pkg_install sshpass
+  core::run_cmd "Installing sshpass" core::pkg_install sshpass || return 1
 
   # gh (GitHub CLI): platform-specific repository setup before install.
   case "${DOTFILES_PKG_MANAGER}" in
@@ -23,7 +23,7 @@ _ssh::install_packages() {
     # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian
     if [[ ! -f /etc/apt/sources.list.d/github-cli.list ]]; then
       # shellcheck disable=SC2016
-      core::run_cmd "Adding GitHub CLI APT repository" bash -c '
+      core::run_cmd "Adding GitHub CLI APT repository" bash -c ' || return 1
         (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) &&
         sudo mkdir -p -m 755 /etc/apt/keyrings &&
         out=$(mktemp) && wget -nv -O"${out}" https://cli.github.com/packages/githubcli-archive-keyring.gpg &&
@@ -41,21 +41,21 @@ _ssh::install_packages() {
       # Try dnf5 first (Fedora 41+), fall back to dnf4 (Fedora 40 and below).
       if dnf5 --version >/dev/null 2>&1; then
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf5
-        core::run_cmd "Adding GitHub CLI DNF repository" bash -c 'sudo dnf install -y dnf5-plugins && sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo'
+        core::run_cmd "Adding GitHub CLI DNF repository" bash -c 'sudo dnf install -y dnf5-plugins && sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo' || return 1
       else
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf4
-        core::run_cmd "Adding GitHub CLI DNF repository" bash -c "sudo dnf install -y 'dnf-command(config-manager)' && sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo"
+        core::run_cmd "Adding GitHub CLI DNF repository" bash -c "sudo dnf install -y 'dnf-command(config-manager)' && sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo" || return 1
       fi
     fi
     # gh-cli repo requires explicit --repo flag per official docs.
-    core::run_cmd "Installing gh" sudo dnf install -y gh --repo gh-cli
+    core::run_cmd "Installing gh" sudo dnf install -y gh --repo gh-cli || return 1
     core::log INFO "Installed gh via dnf (--repo gh-cli)"
     core::summary "    ✓ gh installed via dnf"
     ;;
   esac
   # On brew/apt, core::pkg_install handles gh normally.
   if [[ "${DOTFILES_PKG_MANAGER}" != "dnf" ]]; then
-    core::run_cmd "Installing gh" core::pkg_install gh
+    core::run_cmd "Installing gh" core::pkg_install gh || return 1
   fi
 }
 
@@ -115,7 +115,7 @@ _ssh::generate_key() {
     # multiple keys are registered on GitHub/GitLab (one per device).
     local comment
     comment="$(whoami)@$(uname -n)-$(date +%Y%m%d)"
-    core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "${comment}" -f "${key_file}" -N "" -a 64
+    core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "${comment}" -f "${key_file}" -N "" -a 64 || return 1
     core::log INFO "Generated SSH key: ${key_file}"
     core::summary "    ✓ generated key: ~/.ssh/id_ed25519 (${comment})"
   fi

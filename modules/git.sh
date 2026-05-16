@@ -40,7 +40,7 @@ _git::install_tools() {
     core::log INFO "Already installed: delta"
     core::summary "    ✓ delta already installed"
   else
-    core::run_cmd "Installing git-delta" cargo install git-delta
+    core::run_cmd "Installing git-delta" cargo install git-delta || return 1
     core::summary "    ✓ delta installed via cargo"
   fi
 
@@ -48,7 +48,7 @@ _git::install_tools() {
     core::log INFO "Already installed: lazygit"
     core::summary "    ✓ lazygit already installed"
   else
-    core::run_cmd "Installing lazygit" go install github.com/jesseduffield/lazygit@latest
+    core::run_cmd "Installing lazygit" go install github.com/jesseduffield/lazygit@latest || return 1
     core::summary "    ✓ lazygit installed via go"
   fi
 }
@@ -57,10 +57,10 @@ _git::install_tools() {
 _git::configure_lazygit() {
   # Clone or update catppuccin/lazygit theme repository.
   if [[ -d "${_GIT_LAZYGIT_THEME_DIR}" ]]; then
-    core::run_cmd "Updating lazygit catppuccin theme" git -C "${_GIT_LAZYGIT_THEME_DIR}" pull --quiet
+    core::run_cmd "Updating lazygit catppuccin theme" git -C "${_GIT_LAZYGIT_THEME_DIR}" pull --quiet || return 1
   else
     mkdir -p "$(dirname "${_GIT_LAZYGIT_THEME_DIR}")"
-    core::run_cmd "Cloning lazygit catppuccin theme" git clone --quiet "${_GIT_LAZYGIT_THEME_REPO}" "${_GIT_LAZYGIT_THEME_DIR}"
+    core::run_cmd "Cloning lazygit catppuccin theme" git clone --quiet "${_GIT_LAZYGIT_THEME_REPO}" "${_GIT_LAZYGIT_THEME_DIR}" || return 1
   fi
   core::summary "    ✓ catppuccin theme → ~/.local/share/lazygit/catppuccin"
 
