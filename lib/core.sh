@@ -162,6 +162,8 @@ core::run_cmd() {
   shift
 
   local start_time end_time elapsed exit_code=0
+  local log_offset
+  log_offset=$(wc -l <"${_CORE_LOG_FILE}")
 
   core::log INFO "${description}..."
   printf '\n=== %s ===\n' "${description}" >>"${_CORE_LOG_FILE}"
@@ -187,7 +189,7 @@ core::run_cmd() {
   else
     core::log ERROR "Failed: ${description} (exit ${exit_code}, ${elapsed}s)"
     printf '── last 20 lines ──────────────────────────────────\n' >&2
-    tail -20 "${_CORE_LOG_FILE}" >&2
+    tail -n +"$((log_offset + 1))" "${_CORE_LOG_FILE}" | tail -20 >&2
     printf '───────────────────────────────────────────────────\n' >&2
     printf 'Full log: %s\n' "${_CORE_LOG_FILE}" >&2
     return "${exit_code}"
