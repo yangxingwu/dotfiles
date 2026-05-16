@@ -82,7 +82,7 @@ printf '  ✓ install.sh second run completed without error\n'
 
 # Verify no duplicate managed blocks in .zshrc
 for block_id in fzf zoxide sheldon atuin starship ssh lazygit; do
-  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zshrc" 2>/dev/null || echo 0)"
+  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zshrc" 2>/dev/null)" || count=0
   if [[ "${count}" -gt 1 ]]; then
     printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}" >&2
     FAILURES=$((FAILURES + 1))
@@ -93,7 +93,11 @@ done
 
 # Verify no duplicate managed blocks in .zprofile
 for block_id in rust golang homebrew; do
-  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zprofile" 2>/dev/null || echo 0)"
+  # homebrew block only exists on macOS
+  if [[ "${block_id}" == "homebrew" && "${OS}" != "mac" ]]; then
+    continue
+  fi
+  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zprofile" 2>/dev/null)" || count=0
   if [[ "${count}" -gt 1 ]]; then
     printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}" >&2
     FAILURES=$((FAILURES + 1))
