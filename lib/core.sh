@@ -162,11 +162,13 @@ core::run_cmd() {
   shift
 
   local start_time end_time elapsed exit_code=0
-  local log_offset
-  log_offset=$(wc -l <"${_CORE_LOG_FILE}")
 
   core::log INFO "${description}..."
   printf '\n=== %s ===\n' "${description}" >>"${_CORE_LOG_FILE}"
+
+  # Record log position after header — on failure, only show this command's output.
+  local log_offset
+  log_offset=$(wc -l <"${_CORE_LOG_FILE}")
 
   start_time="$(date +%s)"
 
