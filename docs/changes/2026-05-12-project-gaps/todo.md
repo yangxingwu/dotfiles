@@ -1,6 +1,6 @@
 # Dotfiles Project Gaps — TODO
 
-Date: 2026-05-12 | Updated: 2026-05-14
+Date: 2026-05-12 | Updated: 2026-05-16
 
 Project positioning: **"Full auto-installer for macOS & Linux dev environments.
 Idempotent, modular, one command."**
@@ -18,6 +18,14 @@ Items are ordered by priority. Within each tier, items are ordered by impact.
 - [x] Output Optimization (merge summary functions, --summary flag, remove file dumps)
 - [x] Uninstall Failure Behavior (continue on failure, report at end)
 - [x] Sheldon Declarative Config (replace sheldon add with direct TOML generation)
+- [x] ~~Modern CLI Tools~~ — cli-tools module (bat, eza, rg, fd, jq, tealdeer via cargo)
+- [x] ~~fzf Configuration~~ — fd/bat/eza integration, catppuccin theme, Ctrl+G grep, Ctrl+R disabled
+- [x] ~~Git Enhancement (delta)~~ — delta + lazygit in git module, catppuccin theme
+- [x] ~~Git Config Completeness~~ — workflow defaults, SSH signing, global gitignore, lazygit
+- [x] ~~nvim Backup Accumulation~~ — core::backup with timestamp, remote check + pull
+- [x] ~~nvim Headless Init~~ — Lazy! sync + TSUpdate in install phase
+- [x] ~~Theme Coherence~~ — catppuccin mocha applied to bat, fzf, lazygit, starship, ghostty
+- [x] ~~Shell scripts to ~/.config/dotfiles/~~ — fzf.zsh + ssh-wrapper.sh extracted from .zshrc
 
 ---
 
@@ -37,16 +45,6 @@ Violates: **Idempotent**.
 - [ ] Guard `ln -s`: if symlink exists with correct target, skip
 - [ ] Guard `unlink`: `[[ -L ... ]] && unlink ... || true`
 
-### nvim Backup Accumulation
-
-`_nvim::clone_config` always moves ~/.config/nvim to .bak. Second install
-either fails (mv to existing .bak) or loses the real config.
-
-Violates: **Idempotent**.
-
-- [ ] If ~/.config/nvim/.git exists with correct remote+branch → skip clone
-- [ ] Only back up if .bak doesn't already exist
-
 ### CI Doesn't Test Idempotency
 
 The test suite runs install once. The core promise is untested.
@@ -61,8 +59,6 @@ Violates: **Idempotent** (no verification).
 ---
 
 ## P1 — Core CLI Experience (what a developer notices in the first 5 minutes)
-
-These are the gaps between "tools installed" and "out-of-the-box modern CLI."
 
 ### Shell Environment Foundation
 
@@ -80,55 +76,6 @@ deduplication, and `vim` (not nvim) as the fallback editor.
       XDG_STATE_HOME (many installed tools respect these)
 - [ ] Write via core::ensure_block into ~/.zshenv (env vars) and ~/.zshrc (opts)
 - [ ] Position: after sheldon, before atuin
-
-### Modern CLI Tools
-
-~~bat (cat), eza (ls), jq (JSON), yazi (file manager), tldr (command help),
-htop (processes). ripgrep and fd already installed via nvim deps.~~
-
-- [x] Create `modules/cli-tools.sh` — install bat, eza, rg, fd, jq, tealdeer via cargo
-- [x] Position: before fzf (fzf preview commands depend on bat and eza)
-- [x] bat config: set theme to catppuccin-mocha via config file
-- [x] rg/fd moved from nvim module to cli-tools
-- [x] Add test assertions (assert_command bat eza rg fd jq tldr)
-
-### fzf Configuration
-
-~~fzf is installed but completely unconfigured — bare Ctrl+R/Ctrl+T with default
-`find` as source, no preview, no theme. The full power is locked behind env
-vars the module never sets.~~
-
-- [x] FZF_DEFAULT_COMMAND: use fd (respects .gitignore, fast)
-- [x] FZF_CTRL_T_COMMAND + FZF_CTRL_T_OPTS: bat preview
-- [x] FZF_ALT_C_COMMAND + FZF_ALT_C_OPTS: eza tree preview
-- [x] FZF_DEFAULT_OPTS: catppuccin mocha color scheme (via clone + source)
-- [x] Layout: --height=60% --layout=reverse --border --info=inline
-- [x] Disable Ctrl+R (atuin handles history search)
-- [x] Expand ensure_block to include env vars above the `eval` line
-
-### Git Enhancement — delta
-
-~~`git diff` and `git log` output raw, colorless patches. delta provides
-syntax-highlighted, side-by-side diffs with line numbers.~~
-
-- [x] Install delta via cargo (in git module, not separate git-tools module)
-- [x] Install lazygit via go (moved from nvim module)
-- [x] git config: core.pager=delta, interactive.diffFilter, delta.navigate, delta.dark
-- [x] git config: merge.conflictstyle=zdiff3
-- [x] Add test assertions (assert_command delta, verify git config)
-
-### Git Config Completeness
-
-~~The git module only sets user.name + user.email. Missing modern defaults that
-prevent daily friction.~~
-
-- [x] init.defaultBranch=main, pull.rebase, rebase.autoStash, push.autoSetupRemote
-- [x] diff.algorithm=histogram, diff.colorMoved=default
-- [x] rerere.enabled=true, core.editor=nvim
-- [x] SSH commit signing (gpg.format=ssh, user.signingkey)
-- [x] Global gitignore (~/.config/git/ignore)
-- [x] lazygit catppuccin theme (clone + --use-config-file alias)
-- [x] Integrated into existing `modules/git.sh` (no new module)
 
 ### Shell Aliases
 
@@ -213,17 +160,6 @@ workflows (different env vars, PATH extensions, secrets per project).
 - [ ] Shell init: `eval "$(direnv hook zsh)"` via core::ensure_block in .zshrc
 - [ ] Position: after zsh-config
 - [ ] Add test assertions (assert_command direnv, verify .zshrc block)
-
-### Theme Coherence
-
-catppuccin-mocha is set for starship and ghostty but other tools use defaults.
-No visual consistency.
-
-- [ ] bat: set theme in ~/.config/bat/config (`--theme="Catppuccin Mocha"`)
-- [ ] fzf: catppuccin colors in FZF_DEFAULT_OPTS
-- [ ] lazygit: catppuccin theme in ~/.config/lazygit/config.yml
-- [ ] yazi: catppuccin theme if available
-- [ ] Document: "all tools use catppuccin mocha" as a project design choice
 
 ### Global Git Hooks (optional module)
 
@@ -322,24 +258,6 @@ No way to pull changes and re-apply in one command.
 
 - [ ] Add `--update` flag or `./update.sh`: git pull + re-run install.sh
 - [ ] Or: simple approach — just git pull + full re-run (idempotent anyway)
-
-### lazygit Configuration
-
-Installed (via nvim module) but zero configuration.
-
-- [ ] Write `~/.config/lazygit/config.yml`
-- [ ] Set catppuccin-mocha theme
-- [ ] Integrate into git-tools module
-
-### Git Commit Signing
-
-Modern workflows increasingly require signed commits.
-
-- [ ] Conditional signing config: only if key exists
-- [ ] Support SSH signing (simpler, no GPG):
-      `git config --global gpg.format ssh`
-      `git config --global user.signingkey ~/.ssh/id_ed25519.pub`
-- [ ] Gate: don't break headless installs
 
 ### Go Tarball Integrity
 
