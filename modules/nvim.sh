@@ -52,12 +52,6 @@ _nvim::install_from_src() {
   popd >/dev/null
 }
 
-# Compare two version strings: returns 0 if $1 >= $2.
-# Uses sort -V (version sort) which compares major.minor.patch correctly.
-_nvim::version_ge() {
-  [[ "$(printf '%s\n%s' "${1}" "${2}" | sort -V | head -1)" == "${2}" ]]
-}
-
 # Install Neovim. macOS uses brew; Linux checks repo version and falls back
 # to source build if too old for LazyVim (requires >= 0.8.0).
 # See: https://www.lazyvim.org/ — Requirements section.
@@ -68,7 +62,7 @@ _nvim::install_nvim() {
   if core::check_installed nvim; then
     local current
     current="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-    if _nvim::version_ge "${current}" "${min_version}"; then
+    if core::version_ge "${current}" "${min_version}"; then
       core::log INFO "Neovim already installed: NVIM v${current}"
       core::summary "    ✓ NVIM v${current} already installed"
       return 0
@@ -92,7 +86,7 @@ _nvim::install_nvim() {
     local pkg_semver
     pkg_semver="$(printf '%s' "${pkg_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
 
-    if [[ -n "${pkg_semver}" ]] && _nvim::version_ge "${pkg_semver}" "${min_version}"; then
+    if [[ -n "${pkg_semver}" ]] && core::version_ge "${pkg_semver}" "${min_version}"; then
       core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
     else
       core::log INFO "Repo neovim (${pkg_version:-unknown}) < ${min_version}, building from source"

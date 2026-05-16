@@ -44,6 +44,12 @@ core::check_installed() {
   command -v "${1}" >/dev/null 2>&1
 }
 
+# core::version_ge <version> <minimum>
+# Returns 0 if version >= minimum. Uses sort -V (version sort).
+core::version_ge() {
+  [[ "$(printf '%s\n%s' "${1}" "${2}" | sort -V | head -1)" == "${2}" ]]
+}
+
 # core::file_mode <file> — returns octal permission string (e.g. "600").
 core::file_mode() {
   case "${DOTFILES_OS}" in
