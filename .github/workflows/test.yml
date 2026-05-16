@@ -11,6 +11,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/go/bin
+          key: macos-tools-bin-v1
       - name: Run bootstrap
         run: ./bootstrap-macos.sh
       - name: Add brew bash to PATH
@@ -22,16 +28,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /tmp/cargo-cache
+            /tmp/go-cache
+          key: ubuntu-tools-bin-v1
+      - name: Prepare cache dirs
+        run: mkdir -p /tmp/cargo-cache /tmp/go-cache && chmod 777 /tmp/cargo-cache /tmp/go-cache
       - name: Build test image
         run: docker build -f tests/Dockerfile.ubuntu -t dotfiles-test-ubuntu .
       - name: Run integration tests
-        run: docker run --rm dotfiles-test-ubuntu
+        run: docker run --rm -v /tmp/cargo-cache:/home/testuser/.cargo/bin -v /tmp/go-cache:/home/testuser/go/bin dotfiles-test-ubuntu
 
   test-fedora:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /tmp/cargo-cache
+            /tmp/go-cache
+          key: fedora-tools-bin-v1
+      - name: Prepare cache dirs
+        run: mkdir -p /tmp/cargo-cache /tmp/go-cache && chmod 777 /tmp/cargo-cache /tmp/go-cache
       - name: Build test image
         run: docker build -f tests/Dockerfile.fedora -t dotfiles-test-fedora .
       - name: Run integration tests
-        run: docker run --rm dotfiles-test-fedora
+        run: docker run --rm -v /tmp/cargo-cache:/home/testuser/.cargo/bin -v /tmp/go-cache:/home/testuser/go/bin dotfiles-test-fedora
