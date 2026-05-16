@@ -10,6 +10,7 @@ IFS=$'\n\t'
 MODULE_NAME="nvim"
 MODULE_DESC="Neovim editor with LazyVim configuration (yangxingwu/neovim-lua-config)"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("rust" "golang" "git" "cli-tools")
 
 # Install LazyVim requirements.
 # https://www.lazyvim.org/ — Requirements section.

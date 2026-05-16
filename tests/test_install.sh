@@ -167,6 +167,12 @@ assert_dir_exists "${HOME}/.local/share/nvim/lazy"
 assert_dir_exists "${HOME}/.local/share/tmux/oh-my-tmux"
 assert "tmux.conf is a symlink" test -L "${HOME}/.config/tmux/tmux.conf"
 
+# Module status file
+assert_file_exists "${HOME}/.config/dotfiles/installed-modules"
+assert_file_contains "${HOME}/.config/dotfiles/installed-modules" "rust"
+assert_file_contains "${HOME}/.config/dotfiles/installed-modules" "nvim"
+assert_file_contains "${HOME}/.config/dotfiles/installed-modules" "cli-tools"
+
 # Shell init blocks in ~/.zshrc
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:fzf"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
@@ -251,6 +257,10 @@ assert_file_not_contains "${HOME}/.ssh/config" "Include config.d/dotfiles-defaul
 assert_dir_exists "${HOME}/.ssh"
 assert_file_exists "${HOME}/.ssh/id_ed25519"
 assert_file_exists "${HOME}/.ssh/config"
+
+# Module status cleared after uninstall
+assert_file_not_contains "${HOME}/.config/dotfiles/installed-modules" "nvim"
+assert_file_not_contains "${HOME}/.config/dotfiles/installed-modules" "rust"
 
 # ─── Result ─────────────────────────────────────────────────────────
 printf '\n══ Result ══\n'

@@ -248,6 +248,58 @@ core::backup() {
   core::summary "    ✓ backed up → ${backup}"
 }
 
+# ── Module status tracking ───────────────────────────────────────────
+
+_CORE_STATUS_FILE="${DOTFILES_CONFIG_DIR}/installed-modules"
+
+# core::module_installed <name>
+# Record that a module has been successfully installed.
+# Adds or updates the module's entry in the status file with current timestamp.
+core::module_installed() {
+  local name="${1}"
+  local timestamp
+  timestamp="$(date +%Y-%m-%dT%H:%M:%S)"
+
+  mkdir -p "$(dirname "${_CORE_STATUS_FILE}")"
+
+  # Remove existing entry (if re-installing), then append new one.
+  if [[ -f "${_CORE_STATUS_FILE}" ]]; then
+    grep -v "^${name} " "${_CORE_STATUS_FILE}" >"${_CORE_STATUS_FILE}.tmp" || true
+    mv "${_CORE_STATUS_FILE}.tmp" "${_CORE_STATUS_FILE}"
+  fi
+  printf '%s %s\n' "${name}" "${timestamp}" >>"${_CORE_STATUS_FILE}"
+}
+
+# core::module_is_installed <name>
+# Check whether a module has been previously installed (exists in status file).
+# Returns 0 if installed, 1 if not.
+core::module_is_installed() {
+  local name="${1}"
+  [[ -f "${_CORE_STATUS_FILE}" ]] && grep -q "^${name} " "${_CORE_STATUS_FILE}"
+}
+
+# core::module_uninstalled <name>
+# Remove a module's entry from the status file (called after successful uninstall).
+core::module_uninstalled() {
+  local name="${1}"
+  [[ -f "${_CORE_STATUS_FILE}" ]] || return 0
+  grep -v "^${name} " "${_CORE_STATUS_FILE}" >"${_CORE_STATUS_FILE}.tmp" || true
+  mv "${_CORE_STATUS_FILE}.tmp" "${_CORE_STATUS_FILE}"
+}
+
+# core::show_status — display installed modules from status file.
+core::show_status() {
+  if [[ ! -f "${_CORE_STATUS_FILE}" ]]; then
+    printf 'No modules installed (status file not found).\n'
+    return 0
+  fi
+  printf 'Installed modules:\n'
+  local name timestamp
+  while IFS=' ' read -r name timestamp; do
+    printf '  %-20s %s\n' "${name}" "${timestamp}"
+  done <"${_CORE_STATUS_FILE}"
+}
+
 # ── Argument parsing for install.sh / uninstall.sh ─────────────────────
 
 # core::usage — print usage information.
@@ -259,6 +311,7 @@ core::usage() {
   printf '  --skip mod1,mod2   Skip specified modules\n'
   printf '  -v, --verbose      Show full command output (default: progress only)\n'
   printf '  --summary          Show detailed summary after completion\n'
+  printf '  --status           Show installed modules and timestamps\n'
   printf '  --list, -l         List available modules\n'
   printf '  --help, -h         Show this help\n'
 }
@@ -279,6 +332,10 @@ core::parse_args() {
       ;;
     --list | -l)
       modules::list_modules
+      exit 0
+      ;;
+    --status)
+      core::show_status
       exit 0
       ;;
     --only | --skip)
@@ -344,7 +401,7 @@ core::run_module() {
   install() { :; }
   # shellcheck disable=SC2317,SC2329
   uninstall() { :; }
-  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM
+  unset MODULE_NAME MODULE_DESC MODULE_PLATFORM MODULE_DEPS
 
   # shellcheck source=/dev/null
   source "${module_file}"
@@ -365,6 +422,28 @@ core::run_module() {
     return 0
   fi
 
+  # Check module dependencies (if declared) — only for install action.
+  # MODULE_DEPS is an optional array declared by modules that need other modules
+  # to be installed first. Unset means "no dependencies".
+  if [[ "${action}" == "install" ]] && [[ -n "${MODULE_DEPS+x}" ]]; then
+    local -a missing=()
+    local dep
+    for dep in "${MODULE_DEPS[@]}"; do
+      if ! core::module_is_installed "${dep}"; then
+        missing+=("${dep}")
+      fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+      local missing_list
+      missing_list="$(printf '%s, ' "${missing[@]}")"
+      missing_list="${missing_list%, }"
+      core::log ERROR "${name} requires: ${MODULE_DEPS[*]} — not installed: ${missing_list}"
+      core::summary "  ${name}"
+      core::summary "    ✗ skipped (missing deps: ${missing_list})"
+      return 0
+    fi
+  fi
+
   local start_time end_time elapsed
   start_time="$(date +%s)"
 
@@ -376,6 +455,12 @@ core::run_module() {
     elapsed="$((end_time - start_time))"
     core::log INFO "✓ ${name} (${elapsed}s)"
     _CORE_MODULES_OK=$((_CORE_MODULES_OK + 1))
+    # Record module status (install → mark done, uninstall → clear).
+    if [[ "${action}" == "install" ]]; then
+      core::module_installed "${name}"
+    else
+      core::module_uninstalled "${name}"
+    fi
   else
     end_time="$(date +%s)"
     elapsed="$((end_time - start_time))"

@@ -28,6 +28,7 @@ IFS=$'\n\t'
 MODULE_NAME="cli-tools"
 MODULE_DESC="Modern CLI replacements (bat, eza, rg, fd, jq, tldr)"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("rust")
 
 _CLI_BAT_THEME="Catppuccin Mocha"
 # Parallel arrays: crate name → binary name. Used by install (cargo install)

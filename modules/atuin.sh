@@ -9,6 +9,7 @@ IFS=$'\n\t'
 MODULE_NAME="atuin"
 MODULE_DESC="Atuin shell history with fuzzy search"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("rust")
 
 _ATUIN_CONFIG="${HOME}/.config/atuin/config.toml"
 

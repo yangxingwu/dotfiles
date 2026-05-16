@@ -8,6 +8,7 @@ IFS=$'\n\t'
 MODULE_NAME="sheldon"
 MODULE_DESC="sheldon plugin manager with curated plugin set"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("rust")
 
 _SHELDON_CONFIG="${HOME}/.config/sheldon/plugins.toml"
 

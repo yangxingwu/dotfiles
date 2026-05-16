@@ -18,6 +18,7 @@ IFS=$'\n\t'
 MODULE_NAME="git"
 MODULE_DESC="Git configuration, delta, lazygit, SSH signing"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("ssh" "rust" "golang")
 
 _GIT_GLOBAL_IGNORE="${HOME}/.config/git/ignore"
 _GIT_LAZYGIT_CONFIG="${HOME}/.config/lazygit/config.yml"

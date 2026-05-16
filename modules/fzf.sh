@@ -19,6 +19,7 @@ IFS=$'\n\t'
 MODULE_NAME="fzf"
 MODULE_DESC="fzf fuzzy finder with fd/bat/eza integration"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("cli-tools")
 
 _FZF_THEME_REPO="https://github.com/catppuccin/fzf.git"
 _FZF_THEME_DIR="${HOME}/.local/share/fzf/catppuccin"
