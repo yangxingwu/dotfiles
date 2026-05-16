@@ -116,5 +116,6 @@ uninstall() {
   core::summary "    ✓ removed fzf block from ~/.zshrc"
 
   rm -rf "${_FZF_THEME_DIR}"
+  core::log INFO "Removed catppuccin theme: ${_FZF_THEME_DIR}"
   core::summary "    ✓ removed catppuccin theme clone"
 }
