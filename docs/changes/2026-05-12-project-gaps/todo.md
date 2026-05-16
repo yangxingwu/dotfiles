@@ -25,7 +25,10 @@ Items are ordered by priority. Within each tier, items are ordered by impact.
 - [x] ~~nvim Backup Accumulation~~ — core::backup with timestamp, remote check + pull
 - [x] ~~nvim Headless Init~~ — Lazy! sync + TSUpdate in install phase
 - [x] ~~Theme Coherence~~ — catppuccin mocha applied to bat, fzf, lazygit, starship, ghostty
-- [x] ~~Shell scripts to ~/.config/dotfiles/~~ — fzf.zsh + ssh-wrapper.sh extracted from .zshrc
+- [x] ~~Shell scripts to `~/.config/dotfiles/`~~ — fzf.zsh + ssh-wrapper.sh extracted from .zshrc
+- [x] ~~Module Dependency Declaration~~ — MODULE_DEPS + core::module_is_installed check
+- [x] ~~Module Status Query~~ — installed-modules file + --status flag
+- [x] ~~CI Idempotency Test~~ — Phase 1b runs install.sh twice, checks no duplicate blocks
 
 ---
 
@@ -45,16 +48,13 @@ Violates: **Idempotent**.
 - [ ] Guard `ln -s`: if symlink exists with correct target, skip
 - [ ] Guard `unlink`: `[[ -L ... ]] && unlink ... || true`
 
-### CI Doesn't Test Idempotency
+### ~~CI Doesn't Test Idempotency~~
 
-The test suite runs install once. The core promise is untested.
+~~The test suite runs install once. The core promise is untested.~~
 
-Violates: **Idempotent** (no verification).
-
-- [ ] Add Phase 1b in test_install.sh: run install.sh a second time
-- [ ] Assert zero exit code (no crash)
-- [ ] Assert no duplicate managed blocks in .zshrc / .zprofile
-- [ ] Assert tmux/nvim don't error on existing state
+- [x] Add Phase 1b in test_install.sh: run install.sh a second time
+- [x] Assert zero exit code (no crash)
+- [x] Assert no duplicate managed blocks in .zshrc / .zprofile
 
 ---
 
@@ -188,15 +188,15 @@ orphaned temp files and no indication of what went wrong.
 - [ ] Clean up known temp artifacts on abort
 - [ ] Print log file path on abort
 
-### Module Dependency Declaration
+### ~~Module Dependency Declaration~~
 
-`--only nvim` crashes with "cargo not found." Dependency graph lives in
-comments, not in code. Users of --only get no guidance.
+~~`--only nvim` crashes with "cargo not found." Dependency graph lives in
+comments, not in code. Users of --only get no guidance.~~
 
-- [ ] Add optional `MODULE_DEPS=("rust" "golang")` to module interface
-- [ ] core::run_module checks: are deps in DOTFILES_SELECTED_MODULES?
-- [ ] If not: clear error listing missing deps, or auto-include with notice
-- [ ] Graceful: missing MODULE_DEPS means "no deps"
+- [x] Add optional `MODULE_DEPS=("rust" "golang")` to module interface
+- [x] core::run_module checks: are deps in DOTFILES_SELECTED_MODULES?
+- [x] If not: clear error listing missing deps, or auto-include with notice
+- [x] Graceful: missing MODULE_DEPS means "no deps"
 
 ### One-Command Setup
 
@@ -244,12 +244,12 @@ for no benefit.
 
 ## P4 — Polish & Long-tail
 
-### Module Status Query
+### ~~Module Status Query~~
 
-No way to ask "what's installed?" after install.
+~~No way to ask "what's installed?" after install.~~
 
-- [ ] Write `~/.config/dotfiles/installed-modules` after each successful run
-- [ ] Add `--status` flag: list installed modules with timestamps
+- [x] Write `~/.config/dotfiles/installed-modules` after each successful run
+- [x] Add `--status` flag: list installed modules with timestamps
 - [ ] Use state file to skip unchanged modules on re-run (future)
 
 ### Self-Update Mechanism
