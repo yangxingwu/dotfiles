@@ -27,8 +27,13 @@ _nvim::install_deps() {
 
   # lazygit is provided by the git module (runs before nvim).
   # tree-sitter-cli is not in apt/dnf; rust module ensures cargo is on PATH.
-  core::run_cmd "Installing tree-sitter-cli" cargo install --locked tree-sitter-cli || return 1
-  core::summary "    ✓ tree-sitter-cli installed via cargo"
+  if core::check_installed tree-sitter; then
+    core::log INFO "tree-sitter-cli already installed"
+    core::summary "    ✓ tree-sitter-cli already installed"
+  else
+    core::run_cmd "Installing tree-sitter-cli" cargo install --locked tree-sitter-cli || return 1
+    core::summary "    ✓ tree-sitter-cli installed via cargo"
+  fi
 }
 
 # Build and install Neovim from source (Linux only).
