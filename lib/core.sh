@@ -189,11 +189,12 @@ core::run_cmd() {
       core::log INFO "Done: ${description} (${elapsed}s)"
     fi
   else
+    local error_context
+    error_context="$(tail -n +"$((log_offset + 1))" "${_CORE_LOG_FILE}" | tail -20)"
     core::log ERROR "Failed: ${description} (exit ${exit_code}, ${elapsed}s)"
     printf '── last 20 lines ──────────────────────────────────\n' >&2
-    tail -n +"$((log_offset + 1))" "${_CORE_LOG_FILE}" | tail -20 >&2
-    printf '───────────────────────────────────────────────────\n' >&2
-    printf 'Full log: %s\n' "${_CORE_LOG_FILE}" >&2
+    printf '%s\n' "${error_context}" >&2
+    printf '── Full log: %s ───────────────────────────────────\n' "${_CORE_LOG_FILE}" >&2
     return "${exit_code}"
   fi
 }
