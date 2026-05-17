@@ -14,6 +14,14 @@ MODULE_PLATFORM="all"
 # sources ~/.cargo/env so later modules (nvim → tree-sitter-cli) can see cargo,
 # and writes a "rust" block to ~/.zprofile so future shells pick up cargo too.
 install() {
+  # Activate cargo env if present (e.g. restored from CI cache or previous run).
+  # Without this, ~/.cargo/bin may not be in PATH and check_installed fails
+  # even though rustup binary exists.
+  if [[ -f "${HOME}/.cargo/env" ]]; then
+    # shellcheck source=/dev/null
+    source "${HOME}/.cargo/env"
+  fi
+
   if core::check_installed rustup; then
     core::log INFO "rustup already installed — skipping"
     core::summary "    ✓ rustup already installed"
