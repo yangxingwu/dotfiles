@@ -101,6 +101,9 @@ automatically skipped on Linux.
 
 # Uninstall specific modules only
 ./uninstall.sh --only tmux,nvim
+
+# Show installed modules and timestamps
+./install.sh --status
 ```
 
 ### Configuration
@@ -124,13 +127,13 @@ env vars set), git identity configuration is skipped.
 By default, `install.sh` shows concise progress:
 
 ```
-[INFO] ▶ [1/14] homebrew — Homebrew shell environment
+[INFO] ▶ [1/16] homebrew — Homebrew shell environment
 [INFO] ✓ homebrew
-[INFO] ▶ [2/14] git — Git configuration
+[INFO] ▶ [2/16] git — Git configuration
 [INFO] Wrote git global config
 [INFO] ✓ git (0s)
 ...
-[INFO] Install complete: 14 modules (120s). Log: /tmp/dotfiles-install-20260513.log
+[INFO] Install complete: 16 modules (120s). Log: /tmp/dotfiles-install-20260513.log
 ```
 
 - `--verbose` — shows full output from package managers, compilers, git clones
@@ -153,3 +156,8 @@ The following are **not** removed — clean up manually if desired:
 - SSH keys: `rm -rf ~/.ssh/` (caution: destroys all keys)
 - Installed packages: uninstall via your package manager
 - Go toolchain: `sudo rm -rf /usr/local/go`
+
+## Documentation
+
+- [User Guide (English)](docs/guide.md) — what you get after install, how to use each tool
+- [User Guide (中文)](docs/guide.zh-CN.md) — 安装后使用指南
