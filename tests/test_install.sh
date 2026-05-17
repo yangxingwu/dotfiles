@@ -96,7 +96,7 @@ for block_id in fzf zoxide sheldon atuin starship ssh lazygit; do
 done
 
 # Verify no duplicate managed blocks in .zprofile
-for block_id in rust golang homebrew; do
+for block_id in rust golang homebrew python; do
   # homebrew block only exists on macOS
   if [[ "${block_id}" == "homebrew" && "${OS}" != "mac" ]]; then
     continue
@@ -138,6 +138,12 @@ assert_command jq
 assert_command tldr
 assert_file_exists "${HOME}/.config/bat/config"
 assert_file_contains "${HOME}/.config/bat/config" "Catppuccin Mocha"
+
+# python module
+assert_command python3
+assert_command pip3
+assert_command pipx
+assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:python"
 
 # macOS-only binaries
 if [[ "${OS}" == "mac" ]]; then
@@ -263,6 +269,7 @@ assert_file_missing "${HOME}/.config/atuin/config.toml"
 
 # Managed blocks removed from ~/.zprofile
 assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
+assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:python"
 if [[ "${OS}" == "mac" ]]; then
   assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:homebrew"
 fi

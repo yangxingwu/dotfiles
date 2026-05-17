@@ -13,6 +13,7 @@ DOTFILES_MODULES=(
   golang           # before git/nvim: go install lazygit
   git              # after ssh/rust/golang: needs SSH key, cargo, go
   cli-tools        # after rust/golang: cargo tools; before fzf: fzf preview uses bat/fd
+  python           # after cli-tools: no hard deps; before fzf: logical grouping
   fzf              # before zoxide: zi interactive mode uses fzf
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide
