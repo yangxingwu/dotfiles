@@ -36,29 +36,7 @@ _nvim::install_deps() {
   fi
 }
 
-# Build and install Neovim from source (Linux only).
-# https://github.com/neovim/neovim/blob/master/BUILD.md
-# Source is kept at ~/.local/src/neovim for future uninstall.
-_nvim::install_from_src() {
-  local src_dir="${HOME}/.local/src/neovim"
-
-  if [[ -d "${src_dir}" ]]; then
-    core::log ERROR "Source directory already exists: ${src_dir}"
-    core::log ERROR "Run ./uninstall.sh first to clean up the previous build"
-    return 1
-  fi
-
-  core::run_cmd "Cloning neovim source" git clone https://github.com/neovim/neovim.git "${src_dir}" || return 1
-
-  pushd "${src_dir}" >/dev/null
-  core::run_cmd "Checking out stable branch" git checkout stable || return 1
-  core::run_cmd "Building neovim" make CMAKE_BUILD_TYPE=RelWithDebInfo || return 1
-  core::run_cmd "Installing neovim" sudo make install || return 1
-  popd >/dev/null
-}
-
-# Install Neovim. macOS uses brew; Linux checks repo version and falls back
-# to source build if too old for LazyVim (requires >= 0.8.0).
+# Install Neovim. Requires >= 0.8.0 for LazyVim.
 # See: https://www.lazyvim.org/ — Requirements section.
 _nvim::install_nvim() {
   local min_version="0.8.0"
@@ -77,25 +55,34 @@ _nvim::install_nvim() {
     # Fall through to fresh install below
   fi
 
-  case "${DOTFILES_OS}" in
-  mac)
+  case "${DOTFILES_PKG_MANAGER}" in
+  brew)
+    # Homebrew neovim formula always provides a recent stable version.
     core::run_cmd "Installing neovim via brew" core::pkg_install neovim || return 1
     ;;
-  linux)
-    local pkg_version=""
-    case "${DOTFILES_PKG_MANAGER}" in
-    apt) pkg_version="$(apt-cache show neovim 2>/dev/null | awk '/^Version:/{print $2; exit}')" ;;
-    dnf) pkg_version="$(dnf info neovim 2>/dev/null | awk '/^Version/{print $NF; exit}')" ;;
-    esac
-
+  dnf)
+    # Fedora dnf always ships a recent enough neovim (>= 0.8.0).
+    core::run_cmd "Installing neovim via dnf" core::pkg_install neovim || return 1
+    ;;
+  apt)
+    # Ubuntu 22.04 ships neovim 0.6.1 which is too old for LazyVim (needs
+    # >= 0.8.0). Check the repo version first; if insufficient, add the
+    # neovim-ppa/unstable PPA which tracks latest stable releases (the name
+    # "unstable" is misleading — it provides release builds, not nightly).
+    # See: https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable
+    # On Ubuntu 24.04+ the default repo version should be sufficient and
+    # the PPA path will not be triggered.
+    local pkg_version
+    pkg_version="$(apt-cache show neovim 2>/dev/null | awk '/^Version:/{print $2; exit}')"
     local pkg_semver
     pkg_semver="$(printf '%s' "${pkg_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
 
     if [[ -n "${pkg_semver}" ]] && core::version_ge "${pkg_semver}" "${min_version}"; then
-      core::run_cmd "Installing neovim via package manager" core::pkg_install neovim || return 1
+      core::run_cmd "Installing neovim via apt" core::pkg_install neovim || return 1
     else
-      core::log INFO "Repo neovim (${pkg_version:-unknown}) < ${min_version}, building from source"
-      _nvim::install_from_src
+      core::run_cmd "Installing software-properties-common" sudo apt-get install -y software-properties-common || return 1
+      core::run_cmd "Adding neovim PPA" sudo add-apt-repository -y ppa:neovim-ppa/unstable || return 1
+      core::run_cmd "Installing neovim via PPA" sudo apt-get install -y neovim || return 1
     fi
     ;;
   esac
@@ -177,16 +164,6 @@ install() {
 }
 
 uninstall() {
-  local src_dir="${HOME}/.local/src/neovim"
-  if [[ -d "${src_dir}/build" ]]; then
-    pushd "${src_dir}" >/dev/null
-    sudo make uninstall
-    popd >/dev/null
-    rm -rf "${src_dir}"
-    core::log INFO "Uninstalled source-built Neovim"
-    core::summary "    ✓ uninstalled source-built neovim"
-  fi
-
   rm -rf "${HOME}/.config/nvim"
   core::summary "    ✓ removed ~/.config/nvim"
 }
