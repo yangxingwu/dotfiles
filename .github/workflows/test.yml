@@ -23,6 +23,12 @@ jobs:
         run: echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
       - name: Run integration tests
         run: bash tests/test_install.sh
+      - name: Upload install logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-install-logs
+          path: /tmp/dotfiles-*.log
 
   test-ubuntu:
     runs-on: ubuntu-latest
@@ -39,7 +45,19 @@ jobs:
       - name: Build test image
         run: docker build -f tests/Dockerfile.ubuntu -t dotfiles-test-ubuntu .
       - name: Run integration tests
-        run: docker run --rm -v /tmp/cargo-cache:/home/testuser/.cargo -v /tmp/go-cache:/home/testuser/go dotfiles-test-ubuntu
+        run: |
+          mkdir -p /tmp/dotfiles-logs
+          docker run --rm \
+            -v /tmp/cargo-cache:/home/testuser/.cargo \
+            -v /tmp/go-cache:/home/testuser/go \
+            -v /tmp/dotfiles-logs:/tmp \
+            dotfiles-test-ubuntu
+      - name: Upload install logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-install-logs
+          path: /tmp/dotfiles-logs/dotfiles-*.log
       - name: Fix cache permissions
         if: always()
         run: sudo chmod -R a+r /tmp/cargo-cache /tmp/go-cache
@@ -59,7 +77,19 @@ jobs:
       - name: Build test image
         run: docker build -f tests/Dockerfile.fedora -t dotfiles-test-fedora .
       - name: Run integration tests
-        run: docker run --rm -v /tmp/cargo-cache:/home/testuser/.cargo -v /tmp/go-cache:/home/testuser/go dotfiles-test-fedora
+        run: |
+          mkdir -p /tmp/dotfiles-logs
+          docker run --rm \
+            -v /tmp/cargo-cache:/home/testuser/.cargo \
+            -v /tmp/go-cache:/home/testuser/go \
+            -v /tmp/dotfiles-logs:/tmp \
+            dotfiles-test-fedora
+      - name: Upload install logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fedora-install-logs
+          path: /tmp/dotfiles-logs/dotfiles-*.log
       - name: Fix cache permissions
         if: always()
         run: sudo chmod -R a+r /tmp/cargo-cache /tmp/go-cache

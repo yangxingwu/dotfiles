@@ -67,7 +67,7 @@ export DOTFILES_GIT_EMAIL="test@example.com"
 # ─── Phase 1: Install ──────────────────────────────────────────────
 printf '\n══ Phase 1: Running install.sh ══\n'
 
-"${DOTFILES_ROOT}/install.sh" --verbose
+"${DOTFILES_ROOT}/install.sh"
 
 # install.sh runs as a child process, so PATH changes made by modules
 # (e.g. rust sourcing ~/.cargo/env, golang exporting /usr/local/go/bin)
@@ -79,7 +79,7 @@ printf '\n══ Phase 1: Running install.sh ══\n'
 # ─── Phase 1b: Idempotency — run install.sh a second time ─────────
 printf '\n══ Phase 1b: Running install.sh again (idempotency check) ══\n'
 
-"${DOTFILES_ROOT}/install.sh" --verbose
+"${DOTFILES_ROOT}/install.sh"
 
 # If we got here without error, the second run didn't crash.
 printf '  ✓ install.sh second run completed without error\n'
