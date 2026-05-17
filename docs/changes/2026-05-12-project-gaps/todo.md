@@ -31,6 +31,8 @@ Items are ordered by priority. Within each tier, items are ordered by impact.
 - [x] ~~CI Idempotency Test~~ — Phase 1b runs install.sh twice, checks no duplicate blocks
 - [x] ~~tmux Module Crashes on Re-run~~ — guard clone (pull if exists), ln -sf, unlink guard
 - [x] ~~CI Cargo Cache~~ — actions/cache on ~/.cargo/bin + ~/go/bin, Docker volume mount
+- [x] ~~Git Identity Hardcoded~~ — env vars + interactive prompt + non-interactive skip
+- [x] ~~Python Module~~ — python3, pip, venv, pipx, ~/.local/bin PATH
 
 ---
 
@@ -60,7 +62,15 @@ git clone fails ("destination path already exists"), ln fails ("File exists").
 
 ---
 
-## P1 — Core CLI Experience (what a developer notices in the first 5 minutes)
+## P1 — Out-of-the-box Experience (what blocks adoption and first use)
+
+### ~~Git Identity Hardcoded~~
+
+~~`user.name` and `user.email` hardcoded in source. #1 barrier to "clone and run."~~
+
+- [x] Read from DOTFILES_GIT_NAME / DOTFILES_GIT_EMAIL env vars
+- [x] Interactive prompt as fallback (with TTY check)
+- [x] CI: skip entirely (non-interactive)
 
 ### Shell Environment Foundation
 
@@ -114,17 +124,18 @@ press-and-hold character picker, hidden file extensions, animations everywhere.
 - [ ] Position: first mac-only module (after homebrew, before font)
 - [ ] Test: `defaults read` returns expected values
 
-### Python Module
+### ~~Python Module~~
 
-Python is a daily-use tool — scripting, automation, cloud CLIs, data work.
+~~Python is a daily-use tool — scripting, automation, cloud CLIs, data work.~~
 
-- [ ] Create `modules/python.sh`
-- [ ] macOS: core::pkg_install python3
-- [ ] Linux (apt): core::pkg_install python3 python3-pip python3-venv
-- [ ] Linux (dnf): core::pkg_install python3 python3-pip
-- [ ] Install pipx for isolated CLI tool installs (httpie, ruff, black, etc.)
-- [ ] Add `python` to lib/modules.sh
-- [ ] Add test assertions (assert_command python3 pip3 pipx)
+- [x] Create `modules/python.sh`
+- [x] macOS: core::pkg_install python3 pipx
+- [x] Linux (apt): core::pkg_install python3 python3-pip python3-venv python-is-python3 pipx
+- [x] Linux (dnf): core::pkg_install python3 python3-pip pipx
+- [x] Install pipx for isolated CLI tool installs (httpie, ruff, black, etc.)
+- [x] Add ~/.local/bin to PATH via core::ensure_block in .zprofile
+- [x] Add `python` to lib/modules.sh
+- [x] Add test assertions (assert_command python3 pip3 pipx)
 
 ### Docker Module
 
@@ -202,11 +213,9 @@ comments, not in code. Users of --only get no guidance.~~
 
 ### One-Command Setup
 
-Two steps required (bootstrap + install). Not "one command."
+~~Two steps required (bootstrap + install). Not "one command."~~
 
-- [ ] Create `./setup.sh`: detect platform → run bootstrap → run install.sh
-- [ ] Keep bootstrap-*.sh / install.sh as standalone for power users
-- [ ] Or: make install.sh detect "not bootstrapped" and auto-bootstrap
+Moved to Rejected — see rationale below.
 
 ### Network Resilience
 
@@ -216,14 +225,11 @@ curl calls have no timeout. Hangs forever on flaky networks.
 - [ ] Clear error on network failure (not just empty variable)
 - [ ] Document: "requires internet for first install"
 
-### Git Identity Hardcoded
+### ~~Git Identity Hardcoded~~
 
-`user.name` and `user.email` hardcoded in source. #1 barrier to "clone and run."
+~~`user.name` and `user.email` hardcoded in source. #1 barrier to "clone and run."~~
 
-- [ ] Read from DOTFILES_GIT_NAME / DOTFILES_GIT_EMAIL env vars
-- [ ] Interactive prompt as fallback (with TTY check)
-- [ ] Cache in ~/.config/dotfiles/identity for re-runs
-- [ ] CI: skip entirely (non-interactive)
+Moved to P1 — highest priority item.
 
 ### ~~CI Cargo Cache~~
 
@@ -329,3 +335,9 @@ cache eliminates the biggest time sink (cargo builds).
 ### Brewfile
 Fights module architecture. Each module owns its packages; a central Brewfile
 creates split ownership. core::pkg_install is already idempotent.
+
+### One-Command Setup
+macOS ships /bin/bash 3.2; install.sh requires bash >= 4.3. Any "single entry
+point" scheme either triggers package installation on `--help` (violates user
+expectations) or requires maintaining duplicate parameter parsing in bash 3.2
+syntax. The two-step flow (bootstrap → install) is the clean design.
