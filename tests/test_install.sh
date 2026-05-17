@@ -60,6 +60,10 @@ detect_os() {
 
 OS="$(detect_os)"
 
+# Set git identity for non-interactive CI environment.
+export DOTFILES_GIT_NAME="Test User"
+export DOTFILES_GIT_EMAIL="test@example.com"
+
 # ─── Phase 1: Install ──────────────────────────────────────────────
 printf '\n══ Phase 1: Running install.sh ══\n'
 
@@ -142,7 +146,7 @@ if [[ "${OS}" == "mac" ]]; then
 fi
 
 # Git config
-assert_file_contains "${HOME}/.gitconfig" "yangxingwu"
+assert_file_contains "${HOME}/.gitconfig" "Test User"
 
 # git module — tools and config
 assert_command delta
@@ -263,8 +267,7 @@ if [[ "${OS}" == "mac" ]]; then
   assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:homebrew"
 fi
 
-# Git config entries removed
-assert_file_not_contains "${HOME}/.gitconfig" "yangxingwu"
+# Git config entries removed (identity preserved — user data)
 assert_file_not_contains "${HOME}/.gitconfig" "defaultBranch"
 assert_file_missing "${HOME}/.config/lazygit/config.yml"
 assert_dir_missing "${HOME}/.local/share/lazygit/catppuccin"

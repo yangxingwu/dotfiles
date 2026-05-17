@@ -102,6 +102,22 @@ automatically skipped on Linux.
 ./uninstall.sh --only tmux,nvim
 ```
 
+### Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DOTFILES_GIT_NAME` | Git user.name | Interactive prompt |
+| `DOTFILES_GIT_EMAIL` | Git user.email | Interactive prompt |
+
+For unattended installs, set these before running:
+
+```bash
+DOTFILES_GIT_NAME="Your Name" DOTFILES_GIT_EMAIL="you@example.com" ./install.sh
+```
+
+If neither environment variables nor TTY are available (e.g. CI without
+env vars set), git identity configuration is skipped.
+
 ### Output Behavior
 
 By default, `install.sh` shows concise progress:

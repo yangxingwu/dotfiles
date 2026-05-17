@@ -5,12 +5,22 @@ lazygit TUI, SSH commit signing, and global gitignore.
 
 git itself is already installed by bootstrap (CLT on macOS, dev_tools on Linux).
 
+## Identity
+
+Git identity is **not hardcoded**. Resolution order:
+
+1. Environment variables: `DOTFILES_GIT_NAME` / `DOTFILES_GIT_EMAIL`
+2. Interactive prompt (if TTY available)
+3. Skip silently (non-interactive without env vars, e.g. CI)
+
+Uninstall does not remove identity — it is user data, not dotfiles-managed config.
+
 ## Module hooks
 
 | Hook | Action |
 |---|---|
 | `install` | configure identity; install delta (cargo) + lazygit (go); clone catppuccin theme + write lazygit config + shell alias; write global gitignore; set workflow/delta/signing git config; push SSH signing key to GitHub |
-| `uninstall` | remove all git config entries; remove lazygit config + theme clone + alias; remove global gitignore; retain delta/lazygit binaries |
+| `uninstall` | remove workflow/delta/signing git config; remove lazygit config + theme clone + alias; remove global gitignore; retain identity + delta/lazygit binaries |
 
 ## Tools installed
 

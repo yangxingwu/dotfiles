@@ -27,11 +27,28 @@ _GIT_LAZYGIT_THEME_DIR="${HOME}/.local/share/lazygit/catppuccin"
 _GIT_LAZYGIT_THEME_FILE="${_GIT_LAZYGIT_THEME_DIR}/themes-mergable/mocha/blue.yml"
 
 # Set git user identity.
+# Configure git identity from env vars or interactive prompt.
+# Priority: DOTFILES_GIT_NAME/EMAIL env vars → interactive prompt → skip.
 _git::configure_identity() {
-  git config --global user.name "yangxingwu"
-  git config --global user.email "xingwu.yang@gmail.com"
-  core::log INFO "Configured git identity"
-  core::summary "    ✓ config → ~/.gitconfig (user.name, user.email)"
+  local name="${DOTFILES_GIT_NAME:-}"
+  local email="${DOTFILES_GIT_EMAIL:-}"
+
+  # Interactive prompt if TTY available and env vars not set.
+  if [[ -z "${name}" || -z "${email}" ]]; then
+    if [[ ! -t 0 ]]; then
+      core::log WARN "Git identity not set (no env vars, no TTY) — skipping"
+      core::summary "    — skipped git identity (non-interactive)"
+      return 0
+    fi
+    printf 'Git identity not configured.\n' >&2
+    [[ -z "${name}" ]] && read -rp '  Name: ' name
+    [[ -z "${email}" ]] && read -rp '  Email: ' email
+  fi
+
+  git config --global user.name "${name}"
+  git config --global user.email "${email}"
+  core::log INFO "Configured git identity: ${name} <${email}>"
+  core::summary "    ✓ identity: ${name} <${email}>"
 }
 
 # Install delta (diff pager) and lazygit (git TUI).
@@ -256,9 +273,7 @@ install() {
 }
 
 uninstall() {
-  # Identity
-  git config --global --unset user.name 2>/dev/null || true
-  git config --global --unset user.email 2>/dev/null || true
+  # Identity — not removed (user data, not dotfiles-managed config)
 
   # Workflow
   git config --global --unset init.defaultBranch 2>/dev/null || true
