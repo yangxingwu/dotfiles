@@ -113,8 +113,11 @@ _ssh::generate_key() {
   else
     # Comment includes user@hostname-date for easy identification when
     # multiple keys are registered on GitHub/GitLab (one per device).
+    # Use `hostname -s` (short name) instead of `uname -n` because macOS
+    # appends `.local` to uname -n when no DNS domain is provided by the
+    # network (e.g. home routers without a search domain).
     local comment
-    comment="$(whoami)@$(uname -n)-$(date +%Y%m%d)"
+    comment="$(whoami)@$(hostname -s)-$(date +%Y%m%d)"
     core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "${comment}" -f "${key_file}" -N "" -a 64 || return 1
     core::log INFO "Generated SSH key: ${key_file}"
     core::summary "    ✓ generated key: ~/.ssh/id_ed25519 (${comment})"
@@ -138,7 +141,10 @@ _ssh::push_key_to_github() {
       return 0
     fi
     core::log INFO "gh not authenticated — starting interactive login"
-    if ! gh auth login; then
+    # --skip-ssh-key: prevent gh from prompting to upload SSH key during login.
+    # We handle key upload ourselves in the code below (gh ssh-key add) with an
+    # auto-generated title from the key comment, avoiding a manual title prompt.
+    if ! gh auth login --skip-ssh-key; then
       core::log WARN "GitHub authentication failed — skipping key push"
       core::summary "    — skipped GitHub key push (auth failed)"
       return 0
