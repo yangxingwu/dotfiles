@@ -24,8 +24,34 @@ install() {
   eval "$("${brew_prefix}/bin/brew" shellenv)"
 
   # Persist for future login shells.
-  core::ensure_block "${HOME}/.zprofile" "homebrew" \
-    "eval \"\$(${brew_prefix}/bin/brew shellenv)\""
+  # See: https://mirrors.ustc.edu.cn/help/brew.git.html
+  #      https://mirrors.ustc.edu.cn/help/homebrew-bottles.html
+  local block_content
+  block_content="eval \"\$(${brew_prefix}/bin/brew shellenv)\""
+  if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
+    # Remote for the brew CLI repository itself (used by brew update)
+    local brew_remote="https://mirrors.ustc.edu.cn/brew.git"
+    # Remote for the package definition repository (used by brew update)
+    local core_remote="https://mirrors.ustc.edu.cn/homebrew-core.git"
+    # URL prefix for downloading prebuilt binary packages (used by brew install)
+    local bottle_domain="https://mirrors.ustc.edu.cn/homebrew-bottles"
+    # URL for the JSON API that lists available packages (used by brew search/info)
+    local api_domain="https://mirrors.ustc.edu.cn/homebrew-bottles/api"
+
+    block_content="${block_content}
+export HOMEBREW_BREW_GIT_REMOTE=\"${brew_remote}\"
+export HOMEBREW_CORE_GIT_REMOTE=\"${core_remote}\"
+export HOMEBREW_BOTTLE_DOMAIN=\"${bottle_domain}\"
+export HOMEBREW_API_DOMAIN=\"${api_domain}\""
+
+    # Activate mirror for the rest of this install run.
+    export HOMEBREW_BREW_GIT_REMOTE="${brew_remote}"
+    export HOMEBREW_CORE_GIT_REMOTE="${core_remote}"
+    export HOMEBREW_BOTTLE_DOMAIN="${bottle_domain}"
+    export HOMEBREW_API_DOMAIN="${api_domain}"
+    core::log INFO "Using USTC mirror for Homebrew"
+  fi
+  core::ensure_block "${HOME}/.zprofile" "homebrew" "${block_content}"
   core::summary "    ✓ config → ~/.zprofile (brew shellenv)"
 }
 

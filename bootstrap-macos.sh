@@ -25,6 +25,22 @@ IFS=$'\n\t'
 log() { printf '[INFO] %s\n' "$1"; }
 err() { printf '[ERROR] %s\n' "$1" >&2; }
 
+# ── Parse arguments ──────────────────────────────────────────────────────
+
+MIRROR_CN="false"
+while [ $# -gt 0 ]; do
+  case "${1}" in
+  --mirror-cn)
+    MIRROR_CN="true"
+    shift
+    ;;
+  *)
+    err "Unknown option: ${1}"
+    exit 1
+    ;;
+  esac
+done
+
 # ── 1. Platform check ────────────────────────────────────────────────────
 
 if [ "$(uname)" != "Darwin" ]; then
@@ -65,11 +81,31 @@ fi
 
 # ── 3. Install Homebrew ───────────────────────────────────────────────────
 
+# Set Homebrew mirror for China if requested.
+# See: https://mirrors.ustc.edu.cn/help/brew.git.html
+#      https://mirrors.ustc.edu.cn/help/homebrew-bottles.html
+if [ "${MIRROR_CN}" = "true" ]; then
+  # Remote for the brew CLI repository itself (used by `brew update`)
+  export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"
+  # Remote for the package definition repository (used by `brew update`)
+  export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.ustc.edu.cn/homebrew-core.git"
+  # URL prefix for downloading prebuilt binary packages (used by `brew install`)
+  export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles"
+  # URL for the JSON API that lists available packages (used by `brew search/info`)
+  export HOMEBREW_API_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles/api"
+  log "Using USTC mirror for Homebrew"
+fi
+
 if command -v brew >/dev/null 2>&1; then
   log "Homebrew already installed: $(command -v brew)"
 else
-  log "Installing Homebrew (official installer)..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  if [ "${MIRROR_CN}" = "true" ]; then
+    log "Installing Homebrew (USTC mirror)..."
+    /bin/bash -c "$(curl -fsSL https://mirrors.ustc.edu.cn/misc/brew-install.sh)"
+  else
+    log "Installing Homebrew (official installer)..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
 fi
 
 # ── 4. Locate brew prefix ────────────────────────────────────────────────

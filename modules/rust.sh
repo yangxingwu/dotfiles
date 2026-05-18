@@ -26,7 +26,16 @@ install() {
     core::log INFO "rustup already installed — skipping"
     core::summary "    ✓ rustup already installed"
   else
-    core::run_cmd "Installing rustup" bash -c 'curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y' || return 1
+    # Install rustup. Use rsproxy.cn mirror in China for faster download.
+    # See: https://rsproxy.cn/#getStarted
+    if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
+      export RUSTUP_DIST_SERVER="https://rsproxy.cn"
+      export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"
+      core::log INFO "Using rsproxy.cn mirror for rustup"
+      core::run_cmd "Installing rustup" bash -c 'curl --proto "=https" --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh -s -- -y' || return 1
+    else
+      core::run_cmd "Installing rustup" bash -c 'curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y' || return 1
+    fi
     core::summary "    ✓ installed via rustup"
   fi
 
@@ -46,12 +55,41 @@ install() {
 
   # Persist for future login shells.
   # shellcheck disable=SC2016
-  core::ensure_block "${HOME}/.zprofile" "rust" \
-    '. "${HOME}/.cargo/env"'
+  local block_content='. "${HOME}/.cargo/env"'
+  if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
+    # Write cargo registry mirror config.
+    # See: https://rsproxy.cn/#getStarted
+    mkdir -p "${HOME}/.cargo"
+    cat >"${HOME}/.cargo/config.toml" <<'TOML'
+[source.crates-io]
+replace-with = 'rsproxy-sparse'
+
+[source.rsproxy]
+registry = "https://rsproxy.cn/crates.io-index"
+
+[source.rsproxy-sparse]
+registry = "sparse+https://rsproxy.cn/index/"
+
+[registries.rsproxy]
+index = "https://rsproxy.cn/crates.io-index"
+
+[registries.rsproxy-sparse]
+index = "sparse+https://rsproxy.cn/index/"
+
+[net]
+git-fetch-with-cli = true
+TOML
+    core::log INFO "Wrote cargo mirror config: ~/.cargo/config.toml"
+    core::summary "    ✓ config → ~/.cargo/config.toml (rsproxy.cn)"
+  fi
+  # shellcheck disable=SC2016
+  core::ensure_block "${HOME}/.zprofile" "rust" "${block_content}"
   core::summary "    ✓ config → ~/.zprofile (cargo env)"
 }
 
 uninstall() {
   core::remove_block "${HOME}/.zprofile" "rust"
+  rm -f "${HOME}/.cargo/config.toml"
   core::summary "    ✓ removed block from ~/.zprofile"
+  core::summary "    ✓ removed ~/.cargo/config.toml"
 }

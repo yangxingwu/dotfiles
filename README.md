@@ -87,6 +87,10 @@ automatically skipped on Linux.
 # Show full command output (package manager, compiler, etc.)
 ./install.sh --verbose
 
+# Use China mirrors (Homebrew USTC, Rust rsproxy.cn, Go goproxy.cn)
+./bootstrap-macos.sh --mirror-cn
+./install.sh --mirror-cn
+
 # Show detailed summary after completion
 ./install.sh --summary
 
@@ -111,6 +115,23 @@ automatically skipped on Linux.
 Git identity (`user.name` / `user.email`) is resolved from existing `git config --global`.
 If not configured, the installer prompts interactively. For unattended installs (CI),
 pre-configure with `git config --global` before running.
+
+### China Mirrors (`--mirror-cn`)
+
+For users in mainland China, pass `--mirror-cn` to both bootstrap and install:
+
+```bash
+./bootstrap-macos.sh --mirror-cn   # uses USTC mirror for Homebrew install
+./install.sh --mirror-cn           # uses mirrors for cargo, Go, brew bottles
+```
+
+This configures:
+- **Homebrew**: USTC mirror (`mirrors.ustc.edu.cn`)
+- **Rust/cargo**: rsproxy.cn (install script + sparse registry)
+- **Go**: `golang.google.cn` (tarball download) + `goproxy.cn` (module proxy)
+
+GitHub access is not handled — set `https_proxy` or `git config --global http.proxy`
+before running if GitHub is slow.
 
 ### Output Behavior
 

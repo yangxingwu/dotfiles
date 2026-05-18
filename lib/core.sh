@@ -412,6 +412,10 @@ core::parse_args() {
       _CORE_SHOW_SUMMARY="true"
       shift
       ;;
+    --mirror-cn)
+      _CORE_MIRROR_CN="true"
+      shift
+      ;;
     *)
       printf 'error: unknown option: %s\n' "${1}" >&2
       core::usage >&2
@@ -431,6 +435,7 @@ core::parse_args() {
 core::init() {
   _CORE_VERBOSITY="normal"
   _CORE_SHOW_SUMMARY="false"
+  _CORE_MIRROR_CN="false"
   local script_name
   script_name="$(basename "${0}" .sh)"
   _CORE_LOG_FILE="/tmp/dotfiles-${script_name}-$(date +%Y%m%d-%H%M%S).log"
