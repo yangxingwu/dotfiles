@@ -9,16 +9,18 @@ IFS=$'\n\t'
 MODULE_NAME="starship"
 MODULE_DESC="Starship prompt (catppuccin-powerline preset)"
 MODULE_PLATFORM="all"
+MODULE_DEPS=("rust")
 
 _STARSHIP_PRESET="catppuccin-powerline"
 _STARSHIP_CONFIG="${HOME}/.config/starship.toml"
 
-# Install starship via the official installer (works on both macOS and Linux).
+# Install starship via cargo (avoids official curl installer's /usr/local/bin
+# assumption which fails on Apple Silicon Macs where that directory doesn't exist).
 # Generate starship.toml from the preset and write the zsh init block.
 install() {
   if ! core::check_installed starship; then
-    core::run_cmd "Installing starship" bash -c 'curl -sS https://starship.rs/install.sh | sh -s -- --yes' || return 1
-    core::summary "    ✓ installed via curl (official installer)"
+    core::run_cmd "Installing starship" cargo install starship || return 1
+    core::summary "    ✓ installed via cargo"
   else
     core::log INFO "starship already installed"
     core::summary "    ✓ starship already installed"
