@@ -61,8 +61,8 @@ detect_os() {
 OS="$(detect_os)"
 
 # Set git identity for non-interactive CI environment.
-export DOTFILES_GIT_NAME="Test User"
-export DOTFILES_GIT_EMAIL="test@example.com"
+git config --global user.name "Test User"
+git config --global user.email "test@example.com"
 
 # ─── Phase 1: Install ──────────────────────────────────────────────
 printf '\n══ Phase 1: Running install.sh ══\n'

@@ -9,9 +9,9 @@ git itself is already installed by bootstrap (CLT on macOS, dev_tools on Linux).
 
 Git identity is **not hardcoded**. Resolution order:
 
-1. Environment variables: `DOTFILES_GIT_NAME` / `DOTFILES_GIT_EMAIL`
+1. Existing `git config --global` (reuse if already set)
 2. Interactive prompt (if TTY available)
-3. Skip silently (non-interactive without env vars, e.g. CI)
+3. Skip silently (non-interactive, e.g. CI with pre-configured git config)
 
 Uninstall does not remove identity — it is user data, not dotfiles-managed config.
 

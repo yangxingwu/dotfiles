@@ -27,27 +27,40 @@ _GIT_LAZYGIT_THEME_DIR="${HOME}/.local/share/lazygit/catppuccin"
 _GIT_LAZYGIT_THEME_FILE="${_GIT_LAZYGIT_THEME_DIR}/themes-mergable/mocha/blue.yml"
 
 # Set git user identity.
-# Configure git identity from env vars or interactive prompt.
-# Priority: DOTFILES_GIT_NAME/EMAIL env vars → interactive prompt → skip.
+# Configure git identity from existing config or interactive prompt.
+# Priority: existing git config → interactive prompt → skip.
 _git::configure_identity() {
-  local name="${DOTFILES_GIT_NAME:-}"
-  local email="${DOTFILES_GIT_EMAIL:-}"
+  local name=""
+  local email=""
 
-  # Interactive prompt if TTY available and env vars not set.
-  if [[ -z "${name}" || -z "${email}" ]]; then
-    if [[ ! -t 0 ]]; then
-      core::log WARN "Git identity not set (no env vars, no TTY) — skipping"
-      core::summary "    — skipped git identity (non-interactive)"
+  # Resolve name.
+  name="$(git config --global user.name 2>/dev/null || true)"
+  if [[ -n "${name}" ]]; then
+    core::log INFO "Using existing git user.name: ${name}"
+  else
+    [[ ! -t 0 ]] && {
+      core::log WARN "Git user.name not set — skipping"
       return 0
-    fi
-    printf 'Git identity not configured.\n' >&2
-    [[ -z "${name}" ]] && read -rp '  Name: ' name
-    [[ -z "${email}" ]] && read -rp '  Email: ' email
+    }
+    read -rp '  Git user.name not configured. Name: ' name
+    git config --global user.name "${name}"
+    core::log INFO "Configured git user.name: ${name}"
   fi
 
-  git config --global user.name "${name}"
-  git config --global user.email "${email}"
-  core::log INFO "Configured git identity: ${name} <${email}>"
+  # Resolve email.
+  email="$(git config --global user.email 2>/dev/null || true)"
+  if [[ -n "${email}" ]]; then
+    core::log INFO "Using existing git user.email: ${email}"
+  else
+    [[ ! -t 0 ]] && {
+      core::log WARN "Git user.email not set — skipping"
+      return 0
+    }
+    read -rp '  Git user.email not configured. Email: ' email
+    git config --global user.email "${email}"
+    core::log INFO "Configured git user.email: ${email}"
+  fi
+
   core::summary "    ✓ identity: ${name} <${email}>"
 }
 
