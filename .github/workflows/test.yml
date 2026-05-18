@@ -14,9 +14,9 @@ jobs:
       - uses: actions/cache@v5
         with:
           path: |
-            ~/.cargo/bin
-            ~/go/bin
-          key: macos-tools-bin-v1
+            ~/.cargo
+            ~/go
+          key: macos-tools-${{ hashFiles('lib/modules.sh') }}
       - name: Run bootstrap
         run: ./bootstrap-macos.sh
       - name: Add brew bash to PATH
@@ -25,7 +25,7 @@ jobs:
         run: bash tests/test_install.sh
       - name: Upload install logs
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: macos-install-logs
           path: /tmp/dotfiles-*.log
@@ -39,7 +39,7 @@ jobs:
           path: |
             /tmp/cargo-cache
             /tmp/go-cache
-          key: ubuntu-tools-bin-v1
+          key: ubuntu-tools-${{ hashFiles('lib/modules.sh') }}
       - name: Prepare cache dirs
         run: mkdir -p /tmp/cargo-cache /tmp/go-cache && chmod -R 777 /tmp/cargo-cache /tmp/go-cache
       - name: Build test image
@@ -54,7 +54,7 @@ jobs:
             dotfiles-test-ubuntu
       - name: Upload install logs
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ubuntu-install-logs
           path: /tmp/dotfiles-logs/dotfiles-*.log
@@ -71,7 +71,7 @@ jobs:
           path: |
             /tmp/cargo-cache
             /tmp/go-cache
-          key: fedora-tools-bin-v1
+          key: fedora-tools-${{ hashFiles('lib/modules.sh') }}
       - name: Prepare cache dirs
         run: mkdir -p /tmp/cargo-cache /tmp/go-cache && chmod -R 777 /tmp/cargo-cache /tmp/go-cache
       - name: Build test image
@@ -86,7 +86,7 @@ jobs:
             dotfiles-test-fedora
       - name: Upload install logs
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: fedora-install-logs
           path: /tmp/dotfiles-logs/dotfiles-*.log

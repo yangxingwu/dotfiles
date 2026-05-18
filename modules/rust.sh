@@ -39,6 +39,11 @@ install() {
   # shellcheck source=/dev/null
   source "${HOME}/.cargo/env"
 
+  # Ensure a default toolchain is configured (CI cache may restore rustup without one).
+  if ! rustup show active-toolchain >/dev/null 2>&1; then
+    core::run_cmd "Setting default Rust toolchain" rustup default stable || return 1
+  fi
+
   # Persist for future login shells.
   # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zprofile" "rust" \
