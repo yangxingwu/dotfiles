@@ -24,11 +24,17 @@ jobs:
       - name: Run integration tests
         run: bash tests/test_install.sh
       - name: Upload install logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: macos-install-logs
           path: /tmp/dotfiles-*.log
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-diagnostics
+          path: /tmp/dotfiles-diagnostics/
 
   test-ubuntu:
     runs-on: ubuntu-latest
@@ -53,11 +59,17 @@ jobs:
             -v /tmp/dotfiles-logs:/tmp \
             dotfiles-test-ubuntu
       - name: Upload install logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: ubuntu-install-logs
           path: /tmp/dotfiles-logs/dotfiles-*.log
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ubuntu-diagnostics
+          path: /tmp/dotfiles-logs/dotfiles-diagnostics/
       - name: Fix cache permissions
         if: always()
         run: sudo chmod -R a+r /tmp/cargo-cache /tmp/go-cache
@@ -85,11 +97,17 @@ jobs:
             -v /tmp/dotfiles-logs:/tmp \
             dotfiles-test-fedora
       - name: Upload install logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: fedora-install-logs
           path: /tmp/dotfiles-logs/dotfiles-*.log
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fedora-diagnostics
+          path: /tmp/dotfiles-logs/dotfiles-diagnostics/
       - name: Fix cache permissions
         if: always()
         run: sudo chmod -R a+r /tmp/cargo-cache /tmp/go-cache

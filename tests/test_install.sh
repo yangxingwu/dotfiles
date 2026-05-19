@@ -7,6 +7,10 @@ IFS=$'\n\t'
 DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FAILURES=0
 
+# Create diagnostics directory early so it exists even if tests fail before Phase 2b.
+mkdir -p /tmp/dotfiles-diagnostics
+printf 'diagnostics will be written here if tests reach Phase 2b\n' >/tmp/dotfiles-diagnostics/README.txt
+
 assert() {
   local desc="${1}"
   shift
@@ -206,6 +210,7 @@ assert_dir_exists "${HOME}/.config/nvim/.git"
 
 # nvim headless init
 assert_dir_exists "${HOME}/.local/share/nvim/lazy"
+assert_command luarocks
 
 # tmux (oh-my-tmux)
 assert_dir_exists "${HOME}/.local/share/tmux/oh-my-tmux"
@@ -239,6 +244,13 @@ assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
 if [[ "${OS}" == "mac" ]]; then
   assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:homebrew"
 fi
+
+# ─── Phase 2b: Diagnostic dumps (uploaded as CI artifacts) ─────────
+printf '\n══ Phase 2b: Diagnostic dumps ══\n'
+
+# nvim checkhealth — capture full output for review
+nvim --headless -c "checkhealth" -c "w! /tmp/dotfiles-diagnostics/nvim-checkhealth.txt" -c "qa" 2>/dev/null || true
+printf '  ✓ nvim checkhealth saved to /tmp/dotfiles-diagnostics/nvim-checkhealth.txt\n'
 
 # ─── Phase 3: Uninstall ────────────────────────────────────────────
 printf '\n══ Phase 3: Running uninstall.sh ══\n'
