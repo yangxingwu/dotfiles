@@ -40,9 +40,11 @@ CONFIG
   core::summary "    ✓ config → ~/.config/atuin/config.toml"
 
   # Content is single-quoted: written literally to .zshrc, expanded by zsh at login.
+  # --disable-up-arrow: keep up-arrow as plain "previous command" (zsh native),
+  # use Ctrl+R for atuin's full-featured history search.
   # shellcheck disable=SC2016
   core::ensure_block "${HOME}/.zshrc" "atuin" \
-    'eval "$(atuin init zsh)"'
+    'eval "$(atuin init zsh --disable-up-arrow)"'
   core::summary "    ✓ config → ~/.zshrc (atuin init)"
 }
 
