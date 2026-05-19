@@ -223,6 +223,11 @@ assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:sheldon"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:atuin"
 assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:starship"
+assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:zsh-config"
+
+# zsh-config
+assert_file_contains "${HOME}/.zshrc" 'EDITOR="nvim"'
+assert_file_contains "${HOME}/.zshrc" "setopt share_history"
 
 # Atuin
 assert_command atuin
@@ -263,6 +268,7 @@ assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:zoxide"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:sheldon"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:atuin"
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:starship"
+assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:zsh-config"
 
 # Atuin uninstall
 assert_file_missing "${HOME}/.config/atuin/config.toml"

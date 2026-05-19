@@ -23,6 +23,7 @@ DOTFILES_MODULES=(
   ghostty          # after font/sheldon/zoxide/starship: config assumes these are installed
   nvim             # after rust (cargo), golang, git (lazygit), cli-tools (rg, fd)
   tmux
+  zsh-config       # last: aliases depend on cli-tools (eza, bat), EDITOR depends on nvim
 )
 
 # DOTFILES_SELECTED_MODULES — modules actually scheduled for this run, in
