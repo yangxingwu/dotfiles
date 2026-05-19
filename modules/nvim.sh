@@ -18,10 +18,10 @@ _nvim::install_deps() {
   # rg and fd are provided by the cli-tools module (runs before nvim).
   case "${DOTFILES_OS}" in
   mac)
-    core::run_cmd "Installing nvim dependencies" core::pkg_install node shfmt shellcheck || return 1
+    core::pkg_install node shfmt shellcheck || return 1
     ;;
   linux)
-    core::run_cmd "Installing nvim dependencies" core::pkg_install nodejs npm shfmt shellcheck || return 1
+    core::pkg_install nodejs npm shfmt shellcheck || return 1
     ;;
   esac
 
@@ -58,11 +58,11 @@ _nvim::install_nvim() {
   case "${DOTFILES_PKG_MANAGER}" in
   brew)
     # Homebrew neovim formula always provides a recent stable version.
-    core::run_cmd "Installing neovim via brew" core::pkg_install neovim || return 1
+    core::pkg_install neovim || return 1
     ;;
   dnf)
     # Fedora dnf always ships a recent enough neovim (>= 0.8.0).
-    core::run_cmd "Installing neovim via dnf" core::pkg_install neovim || return 1
+    core::pkg_install neovim || return 1
     ;;
   apt)
     # Ubuntu 22.04 ships neovim 0.6.1 which is too old for LazyVim (needs
@@ -78,7 +78,7 @@ _nvim::install_nvim() {
     pkg_semver="$(printf '%s' "${pkg_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
 
     if [[ -n "${pkg_semver}" ]] && core::version_ge "${pkg_semver}" "${min_version}"; then
-      core::run_cmd "Installing neovim via apt" core::pkg_install neovim || return 1
+      core::pkg_install neovim || return 1
     else
       core::run_cmd "Installing software-properties-common" sudo apt-get install -y software-properties-common || return 1
       core::run_cmd "Adding neovim PPA" sudo add-apt-repository -y ppa:neovim-ppa/unstable || return 1

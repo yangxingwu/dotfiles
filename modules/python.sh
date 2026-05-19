@@ -18,13 +18,13 @@ MODULE_DEPS=()
 _python::install_packages() {
   case "${DOTFILES_PKG_MANAGER}" in
   brew)
-    core::run_cmd "Installing Python packages" core::pkg_install python3 pipx || return 1
+    core::pkg_install python3 pipx || return 1
     ;;
   apt)
-    core::run_cmd "Installing Python packages" core::pkg_install python3 python3-pip python3-venv python-is-python3 pipx || return 1
+    core::pkg_install python3 python3-pip python3-venv python-is-python3 pipx || return 1
     ;;
   dnf)
-    core::run_cmd "Installing Python packages" core::pkg_install python3 python3-pip pipx || return 1
+    core::pkg_install python3 python3-pip pipx || return 1
     ;;
   esac
 

@@ -11,7 +11,7 @@ MODULE_DESC="tmux configuration (oh-my-tmux)"
 MODULE_PLATFORM="all"
 
 install() {
-  core::run_cmd "Installing tmux" core::pkg_install tmux || return 1
+  core::pkg_install tmux || return 1
 
   # Manual installation per oh-my-tmux README.md
   # (section: "Manual installation `~/.config/tmux`")

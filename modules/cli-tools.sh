@@ -55,7 +55,7 @@ _cli::install_cargo_tools() {
 
 # Install tools that are not available via cargo.
 _cli::install_pkg_tools() {
-  core::run_cmd "Installing ${_CLI_PKG_TOOLS[*]}" core::pkg_install "${_CLI_PKG_TOOLS[@]}" || return 1
+  core::pkg_install "${_CLI_PKG_TOOLS[@]}" || return 1
 }
 
 # Write bat config file with catppuccin-mocha theme (built-in since bat 0.25+).

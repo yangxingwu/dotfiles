@@ -60,6 +60,7 @@ core::file_mode() {
 
 # core::pkg_install <package> [package ...]
 # Installs one or more packages via the detected package manager.
+# Each package is installed via core::run_cmd for timing and failure handling.
 # Skips packages that are already installed (checked via brew list / dpkg -s /
 # rpm -q). Writes a per-package summary line automatically. Does NOT support
 # dnf group installs (@<group>) — handle those directly where needed.
@@ -73,11 +74,7 @@ core::pkg_install() {
         core::log INFO "Already installed: ${package}"
         core::summary "    ✓ ${package} already installed"
       else
-        core::log INFO "Installing: ${package}"
-        brew install "${package}" || {
-          core::log ERROR "brew install failed: ${package}"
-          return 1
-        }
+        core::run_cmd "Installing ${package}" brew install "${package}" || return 1
         core::summary "    ✓ ${package} installed via brew"
       fi
       ;;
@@ -86,11 +83,7 @@ core::pkg_install() {
         core::log INFO "Already installed: ${package}"
         core::summary "    ✓ ${package} already installed"
       else
-        core::log INFO "Installing: ${package}"
-        sudo apt-get install -y "${package}" || {
-          core::log ERROR "apt-get install failed: ${package}"
-          return 1
-        }
+        core::run_cmd "Installing ${package}" sudo apt-get install -y "${package}" || return 1
         core::summary "    ✓ ${package} installed via apt"
       fi
       ;;
@@ -99,11 +92,7 @@ core::pkg_install() {
         core::log INFO "Already installed: ${package}"
         core::summary "    ✓ ${package} already installed"
       else
-        core::log INFO "Installing: ${package}"
-        sudo dnf install -y "${package}" || {
-          core::log ERROR "dnf install failed: ${package}"
-          return 1
-        }
+        core::run_cmd "Installing ${package}" sudo dnf install -y "${package}" || return 1
         core::summary "    ✓ ${package} installed via dnf"
       fi
       ;;
