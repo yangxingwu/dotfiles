@@ -358,6 +358,7 @@ core::usage() {
   printf 'Options:\n'
   printf '  --only mod1,mod2   Only process specified modules\n'
   printf '  --skip mod1,mod2   Skip specified modules\n'
+  printf '  --mirror-cn        Use China mirrors (USTC, rsproxy.cn, goproxy.cn)\n'
   printf '  -v, --verbose      Show full command output (default: progress only)\n'
   printf '  --summary          Show detailed summary after completion\n'
   printf '  --status           Show installed modules and timestamps\n'
