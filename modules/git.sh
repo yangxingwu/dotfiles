@@ -226,21 +226,24 @@ _git::configure_workflow() {
 }
 
 # Push SSH public key to GitHub as a signing key (separate from authentication key).
-# Skipped in non-interactive environments (no TTY).
+# Skipped in non-interactive environments (no TTY) since auth flows require interaction.
 # Requires the "admin:ssh_signing_key" OAuth scope on gh — requests it via
 # gh auth refresh if not already granted.
 _git::push_signing_key_to_github() {
+  # Auth and scope refresh require interactive flows — skip entirely without TTY.
+  if [[ ! -t 0 ]]; then
+    core::log INFO "No TTY — skipping signing key push"
+    core::summary "    — skipped signing key push (non-interactive)"
+    return 0
+  fi
+
   local pub_key="${HOME}/.ssh/id_ed25519.pub"
   local key_title
   key_title="$(awk '{print $3}' "${pub_key}")"
 
-  # Require gh to be authenticated; skip if not (same pattern as ssh module).
-  if ! gh auth status >/dev/null 2>&1; then
-    if [[ ! -t 0 ]]; then
-      core::log INFO "gh not authenticated and no TTY — skipping signing key push"
-      core::summary "    — skipped signing key push (non-interactive)"
-      return 0
-    fi
+  # Check auth status and scope in one call.
+  local auth_output
+  auth_output="$(gh auth status 2>&1)" || {
     core::log INFO "gh not authenticated — starting interactive login"
     # --skip-ssh-key: key upload is handled by ssh module, not here.
     if ! gh auth login --skip-ssh-key; then
@@ -248,16 +251,12 @@ _git::push_signing_key_to_github() {
       core::summary "    — skipped signing key push (auth failed)"
       return 0
     fi
-  fi
+    auth_output="$(gh auth status 2>&1)"
+  }
 
   # Ensure gh has the admin:ssh_signing_key scope (required for signing key operations).
-  if ! gh ssh-key list --json type --jq '.' >/dev/null 2>&1; then
+  if [[ "${auth_output}" != *"admin:ssh_signing_key"* ]]; then
     core::log INFO "Requesting admin:ssh_signing_key scope from GitHub"
-    if [[ ! -t 0 ]]; then
-      core::log WARN "Cannot refresh gh scope without TTY — skipping signing key push"
-      core::summary "    — skipped signing key push (scope refresh needs TTY)"
-      return 0
-    fi
     if ! gh auth refresh -h github.com -s admin:ssh_signing_key; then
       core::log ERROR "Failed to refresh gh scope for signing key"
       return 1
@@ -267,7 +266,7 @@ _git::push_signing_key_to_github() {
   # Check if this key is already registered as a signing key on GitHub.
   local key_body
   key_body="$(awk '{print $2}' "${pub_key}")"
-  if gh ssh-key list --json key,type --jq '.[] | select(.type=="signing") | .key' 2>/dev/null | grep -qF "${key_body}"; then
+  if gh ssh-key list 2>/dev/null | grep -F "${key_body}" | grep -q "signing"; then
     core::log INFO "SSH signing key already registered on GitHub"
     core::summary "    ✓ SSH signing key already on GitHub"
   else

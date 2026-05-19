@@ -152,11 +152,9 @@ _ssh::push_key_to_github() {
   fi
 
   # Check if this key is already registered on GitHub.
-  # Compare the base64 key body — gh ssh-key list's table output truncates keys,
-  # so use --json to get full content.
   local key_body
   key_body="$(awk '{print $2}' "${pub_key}")"
-  if gh ssh-key list --json key --jq '.[].key' 2>/dev/null | grep -qF "${key_body}"; then
+  if gh ssh-key list 2>/dev/null | grep -F "${key_body}" | grep -q "authentication"; then
     core::log INFO "SSH key already registered on GitHub"
     core::summary "    ✓ public key already on GitHub"
   else
