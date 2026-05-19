@@ -489,10 +489,12 @@ core::run_module() {
       fi
     done
     if [[ ${#missing[@]} -gt 0 ]]; then
-      local missing_list
+      local missing_list deps_list
       missing_list="$(printf '%s, ' "${missing[@]}")"
       missing_list="${missing_list%, }"
-      core::log ERROR "${name} requires: ${MODULE_DEPS[*]} — not installed: ${missing_list}"
+      deps_list="$(printf '%s, ' "${MODULE_DEPS[@]}")"
+      deps_list="${deps_list%, }"
+      core::log ERROR "${name} requires: ${deps_list} — not installed: ${missing_list}"
       core::summary "  ${name}"
       core::summary "    ✗ skipped (missing deps: ${missing_list})"
       return 0
