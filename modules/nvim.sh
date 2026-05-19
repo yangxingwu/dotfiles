@@ -98,9 +98,10 @@ _nvim::clone_config() {
 
   # Already cloned with correct remote — pull latest (idempotent).
   if [[ -d "${nvim_dir}/.git" ]]; then
-    local current_remote
+    local current_remote repo_path
     current_remote="$(git -C "${nvim_dir}" remote get-url origin 2>/dev/null)"
-    if [[ "${current_remote}" == "${repo}" ]]; then
+    repo_path="${repo#*github.com/}"
+    if [[ "${current_remote}" == *"${repo_path}"* ]]; then
       core::run_cmd "Updating neovim config" git -C "${nvim_dir}" pull --quiet || return 1
       core::summary "    ✓ config updated: ~/.config/nvim"
       return 0
