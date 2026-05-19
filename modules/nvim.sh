@@ -12,77 +12,6 @@ MODULE_DESC="Neovim editor with LazyVim configuration (yangxingwu/neovim-lua-con
 MODULE_PLATFORM="all"
 MODULE_DEPS=("rust" "golang" "git" "cli-tools" "python")
 
-# Source directory for lua/luarocks compiled from source.
-_NVIM_SRC_DIR="${HOME}/.local/src"
-
-# Versions used by install and uninstall — single source of truth.
-_NVIM_LUA_VERSION="5.1.5"
-_NVIM_LUAROCKS_VERSION="3.13.0"
-
-# Install Lua 5.1 from source to /usr/local.
-# luarocks requires lua 5.1 because neovim uses LuaJIT (5.1 compatible)
-# and rocks must be compiled against the same lua version.
-_nvim::install_lua51_from_src() {
-  if [[ -x /usr/local/bin/lua ]] && /usr/local/bin/lua -v 2>&1 | grep -q "Lua 5.1"; then
-    core::log INFO "Lua 5.1 already installed (/usr/local/bin/lua)"
-    core::summary "    ✓ Lua 5.1 already installed"
-    return 0
-  fi
-
-  local version="${_NVIM_LUA_VERSION}"
-  local url="https://www.lua.org/ftp/lua-${version}.tar.gz"
-  local src_dir="${_NVIM_SRC_DIR}/lua-${version}"
-
-  # Lua's Makefile requires a platform target (no default build).
-  local platform
-  case "${DOTFILES_OS}" in
-  mac) platform="macosx" ;;
-  linux) platform="linux" ;;
-  esac
-
-  mkdir -p "${_NVIM_SRC_DIR}"
-  core::run_cmd "Downloading Lua ${version}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/lua-${version}.tar.gz" || return 1
-  tar -xzf "${_NVIM_SRC_DIR}/lua-${version}.tar.gz" -C "${_NVIM_SRC_DIR}"
-  rm -f "${_NVIM_SRC_DIR}/lua-${version}.tar.gz"
-  core::run_cmd "Compiling Lua ${version}" make -C "${src_dir}" "${platform}" || return 1
-  core::run_cmd "Installing Lua ${version}" sudo make -C "${src_dir}" install || return 1
-  core::summary "    ✓ Lua ${version} installed to /usr/local"
-}
-
-# Install luarocks from source, configured against lua 5.1 in /usr/local.
-# Called when the system package manager does not provide a compatible luarocks.
-_nvim::install_luarocks_from_src() {
-  # luarocks must be linked against lua 5.1 (LuaJIT-compatible).
-  # A luarocks built for 5.3/5.4 will produce incompatible rocks.
-  if command -v luarocks >/dev/null 2>&1; then
-    local lua_ver
-    lua_ver="$(luarocks config lua_version 2>/dev/null || true)"
-    if [[ "${lua_ver}" == "5.1" ]]; then
-      core::log INFO "luarocks already installed (lua ${lua_ver})"
-      core::summary "    ✓ luarocks already installed (lua ${lua_ver})"
-      return 0
-    fi
-    core::log WARN "luarocks found but linked to lua ${lua_ver:-unknown}, need 5.1 — rebuilding"
-  fi
-
-  local version="${_NVIM_LUAROCKS_VERSION}"
-  local url="https://luarocks.org/releases/luarocks-${version}.tar.gz"
-  local src_dir="${_NVIM_SRC_DIR}/luarocks-${version}"
-
-  mkdir -p "${_NVIM_SRC_DIR}"
-  core::run_cmd "Downloading luarocks ${version}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz" || return 1
-  tar -xzf "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz" -C "${_NVIM_SRC_DIR}"
-  rm -f "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz"
-
-  (
-    cd "${src_dir}"
-    core::run_cmd "Configuring luarocks" ./configure --with-lua=/usr/local || exit 1
-    core::run_cmd "Compiling luarocks" make || exit 1
-    core::run_cmd "Installing luarocks" sudo make install || exit 1
-  ) || return 1
-  core::summary "    ✓ luarocks ${version} installed to /usr/local"
-}
-
 # Install LazyVim requirements.
 # https://www.lazyvim.org/ — Requirements section.
 _nvim::install_deps() {
@@ -96,11 +25,9 @@ _nvim::install_deps() {
     ;;
   esac
 
-  # lua 5.1 + luarocks: neovim uses LuaJIT (lua 5.1 compatible). luarocks
-  # must link to lua 5.1 to compile compatible rocks. Always compile from
-  # source to guarantee consistent /usr/local prefix for both.
-  _nvim::install_lua51_from_src || return 1
-  _nvim::install_luarocks_from_src || return 1
+  # lua 5.1 + luarocks: managed by lazy.nvim's built-in hererocks support.
+  # lazy.nvim auto-installs an isolated lua 5.1 + luarocks environment to
+  # ~/.local/share/nvim/lazy-rocks/hererocks/ (requires python3 on PATH).
 
   # lazygit is provided by the git module (runs before nvim).
   # tree-sitter-cli is not in apt/dnf; rust module ensures cargo is on PATH.
@@ -265,28 +192,4 @@ install() {
 uninstall() {
   rm -rf "${HOME}/.config/nvim"
   core::summary "    ✓ removed ~/.config/nvim"
-
-  # Remove luarocks compiled from source (make uninstall also removes its
-  # module search paths: /usr/local/share/lua/5.1, /usr/local/lib/lua/5.1).
-  local luarocks_src="${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}"
-  if [[ -f "${luarocks_src}/Makefile" ]]; then
-    pushd "${luarocks_src}" >/dev/null
-    sudo make uninstall 2>/dev/null || true
-    popd >/dev/null
-    core::summary "    ✓ removed luarocks from /usr/local"
-  fi
-
-  # lua 5.1: no make uninstall target; remove known installed files.
-  if [[ -f /usr/local/bin/lua ]] && lua -v 2>&1 | grep -q "Lua 5.1"; then
-    sudo rm -f /usr/local/bin/lua /usr/local/bin/luac
-    sudo rm -f /usr/local/lib/liblua.a
-    sudo rm -f /usr/local/include/lua.h /usr/local/include/luaconf.h \
-      /usr/local/include/lualib.h /usr/local/include/lauxlib.h /usr/local/include/lua.hpp
-    sudo rm -f /usr/local/man/man1/lua.1 /usr/local/man/man1/luac.1
-    core::summary "    ✓ removed Lua 5.1 from /usr/local"
-  fi
-
-  # Remove source directories (only ours).
-  rm -rf "${_NVIM_SRC_DIR}/lua-${_NVIM_LUA_VERSION}"
-  rm -rf "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}"
 }
