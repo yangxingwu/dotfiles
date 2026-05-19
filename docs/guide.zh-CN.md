@@ -36,6 +36,53 @@
 
 ---
 
+### Shell 环境与别名 (zsh-config)
+
+`zsh-config` 模块配置基础 shell 环境，确保安装后开箱即用。它通过 managed block 向 `~/.zshrc` 写入环境变量、历史记录配置、zsh 选项和现代工具别名。
+
+**环境变量**:
+
+| 变量 | 值 | 用途 |
+|---|---|---|
+| `EDITOR` | `nvim` | 默认编辑器（git commit、crontab 等调用） |
+| `VISUAL` | `nvim` | 可视编辑器 |
+| `PAGER` | `less -R` | 分页器（-R 支持 ANSI 颜色） |
+| `LANG` | `en_US.UTF-8` | 系统 locale |
+| `LC_ALL` | `en_US.UTF-8` | 覆盖所有 locale 分类 |
+
+**历史记录配置**:
+
+| 设置 | 值 | 用途 |
+|---|---|---|
+| `HISTSIZE` | 100000 | 内存中保留的历史条目数 |
+| `SAVEHIST` | 100000 | 写入文件的历史条目数 |
+| `HISTFILE` | `~/.zsh_history` | 历史文件路径 |
+
+历史选项：`share_history`（多终端共享）、`hist_ignore_all_dups`（自动去重）、`hist_reduce_blanks`（删除多余空格）、`hist_verify`（展开后确认再执行）、`extended_history`（记录时间戳）。
+
+**别名**:
+
+所有别名都有守卫检查——只在目标命令存在时才定义。部分安装（例如没装 cli-tools）时别名不会出现，不会报错。
+
+| 别名 | 展开为 | 功能 |
+|---|---|---|
+| `ls` | `eza --icons --group-directories-first` | 彩色列表 + 图标 |
+| `ll` | `eza -l --icons --git --group-directories-first` | 长格式 + Git 状态 |
+| `la` | `eza -la --icons --git --group-directories-first` | 长格式含隐藏文件 |
+| `lt` | `eza --tree --level=2 --icons` | 树形视图（2 层深度） |
+| `cat` | `bat --paging=never` | 语法高亮文件查看 |
+
+**提示**:
+
+- 需要原始 `cat`（例如处理二进制文件）: `command cat` 或 `\cat`
+- 需要原始 `ls`: `command ls` 或 `\ls`
+- 虽然 atuin 接管了交互式历史搜索，`~/.zsh_history` 仍然正常写入，作为备份
+
+**配置文件位置**:
+- `~/.zshrc` 中的 `zsh-config` block
+
+---
+
 ### sheldon (插件管理器)
 
 **是什么**: [sheldon](https://github.com/rossmacarthur/sheldon) 是一个用 Rust 编写的 zsh 插件管理器，通过声明式 TOML 配置管理插件。
@@ -816,6 +863,7 @@ cd ~/.local/share/lazygit/catppuccin && git pull
 | `starship` | `eval "$(starship init zsh)"` |
 | `lazygit` | lazygit alias（合并 catppuccin 主题） |
 | `ssh` | `source "${HOME}/.config/dotfiles/ssh-wrapper.sh"` |
+| `zsh-config` | 环境变量、历史记录、选项、别名 |
 
 ### ~/.zprofile managed blocks
 
@@ -912,7 +960,7 @@ git pull
 ```
 homebrew → font-hack-nerd-font → ssh → rust → golang → git →
 cli-tools → python → fzf → zoxide → sheldon → atuin →
-starship → ghostty → nvim → tmux
+starship → ghostty → nvim → tmux → zsh-config
 ```
 
 `--only` 和 `--skip` 不改变执行顺序，只决定哪些模块参与运行。

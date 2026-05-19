@@ -68,6 +68,7 @@ After bootstrap, run `./install.sh` to install modules.
 | `ghostty` | macOS | Ghostty terminal emulator + config |
 | `nvim` | all | Neovim + LazyVim configuration |
 | `tmux` | all | tmux + oh-my-tmux |
+| `zsh-config` | all | Shell environment, history, options, eza/bat aliases |
 
 Modules run in the order listed above. Platform-gated modules (macOS only) are
 automatically skipped on Linux.

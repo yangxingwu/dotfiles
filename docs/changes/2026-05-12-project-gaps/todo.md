@@ -78,30 +78,29 @@ No EDITOR, no PAGER, no locale, no history tuning, no XDG paths. A fresh
 install drops the user into zsh with default 1000-line history, no
 deduplication, and `vim` (not nvim) as the fallback editor.
 
-- [ ] Create `modules/zsh-config.sh`
-- [ ] EDITOR=nvim, VISUAL=nvim, PAGER="less -R" (or bat-based)
-- [ ] LANG=en_US.UTF-8, LC_ALL=en_US.UTF-8
-- [ ] History: HISTSIZE=100000, SAVEHIST=100000, HISTFILE=~/.zsh_history
-- [ ] setopt: share_history, hist_ignore_all_dups, hist_reduce_blanks,
+- [x] Create `modules/zsh-config.sh`
+- [x] EDITOR=nvim, VISUAL=nvim, PAGER="less -R" (or bat-based)
+- [x] LANG=en_US.UTF-8, LC_ALL=en_US.UTF-8
+- [x] History: HISTSIZE=100000, SAVEHIST=100000, HISTFILE=~/.zsh_history
+- [x] setopt: share_history, hist_ignore_all_dups, hist_reduce_blanks,
       hist_verify, extended_history, auto_cd, interactive_comments
-- [ ] XDG base dirs: XDG_CONFIG_HOME, XDG_DATA_HOME, XDG_CACHE_HOME,
-      XDG_STATE_HOME (many installed tools respect these)
-- [ ] Write via core::ensure_block into ~/.zshenv (env vars) and ~/.zshrc (opts)
-- [ ] Position: after sheldon, before atuin
+- ~~XDG base dirs~~ — not needed (tools already default to ~/.config etc.)
+- [x] Write via core::ensure_block into ~/.zshrc
+- [x] Position: last (after tmux)
 
 ### Shell Aliases
 
 Modern tools installed but nobody types `eza -la --git --icons` by hand. This
 is the glue between "installed" and "out-of-the-box."
 
-- [ ] Add aliases in `zsh-config` module via core::ensure_block:
-      - `alias ls='eza'`
-      - `alias ll='eza -l --git --icons'`
-      - `alias la='eza -la --git --icons'`
-      - `alias lt='eza --tree --level=2'`
+- [x] Add aliases in `zsh-config` module via core::ensure_block:
+      - `alias ls='eza --icons --group-directories-first'`
+      - `alias ll='eza -l --icons --git --group-directories-first'`
+      - `alias la='eza -la --icons --git --group-directories-first'`
+      - `alias lt='eza --tree --level=2 --icons'`
       - `alias cat='bat --paging=never'`
-- [ ] Guard: only alias if the target command exists (graceful on partial install)
-- [ ] Alternative: write ~/.config/dotfiles/aliases.zsh, source from .zshrc block
+- [x] Guard: only alias if the target command exists (graceful on partial install)
+- ~~Alternative: write ~/.config/dotfiles/aliases.zsh~~ — inlined in zsh-config block
 
 ---
 

@@ -45,6 +45,58 @@ correction) while remaining compatible with bash scripts.
 
 ---
 
+### Shell environment and aliases (zsh-config)
+
+The `zsh-config` module configures the shell environment so that everything works
+out of the box after install. It writes a managed block to `~/.zshrc` with
+environment variables, history tuning, zsh options, and aliases for modern CLI tools.
+
+**Environment variables:**
+
+| Variable | Value | Purpose |
+|---|---|---|
+| `EDITOR` | `nvim` | Default editor for git commit, crontab, etc. |
+| `VISUAL` | `nvim` | Default visual editor |
+| `PAGER` | `less -R` | Pager with ANSI color passthrough |
+| `LANG` | `en_US.UTF-8` | System locale |
+| `LC_ALL` | `en_US.UTF-8` | Override all locale categories |
+
+**History configuration:**
+
+| Setting | Value | Purpose |
+|---|---|---|
+| `HISTSIZE` | 100000 | In-memory history entries |
+| `SAVEHIST` | 100000 | Entries written to file |
+| `HISTFILE` | `~/.zsh_history` | History file location |
+
+History options: `share_history` (sync across terminals), `hist_ignore_all_dups`
+(no duplicates), `hist_reduce_blanks` (trim whitespace), `hist_verify` (expand
+before executing), `extended_history` (timestamps).
+
+**Aliases:**
+
+All aliases are guarded — only defined if the target command exists. If you did a
+partial install (e.g. without cli-tools), the aliases simply won't appear.
+
+| Alias | Expands to | What it does |
+|---|---|---|
+| `ls` | `eza --icons --group-directories-first` | Colorized listing with icons |
+| `ll` | `eza -l --icons --git --group-directories-first` | Long format with git status |
+| `la` | `eza -la --icons --git --group-directories-first` | Long format including hidden files |
+| `lt` | `eza --tree --level=2 --icons` | Tree view (2 levels deep) |
+| `cat` | `bat --paging=never` | Syntax-highlighted file viewing |
+
+**Tips:**
+
+- To use the original `cat` (e.g. for binary output): `command cat` or `\cat`
+- To use the original `ls`: `command ls` or `\ls`
+- History is still written to `~/.zsh_history` as a fallback even though atuin
+  manages interactive search
+
+**Config location:** `~/.zshrc` (managed block `zsh-config`)
+
+---
+
 ### sheldon
 
 **What it is:** A fast, configurable zsh plugin manager written in Rust.
@@ -873,6 +925,7 @@ Running `./install.sh` again updates them idempotently.
 | `starship` | `eval "$(starship init zsh)"` |
 | `lazygit` | Alias merging catppuccin theme via `--use-config-file` |
 | `ssh` | `source "${HOME}/.config/dotfiles/ssh-wrapper.sh"` |
+| `zsh-config` | Environment variables, history, options, aliases |
 
 ### Files written to ~/.zprofile (managed blocks)
 
@@ -999,6 +1052,7 @@ Modules run in dependency order. The full sequence is:
 14. ghostty (macOS only)
 15. nvim
 16. tmux
+17. zsh-config
 
 ### Troubleshooting
 
