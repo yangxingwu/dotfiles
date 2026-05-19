@@ -221,6 +221,18 @@ _git::configure_workflow() {
   # Shared ignore rules for OS/editor/language junk across all repos
   git config --global core.excludesFile "${_GIT_GLOBAL_IGNORE}"
 
+  # -- GitHub SSH --
+  # Use SSH for all GitHub operations (clone, fetch, push).
+  # This is a widely adopted best practice — avoids HTTPS password prompts
+  # and works better with SSH key authentication already configured by the ssh module.
+  # Only configure if this machine's SSH key is registered on GitHub
+  # (skipped in CI where key push was not performed).
+  local key_body
+  key_body="$(awk '{print $2}' "${HOME}/.ssh/id_ed25519.pub" 2>/dev/null)"
+  if [[ -n "${key_body}" ]] && gh ssh-key list 2>/dev/null | grep -qF "${key_body}"; then
+    git config --global url."git@github.com:".insteadOf "https://github.com/"
+  fi
+
   core::log INFO "Configured git workflow defaults"
   core::summary "    ✓ config → ~/.gitconfig (workflow, delta, signing, gitignore)"
 }
@@ -320,6 +332,9 @@ uninstall() {
   # Gitignore
   git config --global --unset core.excludesFile 2>/dev/null || true
   rm -f "${_GIT_GLOBAL_IGNORE}"
+
+  # GitHub SSH insteadOf
+  git config --global --unset url."git@github.com:".insteadOf 2>/dev/null || true
 
   # Lazygit config, theme, and alias
   rm -f "${_GIT_LAZYGIT_CONFIG}"
