@@ -161,37 +161,29 @@ _nvim::install_nvim() {
     # Fall through to fresh install below
   fi
 
-  case "${DOTFILES_PKG_MANAGER}" in
-  brew)
-    # Homebrew neovim formula always provides a recent stable version.
-    core::pkg_install neovim || return 1
-    ;;
-  dnf)
-    # Fedora dnf always ships a recent enough neovim (>= 0.8.0).
-    core::pkg_install neovim || return 1
-    ;;
-  apt)
-    # Ubuntu 22.04 ships neovim 0.6.1 which is too old for LazyVim (needs
-    # >= 0.8.0). Check the repo version first; if insufficient, add the
-    # neovim-ppa/unstable PPA which tracks latest stable releases (the name
-    # "unstable" is misleading — it provides release builds, not nightly).
-    # See: https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable
-    # On Ubuntu 24.04+ the default repo version should be sufficient and
-    # the PPA path will not be triggered.
+  # Ubuntu 22.04 ships neovim 0.6.1 which is too old for LazyVim (needs
+  # >= 0.8.0). Check the repo version first; if insufficient, add the
+  # neovim-ppa/unstable PPA which tracks latest stable releases (the name
+  # "unstable" is misleading — it provides release builds, not nightly).
+  # See: https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable
+  # On Ubuntu 24.04+ the default repo version should be sufficient and
+  # the PPA path will not be triggered.
+  if [[ "${DOTFILES_PKG_MANAGER}" == "apt" ]]; then
     local pkg_version
     pkg_version="$(apt-cache show neovim 2>/dev/null | awk '/^Version:/{print $2; exit}')"
-    local pkg_semver
-    pkg_semver="$(printf '%s' "${pkg_version}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
 
-    if [[ -n "${pkg_semver}" ]] && core::version_ge "${pkg_semver}" "${min_version}"; then
-      core::pkg_install neovim || return 1
-    else
+    local pkg_semver=""
+    if [[ "${pkg_version}" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
+      pkg_semver="${BASH_REMATCH[0]}"
+    fi
+
+    if [[ -z "${pkg_semver}" ]] || ! core::version_ge "${pkg_semver}" "${min_version}"; then
       core::run_cmd "Installing software-properties-common" sudo apt-get install -y software-properties-common || return 1
       core::run_cmd "Adding neovim PPA" sudo add-apt-repository -y ppa:neovim-ppa/unstable || return 1
-      core::run_cmd "Installing neovim via PPA" sudo apt-get install -y neovim || return 1
     fi
-    ;;
-  esac
+  fi
+
+  core::pkg_install neovim || return 1
 }
 
 # Clone or update the LazyVim config repo to ~/.config/nvim.
