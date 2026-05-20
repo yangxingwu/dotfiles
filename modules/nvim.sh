@@ -78,6 +78,9 @@ _nvim::install_luarocks_from_src() {
   local url="https://luarocks.org/releases/luarocks-${version}.tar.gz"
   local src_dir="${_NVIM_SRC_DIR}/luarocks-${version}"
 
+  # luarocks configure requires unzip on the system.
+  core::pkg_install unzip || return 1
+
   mkdir -p "${_NVIM_SRC_DIR}"
   core::run_cmd "Downloading luarocks ${version}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz" || return 1
   tar -xzf "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz" -C "${_NVIM_SRC_DIR}"
@@ -126,7 +129,7 @@ _nvim::install_deps() {
     # Fedora's neovim RPM sets g:python3_host_prog=/usr/bin/python3 in system
     # config, bypassing pipx's pynvim-python auto-detection. Use the distro
     # package (PEP 668 blocks pip --user on Fedora 38+).
-    core::pkg_install python3-pynvim || return 1
+    core::pkg_install python3-neovim || return 1
   else
     # pynvim 0.6.0+ installed via pipx is auto-detected by neovim.
     if command -v pynvim-python >/dev/null 2>&1; then
