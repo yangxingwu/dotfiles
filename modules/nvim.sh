@@ -255,7 +255,24 @@ _nvim::headless_init() {
   # Mason LSP servers won't be configured. The LazyVim starter template does NOT
   # gitignore this file by default; committing it is the intended workflow.
   # See: https://github.com/LazyVim/starter/blob/main/.gitignore
-  core::run_cmd "Installing nvim plugins (headless)" nvim --headless "+Lazy! sync" +qa || return 1
+  #
+  # Retry logic: Lazy! sync exits 0 even when plugins fail to clone (network
+  # issues). We verify with a separate nvim instance that checks _.installed on
+  # every plugin, and retry up to 3 times for transient failures.
+  for i in {1..3}; do
+    nvim --headless "+Lazy! sync" +qa
+    if nvim --headless \
+      +'lua for _, p in pairs(require("lazy.core.config").plugins) do if not p._.installed then vim.cmd("cquit 1") end end' \
+      +qa; then
+      break
+    fi
+    if [[ "${i}" -eq 3 ]]; then
+      core::log ERROR "Lazy sync failed after 3 attempts"
+      return 1
+    fi
+    core::log WARN "Lazy sync incomplete (attempt ${i}/3), retrying..."
+    sleep 3
+  done
 
   # Compile treesitter parsers declared in ensure_installed.
   # See: https://github.com/nvim-treesitter/nvim-treesitter#commands
