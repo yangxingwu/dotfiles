@@ -107,7 +107,11 @@ _nvim::install_deps() {
     core::pkg_install node shfmt shellcheck || return 1
     ;;
   linux)
-    core::pkg_install nodejs npm shfmt shellcheck || return 1
+    # sqlite3: Snacks.picker frecency/history (macOS has it built-in).
+    # Fedora package is "sqlite", Ubuntu is "sqlite3".
+    local sqlite_pkg="sqlite3"
+    [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]] && sqlite_pkg="sqlite"
+    core::pkg_install nodejs npm shfmt shellcheck "${sqlite_pkg}" || return 1
     ;;
   esac
 
