@@ -10,7 +10,7 @@ IFS=$'\n\t'
 MODULE_NAME="nvim"
 MODULE_DESC="Neovim editor with LazyVim configuration (yangxingwu/neovim-lua-config)"
 MODULE_PLATFORM="all"
-MODULE_DEPS=("rust" "golang" "git" "cli-tools" "python")
+MODULE_DEPS=("rust" "golang" "git" "cli-tools" "python" "nodejs")
 
 # Source directory for lua/luarocks compiled from source.
 _NVIM_SRC_DIR="${HOME}/.local/src"
@@ -104,14 +104,14 @@ _nvim::install_deps() {
   # rg and fd are provided by the cli-tools module (runs before nvim).
   case "${DOTFILES_OS}" in
   mac)
-    core::pkg_install node shfmt shellcheck || return 1
+    core::pkg_install shfmt shellcheck || return 1
     ;;
   linux)
     # libsqlite3: Snacks.picker loads libsqlite3.so via LuaJIT FFI for
     # frecency/history (macOS has it built-in via system dylib).
     local sqlite_pkg="libsqlite3-dev"
     [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]] && sqlite_pkg="sqlite-devel"
-    core::pkg_install nodejs npm shfmt shellcheck "${sqlite_pkg}" || return 1
+    core::pkg_install shfmt shellcheck "${sqlite_pkg}" || return 1
     ;;
   esac
 
@@ -149,15 +149,13 @@ _nvim::install_deps() {
   fi
 
   # Node.js provider (`:help provider-nodejs`).
+  # fnm installs Node to user space, so npm global prefix is user-writable
+  # on all platforms — no sudo needed.
   if npm list -g neovim >/dev/null 2>&1; then
     core::log INFO "neovim npm package already installed"
     core::summary "    ✓ neovim npm package already installed"
-  elif [[ "${DOTFILES_OS}" == "mac" ]]; then
-    # brew's npm global prefix is user-writable (/opt/homebrew/lib/node_modules).
-    core::run_cmd "Installing neovim npm package" npm install -g neovim || return 1
   else
-    # System npm global prefix (/usr/lib/node_modules) requires root.
-    core::run_cmd "Installing neovim npm package" sudo npm install -g neovim || return 1
+    core::run_cmd "Installing neovim npm package" npm install -g neovim || return 1
   fi
 }
 

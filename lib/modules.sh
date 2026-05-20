@@ -14,6 +14,7 @@ DOTFILES_MODULES=(
   git              # after ssh/rust/golang: needs SSH key, cargo, go
   cli-tools        # after rust/golang: cargo tools; before fzf: fzf preview uses bat/fd
   python           # after cli-tools: no hard deps; before fzf: logical grouping
+  nodejs           # after rust (cargo install fnm); before nvim (npm install -g neovim)
   fzf              # before zoxide: zi interactive mode uses fzf
                    # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide

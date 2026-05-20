@@ -60,6 +60,7 @@ After bootstrap, run `./install.sh` to install modules.
 | `git` | all | Git config, delta, lazygit, SSH signing, global gitignore |
 | `cli-tools` | all | Modern CLI tools: bat, eza, rg, fd, jq, tldr (catppuccin theme) |
 | `python` | all | Python 3, pip, venv, pipx, ~/.local/bin PATH |
+| `nodejs` | all | Node.js runtime via fnm (Fast Node Manager) |
 | `fzf` | all | fzf fuzzy finder with fd/bat/eza integration (catppuccin theme) |
 | `zoxide` | all | zoxide smarter cd command |
 | `sheldon` | all | zsh plugin manager + curated plugins |

@@ -149,6 +149,12 @@ assert_command pip3
 assert_command pipx
 assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:python"
 
+# nodejs module
+assert_command fnm
+assert_command node
+assert_command npm
+assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:nodejs"
+
 # macOS-only binaries
 if [[ "${OS}" == "mac" ]]; then
   assert "ghostty installed" brew list --cask ghostty
