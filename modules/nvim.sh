@@ -46,6 +46,9 @@ _nvim::install_lua51_from_src() {
   rm -f "${_NVIM_SRC_DIR}/lua-${version}.tar.gz"
 
   # Lua's readline integration requires development headers on Linux.
+  # macOS provides readline.h via Xcode CLT SDK sysroot
+  # (/Library/Developer/CommandLineTools/SDKs/MacOSX*.sdk/usr/include/readline/),
+  # which clang finds implicitly through -isysroot — no explicit install needed.
   if [[ "${DOTFILES_OS}" == "linux" ]]; then
     case "${DOTFILES_PKG_MANAGER}" in
     apt) core::pkg_install libreadline-dev || return 1 ;;
