@@ -1,6 +1,6 @@
 FROM fedora:latest
 ENV LANG=C.UTF-8
-RUN dnf install -y sudo curl git
+RUN dnf install -y sudo curl git procps-ng
 RUN useradd -m -s /bin/bash testuser \
     && echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER testuser
