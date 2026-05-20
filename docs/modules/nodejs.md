@@ -55,3 +55,8 @@ echo "22" > .node-version
 - npm global packages (e.g. `npm install -g neovim`) live under the fnm-managed
   Node prefix, not system paths — no sudo needed on any platform.
 - Dependencies: rust module (provides cargo).
+
+## `--mirror-cn` flag
+
+When `./install.sh --mirror-cn` is used, the nodejs module sets the npm registry
+to `https://registry.npmmirror.com` for faster package downloads in China.

@@ -26,7 +26,7 @@ Uninstall does not remove identity — it is user data, not dotfiles-managed con
 
 | Tool | Install method | Purpose |
 |---|---|---|
-| delta | `cargo install git-delta` | Syntax-highlighted, side-by-side diff pager |
+| delta | `cargo install git-delta` | Syntax-highlighted diff pager (unified format with syntax highlighting) |
 | lazygit | `go install lazygit@latest` | Terminal UI for git |
 
 ## Configuration files
@@ -46,8 +46,11 @@ push.autoSetupRemote, merge.conflictstyle=zdiff3, rerere.enabled, core.editor=nv
 
 **Diff:** diff.algorithm=histogram, diff.colorMoved=default
 
-**Delta:** core.pager=delta, interactive.diffFilter, delta.navigate,
-delta.side-by-side, delta.line-numbers
+**Delta:** core.pager=delta, interactive.diffFilter, delta.navigate=true,
+delta.dark=true
+
+**URL rewrite:** `url."git@github.com:".insteadOf "https://github.com/"` — all
+GitHub HTTPS URLs automatically use SSH
 
 **Signing:** commit.gpgsign, tag.gpgsign, gpg.format=ssh,
 user.signingkey=~/.ssh/id_ed25519.pub

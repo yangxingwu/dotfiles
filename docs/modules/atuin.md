@@ -12,12 +12,11 @@ Replaces zsh-history-substring-search.
 
 ## Key bindings (provided by atuin init)
 
-- **↑/↓ arrow**: full-screen history search
 - **Ctrl+R**: full-screen history search
 
 ## Configuration
 
-`~/.config/atuin/config.toml` — write-once, not overwritten on re-run.
+`~/.config/atuin/config.toml` — fully managed, overwritten on each run to keep config in sync.
 Default: sync disabled (local history only).
 
 ## Notes

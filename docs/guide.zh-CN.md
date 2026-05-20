@@ -76,6 +76,7 @@
 
 - 需要原始 `cat`（例如处理二进制文件）: `command cat` 或 `\cat`
 - 需要原始 `ls`: `command ls` 或 `\ls`
+- `auto_cd` 已启用——直接输入目录名即可进入，无需 `cd`（例如输入 `..` 代替 `cd ..`，输入 `~/projects` 代替 `cd ~/projects`）
 - 虽然 atuin 接管了交互式历史搜索，`~/.zsh_history` 仍然正常写入，作为备份
 
 **配置文件位置**:
@@ -130,7 +131,6 @@ cat ~/.config/sheldon/plugins.toml
 | 快捷键 | 动作 |
 |---|---|
 | `Ctrl+R` | 打开全屏历史搜索 |
-| `↑` / `↓` | 全屏历史搜索 |
 
 在搜索界面中：
 
@@ -149,7 +149,7 @@ atuin stats
 ```
 
 **配置文件位置**:
-- `~/.config/atuin/config.toml` — 配置（首次安装写入，后续不覆盖）
+- `~/.config/atuin/config.toml` — 配置（每次运行都会覆盖，以保持配置同步）
 - `~/.local/share/atuin/` — SQLite 历史数据库
 
 ---
@@ -669,6 +669,55 @@ pip list                       # 查看已安装包
 
 ---
 
+### Node.js (fnm)
+
+**是什么**: [fnm](https://github.com/Schniz/fnm)（Fast Node Manager）管理的 Node.js 运行时。fnm 是一个 Rust 编写的 Node.js 版本管理器，支持安装、切换和自动选择项目所需的 Node 版本。
+
+**为什么选它**: Rust 实现速度快；支持 `.node-version` 和 `.nvmrc` 文件自动切换版本；用户空间安装，无需 sudo。
+
+**安装内容**:
+
+- `fnm` — Node.js 版本管理器
+- `node` — JavaScript 运行时（默认安装 LTS 版本）
+- `npm` — 包管理器（随 Node.js 附带）
+
+**常用命令**:
+
+```bash
+# 安装最新 LTS 版本
+fnm install --lts
+
+# 安装特定版本
+fnm install 20
+
+# 切换到指定版本
+fnm use 20
+
+# 设置默认版本
+fnm default 22
+
+# 项目级版本固定（进入目录时自动切换）
+echo "22" > .node-version
+
+# 查看当前版本
+node -v
+npm -v
+
+# 列出已安装版本
+fnm list
+```
+
+**自动切换原理**: `~/.zprofile` 中的 shell block 包含 `--use-on-cd` 参数，当你进入包含 `.node-version` 或 `.nvmrc` 文件的目录时，fnm 会自动切换到对应版本。
+
+**二进制位置**:
+- fnm: `~/.cargo/bin/fnm`
+- Node 版本和全局包: `~/.local/share/fnm/`
+
+**配置文件位置**:
+- `~/.zprofile` 中的 `nodejs` block — `eval "$(fnm env --use-on-cd)"`
+
+---
+
 ## 6. 终端与编辑器
 
 ### Ghostty (终端模拟器, 仅 macOS)
@@ -873,6 +922,7 @@ cd ~/.local/share/lazygit/catppuccin && git pull
 | `rust` | `. "${HOME}/.cargo/env"` |
 | `golang` | Go PATH 配置 |
 | `python` | `export PATH="${HOME}/.local/bin:${PATH}"` |
+| `nodejs` | `eval "$(fnm env --use-on-cd)"` |
 
 ### ~/.config/ 文件
 
@@ -938,6 +988,22 @@ git pull
 ./install.sh --list
 ```
 
+### 中国镜像 (`--mirror-cn`)
+
+在中国大陆使用时，`--mirror-cn` 标志可为所有包源配置国内镜像，加速下载：
+
+```bash
+./install.sh --mirror-cn
+```
+
+配置的镜像包括：
+- **Homebrew**: USTC 镜像（brew git remote + bottle 域名）
+- **Rust**: rsproxy.cn（rustup 分发服务器 + cargo sparse 注册表）
+- **Go**: golang.google.cn（tarball 下载）+ goproxy.cn（模块代理）
+- **npm**: npmmirror.com（包注册表镜像）
+
+详情参见项目 README。
+
 ### 卸载
 
 ```bash
@@ -959,7 +1025,7 @@ git pull
 
 ```
 homebrew → font-hack-nerd-font → ssh → rust → golang → git →
-cli-tools → python → fzf → zoxide → sheldon → atuin →
+cli-tools → python → nodejs → fzf → zoxide → sheldon → atuin →
 starship → ghostty → nvim → tmux → zsh-config
 ```
 

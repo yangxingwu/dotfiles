@@ -30,3 +30,11 @@ HOMEBREW_CELLAR, HOMEBREW_REPOSITORY, MANPATH, and INFOPATH.
 - Must be the first module in install order — all subsequent modules that use
   `brew install` (via `core::pkg_install`) depend on brew being in PATH.
 - Homebrew installation itself happens in `bootstrap-macos.sh`, not here.
+
+## `--mirror-cn` flag
+
+When `./install.sh --mirror-cn` is used, the homebrew module configures USTC
+mirrors for faster access in China:
+- `HOMEBREW_BREW_GIT_REMOTE` — points to USTC brew mirror
+- `HOMEBREW_BOTTLE_DOMAIN` — points to USTC bottle mirror
+- Additional API/core tap remote variables as needed

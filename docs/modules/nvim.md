@@ -8,7 +8,7 @@
 
 | Hook | Action |
 |---|---|
-| `install` | install deps (node, shfmt, shellcheck, tree-sitter-cli); install nvim (brew or pkg/source); clone/update config repo; headless plugin sync + treesitter compile |
+| `install` | install deps (node, shfmt, shellcheck, tree-sitter-cli, lua 5.1, luarocks, pynvim, neovim npm package); install nvim (brew or pkg/source); clone/update config repo; headless plugin sync + treesitter compile |
 | `uninstall` | remove source-built nvim (if applicable); remove ~/.config/nvim |
 
 ## Install behavior

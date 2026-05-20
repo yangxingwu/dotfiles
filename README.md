@@ -89,7 +89,7 @@ automatically skipped on Linux.
 # Show full command output (package manager, compiler, etc.)
 ./install.sh --verbose
 
-# Use China mirrors (Homebrew USTC, Rust rsproxy.cn, Go goproxy.cn)
+# Use China mirrors (Homebrew USTC, Rust rsproxy.cn, Go goproxy.cn, npm npmmirror.com)
 ./bootstrap-macos.sh --mirror-cn
 ./install.sh --mirror-cn
 
@@ -131,6 +131,7 @@ This configures:
 - **Homebrew**: USTC mirror (`mirrors.ustc.edu.cn`)
 - **Rust/cargo**: rsproxy.cn (install script + sparse registry)
 - **Go**: `golang.google.cn` (tarball download) + `goproxy.cn` (module proxy)
+- **npm**: npmmirror.com (Alibaba/Taobao team, syncs every 10 min)
 
 GitHub access is not handled — set `https_proxy` or `git config --global http.proxy`
 before running if GitHub is slow.

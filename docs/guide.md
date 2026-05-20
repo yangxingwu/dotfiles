@@ -90,6 +90,8 @@ partial install (e.g. without cli-tools), the aliases simply won't appear.
 
 - To use the original `cat` (e.g. for binary output): `command cat` or `\cat`
 - To use the original `ls`: `command ls` or `\ls`
+- `auto_cd` is enabled — you can type a directory name without `cd` to enter it
+  (e.g., type `..` instead of `cd ..`, or `~/projects` instead of `cd ~/projects`)
 - History is still written to `~/.zsh_history` as a fallback even though atuin
   manages interactive search
 
@@ -145,7 +147,7 @@ see how long commands took. Cloud sync is available but disabled by default
 **Common usage:**
 
 ```bash
-# Press Ctrl+R or Up arrow to open the full-screen history search
+# Press Ctrl+R to open the full-screen history search
 # Type to filter, arrow keys to navigate, Enter to select
 
 # Search history from the command line
@@ -487,8 +489,7 @@ git stash show -p
 
 # Navigate between diff hunks with n/N (like vim search)
 
-# View side-by-side diffs (configured by default):
-# delta shows unified format with side-by-side rendering
+# Delta shows unified diff format with syntax highlighting
 ```
 
 **Config location:** `~/.gitconfig` (delta section)
@@ -686,6 +687,58 @@ pipx list
 ```
 
 **Binary location:** `~/.local/bin/` (pipx and pip --user binaries, added to PATH via `~/.zprofile`)
+
+---
+
+### Node.js (fnm)
+
+**What it is:** Node.js runtime managed by [fnm](https://github.com/Schniz/fnm)
+(Fast Node Manager) — a Rust-based Node.js version manager that handles
+installing, switching, and auto-selecting Node versions per project.
+
+**Why this tool:** fnm is fast (Rust binary), supports `.node-version` and
+`.nvmrc` files for automatic version switching when you `cd` into a project,
+and installs Node versions in user space (no sudo required).
+
+**What you get:**
+
+- `fnm` — Node.js version manager
+- `node` — JavaScript runtime (LTS version installed by default)
+- `npm` — package manager (bundled with Node)
+
+**Common usage:**
+
+```bash
+# Install the latest LTS version
+fnm install --lts
+
+# Install a specific version
+fnm install 20
+
+# Switch to a version
+fnm use 20
+
+# Set default version
+fnm default 22
+
+# Per-project version pinning (fnm auto-switches on cd)
+echo "22" > .node-version
+
+# Check current version
+node -v
+npm -v
+
+# List installed versions
+fnm list
+```
+
+**How auto-switching works:** The shell block in `~/.zprofile` includes
+`--use-on-cd`, which makes fnm automatically switch Node versions when you
+enter a directory containing a `.node-version` or `.nvmrc` file.
+
+**Binary locations:**
+- fnm: `~/.cargo/bin/fnm`
+- Node versions and global packages: `~/.local/share/fnm/`
 
 ---
 
@@ -935,6 +988,7 @@ Running `./install.sh` again updates them idempotently.
 | `rust` | `. "${HOME}/.cargo/env"` |
 | `golang` | PATH additions for `/usr/local/go/bin` and `~/go/bin` |
 | `python` | `export PATH="${HOME}/.local/bin:${PATH}"` |
+| `nodejs` | `eval "$(fnm env --use-on-cd)"` |
 
 ### Files in ~/.config/
 
@@ -978,6 +1032,7 @@ Running `./install.sh` again updates them idempotently.
 | `/usr/local/go/` | golang | Go toolchain |
 | `~/go/bin/` | golang | Go-installed binaries (lazygit) |
 | `~/.local/bin/` | python | pipx and pip --user binaries |
+| `~/.local/share/fnm/` | nodejs | Node.js versions and global packages (managed by fnm) |
 | `~/.local/share/fzf/catppuccin/` | fzf | Catppuccin fzf theme (git clone) |
 | `~/.local/share/lazygit/catppuccin/` | git | Catppuccin lazygit theme (git clone) |
 | `~/.local/share/sheldon/` | sheldon | Downloaded plugin repositories |
@@ -1012,6 +1067,23 @@ git pull
 ./install.sh --list
 ```
 
+### China mirrors (`--mirror-cn`)
+
+For users in mainland China, the `--mirror-cn` flag configures faster mirrors
+for all package sources:
+
+```bash
+./install.sh --mirror-cn
+```
+
+This sets up:
+- **Homebrew**: USTC mirror (brew git remote + bottle domain)
+- **Rust**: rsproxy.cn (rustup dist server + cargo sparse registry)
+- **Go**: golang.google.cn (tarball download) + goproxy.cn (module proxy)
+- **npm**: npmmirror.com (registry mirror)
+
+See the project README for full details on each mirror configuration.
+
 ### Uninstalling
 
 ```bash
@@ -1044,15 +1116,16 @@ Modules run in dependency order. The full sequence is:
 6. git
 7. cli-tools
 8. python
-9. fzf
-10. zoxide
-11. sheldon
-12. atuin
-13. starship
-14. ghostty (macOS only)
-15. nvim
-16. tmux
-17. zsh-config
+9. nodejs
+10. fzf
+11. zoxide
+12. sheldon
+13. atuin
+14. starship
+15. ghostty (macOS only)
+16. nvim
+17. tmux
+18. zsh-config
 
 ### Troubleshooting
 

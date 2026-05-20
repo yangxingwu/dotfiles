@@ -7,16 +7,16 @@ SSH client configuration, key management, and transparent password-based login v
 | Hook | Action |
 |---|---|
 | `install` | install sshpass + gh; create ~/.ssh dirs; write default config; generate ed25519 key; push pubkey to GitHub; install ssh() wrapper |
-| `uninstall` | remove ssh-wrapper block from ~/.zshrc; remove ~/.ssh/ssh-wrapper.sh; retain keys, config, passwords |
+| `uninstall` | remove ssh-wrapper block from ~/.zshrc; remove ~/.config/dotfiles/ssh-wrapper.sh; retain keys, config, passwords |
 
 ## What it manages
 
 - **Packages**: `sshpass`, `gh` (GitHub CLI)
 - **Directories**: `~/.ssh` (700), `~/.ssh/passwords` (700), `~/.ssh/sockets` (700)
-- **Config**: `~/.ssh/config` — Host * defaults (write-once, never overwritten)
+- **Config**: `~/.ssh/config` — Host * defaults (managed, overwritten each run to keep config in sync)
 - **Key**: `~/.ssh/id_ed25519` — generated if absent, no passphrase
 - **GitHub**: pushes public key via `gh ssh-key add` (interactive auth if needed)
-- **Wrapper**: `~/.ssh/ssh-wrapper.sh` sourced from ~/.zshrc managed block
+- **Wrapper**: `~/.config/dotfiles/ssh-wrapper.sh` sourced from ~/.zshrc managed block
 
 ## SSH config defaults
 
@@ -29,6 +29,7 @@ Host *
     ControlPath ~/.ssh/sockets/%r@%h-%p
     ControlPersist 10m
     IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
 ```
 
 ## Password-based login
