@@ -164,7 +164,7 @@ _nvim::install_deps() {
 # Install Neovim. Requires >= 0.8.0 for LazyVim.
 # See: https://www.lazyvim.org/ — Requirements section.
 _nvim::install_nvim() {
-  local min_version="0.8.0"
+  local min_version="0.11.2"
 
   # Already installed — check version is sufficient.
   if core::check_installed nvim; then
