@@ -149,13 +149,14 @@ _nvim::install_deps() {
   fi
 
   # Node.js provider (`:help provider-nodejs`).
-  # fnm installs Node to user space, so npm global prefix is user-writable
-  # on all platforms — no sudo needed.
-  if npm list -g neovim >/dev/null 2>&1; then
+  # Use `fnm exec` to explicitly call fnm-managed npm, bypassing any system
+  # npm that may exist (e.g. Fedora's neovim RPM pulls in system nodejs22
+  # whose npm global prefix requires root).
+  if fnm exec --using=lts-latest npm list -g neovim >/dev/null 2>&1; then
     core::log INFO "neovim npm package already installed"
     core::summary "    ✓ neovim npm package already installed"
   else
-    core::run_cmd "Installing neovim npm package" npm install -g neovim || return 1
+    core::run_cmd "Installing neovim npm package" fnm exec --using=lts-latest npm install -g neovim || return 1
   fi
 }
 
