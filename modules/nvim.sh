@@ -44,6 +44,15 @@ _nvim::install_lua51_from_src() {
   core::run_cmd "Downloading Lua ${version}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/lua-${version}.tar.gz" || return 1
   tar -xzf "${_NVIM_SRC_DIR}/lua-${version}.tar.gz" -C "${_NVIM_SRC_DIR}"
   rm -f "${_NVIM_SRC_DIR}/lua-${version}.tar.gz"
+
+  # Lua's readline integration requires development headers on Linux.
+  if [[ "${DOTFILES_OS}" == "linux" ]]; then
+    case "${DOTFILES_PKG_MANAGER}" in
+    apt) core::pkg_install libreadline-dev || return 1 ;;
+    dnf) core::pkg_install readline-devel || return 1 ;;
+    esac
+  fi
+
   core::run_cmd "Compiling Lua ${version}" make -C "${src_dir}" "${platform}" || return 1
   core::run_cmd "Installing Lua ${version}" sudo make -C "${src_dir}" install || return 1
   core::summary "    ✓ Lua ${version} installed to /usr/local"
@@ -271,7 +280,7 @@ uninstall() {
   local luarocks_src="${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}"
   if [[ -f "${luarocks_src}/Makefile" ]]; then
     pushd "${luarocks_src}" >/dev/null
-    sudo make uninstall 2>/dev/null || true
+    sudo make uninstall >/dev/null 2>&1 || true
     popd >/dev/null
     core::summary "    ✓ removed luarocks from /usr/local"
   fi
