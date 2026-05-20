@@ -1,4 +1,5 @@
 FROM fedora:latest
+ENV LANG=C.UTF-8
 RUN dnf install -y sudo curl git
 RUN useradd -m -s /bin/bash testuser \
     && echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
