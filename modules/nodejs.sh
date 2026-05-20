@@ -42,7 +42,21 @@ install() {
   fnm default lts-latest
   core::summary "    ✓ Node.js LTS installed ($(fnm exec --using=lts-latest node -v))"
 
-  # Step 3: Shell integration.
+  # Activate fnm for the rest of this install run (same pattern as rust module
+  # sourcing ~/.cargo/env). Without this, node/npm won't be in PATH for
+  # subsequent modules that depend on nodejs (e.g. nvim's npm install -g neovim).
+  eval "$(fnm env --use-on-cd)"
+
+  # Step 3: Configure npm registry mirror for China (when --mirror-cn is used).
+  # npmmirror.com is maintained by Alibaba (Taobao team), syncs every 10 min.
+  # See: https://npmmirror.com/
+  if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
+    npm config set registry https://registry.npmmirror.com
+    core::log INFO "Using npmmirror.com registry for npm"
+    core::summary "    ✓ npm registry → https://registry.npmmirror.com"
+  fi
+
+  # Step 4: Shell integration.
   # eval "$(fnm env --use-on-cd)" activates fnm and enables automatic version
   # switching when entering a directory with .node-version or .nvmrc.
   # shellcheck disable=SC2016
