@@ -116,6 +116,9 @@ _ssh::generate_key() {
     # Use `hostname -s` (short name) instead of `uname -n` because macOS
     # appends `.local` to uname -n when no DNS domain is provided by the
     # network (e.g. home routers without a search domain).
+    if [[ "${DOTFILES_OS}" == "linux" ]] && ! command -v hostname >/dev/null 2>&1; then
+      core::pkg_install hostname || return 1
+    fi
     local comment
     comment="$(whoami)@$(hostname -s)-$(date +%Y%m%d)"
     core::run_cmd "Generating SSH key" ssh-keygen -t ed25519 -C "${comment}" -f "${key_file}" -N "" -a 64 || return 1
