@@ -107,10 +107,10 @@ _nvim::install_deps() {
     core::pkg_install node shfmt shellcheck || return 1
     ;;
   linux)
-    # sqlite3: Snacks.picker frecency/history (macOS has it built-in).
-    # Fedora package is "sqlite", Ubuntu is "sqlite3".
-    local sqlite_pkg="sqlite3"
-    [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]] && sqlite_pkg="sqlite"
+    # libsqlite3: Snacks.picker loads libsqlite3.so via LuaJIT FFI for
+    # frecency/history (macOS has it built-in via system dylib).
+    local sqlite_pkg="libsqlite3-dev"
+    [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]] && sqlite_pkg="sqlite-devel"
     core::pkg_install nodejs npm shfmt shellcheck "${sqlite_pkg}" || return 1
     ;;
   esac
