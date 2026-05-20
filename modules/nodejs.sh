@@ -34,6 +34,16 @@ install() {
     core::summary "    ✓ fnm installed via cargo"
   fi
 
+  local block_content
+  block_content="eval \"\$(fnm env --use-on-cd)\""
+  if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
+    block_content="${block_content}
+export FNM_NODE_DIST_MIRROR=\"https://npmmirror.com/mirrors/node/\""
+
+    # Activate mirror for the rest of this install run.
+    export FNM_NODE_DIST_MIRROR="https://npmmirror.com/mirrors/node/"
+  fi
+
   # Step 2: Install Node.js LTS.
   # fnm install --lts is idempotent: if the current LTS is already installed
   # it completes instantly; if a newer LTS is available it installs it.
@@ -60,8 +70,7 @@ install() {
   # eval "$(fnm env --use-on-cd)" activates fnm and enables automatic version
   # switching when entering a directory with .node-version or .nvmrc.
   # shellcheck disable=SC2016
-  core::ensure_block "${HOME}/.zprofile" "nodejs" \
-    'eval "$(fnm env --use-on-cd)"'
+  core::ensure_block "${HOME}/.zprofile" "nodejs" "${block_content}"
   core::summary "    ✓ config → ~/.zprofile (fnm env)"
 }
 
