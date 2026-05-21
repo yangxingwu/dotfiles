@@ -257,7 +257,7 @@ _nvim::headless_init() {
   # issues). We verify with a separate nvim instance that checks _.installed on
   # every plugin, and retry up to 3 times for transient failures.
   for i in {1..3}; do
-    nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1
+    core::run_cmd "Syncing Lazy plugins" nvim --headless "+Lazy! sync" +qa
     if nvim --headless \
       +'lua for _, p in pairs(require("lazy.core.config").plugins) do if not p._.installed then vim.cmd("cquit 1") end end' \
       +qa >/dev/null 2>&1; then
