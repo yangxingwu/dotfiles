@@ -29,9 +29,8 @@ _nvim::install_lua51_from_src() {
     return 0
   fi
 
-  local version="${_NVIM_LUA_VERSION}"
-  local url="https://www.lua.org/ftp/lua-${version}.tar.gz"
-  local src_dir="${_NVIM_SRC_DIR}/lua-${version}"
+  local url="https://www.lua.org/ftp/lua-${_NVIM_LUA_VERSION}.tar.gz"
+  local src_dir="${_NVIM_SRC_DIR}/lua-${_NVIM_LUA_VERSION}"
 
   # Lua's Makefile requires a platform target (no default build).
   local platform
@@ -41,9 +40,9 @@ _nvim::install_lua51_from_src() {
   esac
 
   mkdir -p "${_NVIM_SRC_DIR}"
-  core::run_cmd "Downloading Lua ${version}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/lua-${version}.tar.gz" || return 1
-  tar -xzf "${_NVIM_SRC_DIR}/lua-${version}.tar.gz" -C "${_NVIM_SRC_DIR}"
-  rm -f "${_NVIM_SRC_DIR}/lua-${version}.tar.gz"
+  core::run_cmd "Downloading Lua ${_NVIM_LUA_VERSION}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/lua-${_NVIM_LUA_VERSION}.tar.gz" || return 1
+  tar -xzf "${_NVIM_SRC_DIR}/lua-${_NVIM_LUA_VERSION}.tar.gz" -C "${_NVIM_SRC_DIR}"
+  rm -f "${_NVIM_SRC_DIR}/lua-${_NVIM_LUA_VERSION}.tar.gz"
 
   # Lua's readline integration requires development headers on Linux.
   # macOS provides readline.h via Xcode CLT SDK sysroot
@@ -56,9 +55,9 @@ _nvim::install_lua51_from_src() {
     esac
   fi
 
-  core::run_cmd "Compiling Lua ${version}" make -C "${src_dir}" "${platform}" || return 1
-  core::run_cmd "Installing Lua ${version}" sudo make -C "${src_dir}" install || return 1
-  core::summary "    ✓ Lua ${version} installed to /usr/local"
+  core::run_cmd "Compiling Lua ${_NVIM_LUA_VERSION}" make -C "${src_dir}" "${platform}" || return 1
+  core::run_cmd "Installing Lua ${_NVIM_LUA_VERSION}" sudo make -C "${src_dir}" install || return 1
+  core::summary "    ✓ Lua ${_NVIM_LUA_VERSION} installed to /usr/local"
 }
 
 # Install luarocks from source, configured against lua 5.1 in /usr/local.
@@ -77,17 +76,16 @@ _nvim::install_luarocks_from_src() {
     core::log WARN "luarocks found but linked to lua ${lua_ver:-unknown}, need 5.1 — rebuilding"
   fi
 
-  local version="${_NVIM_LUAROCKS_VERSION}"
-  local url="https://luarocks.org/releases/luarocks-${version}.tar.gz"
-  local src_dir="${_NVIM_SRC_DIR}/luarocks-${version}"
+  local url="https://luarocks.org/releases/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz"
+  local src_dir="${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}"
 
   # luarocks configure requires unzip on the system.
   core::pkg_install unzip || return 1
 
   mkdir -p "${_NVIM_SRC_DIR}"
-  core::run_cmd "Downloading luarocks ${version}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz" || return 1
-  tar -xzf "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz" -C "${_NVIM_SRC_DIR}"
-  rm -f "${_NVIM_SRC_DIR}/luarocks-${version}.tar.gz"
+  core::run_cmd "Downloading luarocks ${_NVIM_LUAROCKS_VERSION}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz" || return 1
+  tar -xzf "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz" -C "${_NVIM_SRC_DIR}"
+  rm -f "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz"
 
   (
     cd "${src_dir}"
@@ -95,7 +93,7 @@ _nvim::install_luarocks_from_src() {
     core::run_cmd "Compiling luarocks" make || exit 1
     core::run_cmd "Installing luarocks" sudo make install || exit 1
   ) || return 1
-  core::summary "    ✓ luarocks ${version} installed to /usr/local"
+  core::summary "    ✓ luarocks ${_NVIM_LUAROCKS_VERSION} installed to /usr/local"
 }
 
 # Install LazyVim requirements.
