@@ -146,6 +146,7 @@ Session.vim
 Sessionx.vim
 .netrwhist
 tags
+.nvim.lua  # exrc: per-project neovim config (:help exrc)
 
 # --- JetBrains IDEs ---
 .idea/
