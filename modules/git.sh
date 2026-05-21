@@ -190,6 +190,10 @@ _git::configure_workflow() {
   git config --global delta.navigate true
   # Tell delta we use a dark terminal background (affects syntax theme selection)
   git config --global delta.dark true
+  # Show line numbers with colored +/- markers in the gutter
+  git config --global delta.line-numbers true
+  # Consistent catppuccin-mocha syntax theme (shared with bat via built-in themes)
+  git config --global delta.syntax-theme "Catppuccin Mocha"
 
   # -- Version-gated features --
   local git_version
