@@ -207,7 +207,6 @@ _nvim::install_nvim() {
 # Otherwise backs up existing dirs (timestamped) and clones fresh.
 _nvim::clone_config() {
   local repo="https://github.com/yangxingwu/neovim-lua-config.git"
-  local branch="LazyVimV2"
   local nvim_dir="${HOME}/.config/nvim"
 
   # Already cloned with correct remote — pull latest (idempotent).
@@ -235,39 +234,31 @@ _nvim::clone_config() {
   core::backup "${HOME}/.local/state/nvim"
   core::backup "${HOME}/.cache/nvim"
 
-  core::run_cmd "Cloning neovim config" git clone --branch "${branch}" "${repo}" "${nvim_dir}" || return 1
+  core::run_cmd "Cloning neovim config" git clone "${repo}" "${nvim_dir}" || return 1
   core::summary "    ✓ config → ~/.config/nvim (cloned)"
 }
 
 # Pre-install plugins and treesitter parsers in headless mode.
 # This makes the first interactive nvim launch fast (no waiting for downloads).
 _nvim::headless_init() {
-  # Install all plugins declared in lazy.nvim config (includes extras from lazyvim.json).
-  # The "!" makes Lazy wait until sync completes before proceeding.
+  # Restore plugins to exact versions pinned in lazy-lock.json (committed to repo).
+  # The "!" makes Lazy wait until restore completes before proceeding.
   # See: https://lazy.folke.io/usage
   #
-  # IMPORTANT: lazyvim.json must be committed to the nvim config repo (not gitignored).
-  # This file declares which LazyVim extras are enabled (lang.python, lang.go, etc.).
-  # Without it, Lazy! sync only installs base plugins — extras and their associated
-  # Mason LSP servers won't be configured. The LazyVim starter template does NOT
-  # gitignore this file by default; committing it is the intended workflow.
-  # See: https://github.com/LazyVim/starter/blob/main/.gitignore
-  #
-  # Retry logic: Lazy! sync exits 0 even when plugins fail to clone (network
-  # issues). We verify with a separate nvim instance that checks _.installed on
-  # every plugin, and retry up to 3 times for transient failures.
+  # Retry logic: Lazy! restore exits 0 even when plugins fail to clone (network
+  # issues). We verify that every plugin is installed and retry up to 3 times.
   for i in {1..3}; do
-    core::run_cmd "Syncing Lazy plugins" nvim --headless "+Lazy! sync" +qa
+    core::run_cmd "Restoring Lazy plugins" nvim --headless "+Lazy! restore" +qa
     if nvim --headless \
       +'lua for _, p in pairs(require("lazy.core.config").plugins) do if not p._.installed then vim.cmd("cquit 1") end end' \
       +qa >/dev/null 2>&1; then
       break
     fi
     if [[ "${i}" -eq 3 ]]; then
-      core::log ERROR "Lazy sync failed after 3 attempts"
+      core::log ERROR "Lazy restore failed after 3 attempts"
       return 1
     fi
-    core::log WARN "Lazy sync incomplete (attempt ${i}/3), retrying..."
+    core::log WARN "Lazy restore incomplete (attempt ${i}/3), retrying..."
     sleep 3
   done
 
