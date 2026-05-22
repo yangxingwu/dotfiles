@@ -165,6 +165,28 @@ _nvim::install_deps() {
   fi
 }
 
+# Build and install Neovim from source when repo version is insufficient.
+# Follows https://github.com/neovim/neovim/blob/master/BUILD.md
+# Source kept at ~/.local/src/neovim for uninstall (sudo make uninstall).
+_nvim::install_from_src() {
+  local src_dir="${_NVIM_SRC_DIR}/neovim"
+
+  # Clean previous source if present.
+  rm -rf "${src_dir}"
+  mkdir -p "${_NVIM_SRC_DIR}"
+
+  core::run_cmd "Cloning neovim source" git clone https://github.com/neovim/neovim.git "${src_dir}" || return 1
+
+  (
+    cd "${src_dir}"
+    core::run_cmd "Checking out stable branch" git checkout stable || exit 1
+    core::run_cmd "Building neovim" make CMAKE_BUILD_TYPE=RelWithDebInfo || exit 1
+    core::run_cmd "Installing neovim" sudo make install || exit 1
+  ) || return 1
+
+  core::summary "    ✓ Neovim built from source (stable)"
+}
+
 # Install Neovim. Requires >= 0.8.0 for LazyVim.
 # See: https://www.lazyvim.org/ — Requirements section.
 _nvim::install_nvim() {
@@ -203,6 +225,24 @@ _nvim::install_nvim() {
     if [[ -z "${pkg_semver}" ]] || ! core::version_ge "${pkg_semver}" "${min_version}"; then
       core::run_cmd "Installing software-properties-common" sudo apt-get install -y software-properties-common || return 1
       core::run_cmd "Adding neovim PPA" sudo add-apt-repository -y ppa:neovim-ppa/unstable || return 1
+    fi
+  fi
+
+  # CentOS/RHEL: repos ship very old neovim. Check version and fall back
+  # to source build if insufficient (no PPA equivalent for dnf).
+  if [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]]; then
+    local pkg_version
+    pkg_version="$(dnf info neovim 2>/dev/null | awk '/^Version/{print $NF; exit}')"
+
+    local pkg_semver=""
+    if [[ "${pkg_version}" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
+      pkg_semver="${BASH_REMATCH[0]}"
+    fi
+
+    if [[ -z "${pkg_semver}" ]] || ! core::version_ge "${pkg_semver}" "${min_version}"; then
+      core::log INFO "Repo neovim (${pkg_version:-not available}) < ${min_version}, building from source"
+      _nvim::install_from_src || return 1
+      return 0
     fi
   fi
 
@@ -296,6 +336,17 @@ install() {
 uninstall() {
   rm -rf "${HOME}/.config/nvim"
   core::summary "    ✓ removed ~/.config/nvim"
+
+  # Neovim compiled from source: run make uninstall from the build dir.
+  local nvim_src="${_NVIM_SRC_DIR}/neovim"
+  if [[ -f "${nvim_src}/build/Makefile" ]]; then
+    (
+      cd "${nvim_src}/build"
+      sudo make uninstall >/dev/null 2>&1 || true
+    )
+    core::summary "    ✓ removed neovim from /usr/local (source build)"
+  fi
+  rm -rf "${nvim_src}"
 
   # Remove luarocks compiled from source (make uninstall also removes its
   # module search paths: /usr/local/share/lua/5.1, /usr/local/lib/lua/5.1).
