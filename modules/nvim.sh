@@ -104,9 +104,12 @@ _nvim::install_deps() {
   linux)
     # libsqlite3: Snacks.picker loads libsqlite3.so via LuaJIT FFI for
     # frecency/history (macOS has it built-in via system dylib).
-    local sqlite_pkg="libsqlite3-dev"
-    [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]] && sqlite_pkg="sqlite-devel"
-    core::pkg_install shellcheck "${sqlite_pkg}" || return 1
+    local sqlite_pkg="libsqlite3-dev" shellcheck_pkg="shellcheck"
+    if [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]]; then
+      sqlite_pkg="sqlite-devel"
+      shellcheck_pkg="ShellCheck"
+    fi
+    core::pkg_install "${shellcheck_pkg}" "${sqlite_pkg}" || return 1
 
     # shfmt: not available in CentOS/RHEL repos. golang module is a
     # dependency so go install is always available.
