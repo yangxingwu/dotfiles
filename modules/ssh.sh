@@ -160,28 +160,38 @@ AGENT
 }
 
 # Push public key to GitHub via gh CLI. Authenticates interactively if needed.
-# Skipped entirely in non-interactive environments (CI) where no one can
-# complete the browser auth flow.
+# Skipped in non-interactive environments (CI). Requires the "admin:public_key"
+# OAuth scope — requests it via gh auth refresh if not already granted.
 _ssh::push_key_to_github() {
+  # Auth and scope refresh require interactive TTY — skip entirely without one.
+  if [[ ! -t 0 ]]; then
+    core::log INFO "No TTY — skipping GitHub key push"
+    core::summary "    — skipped GitHub key push (non-interactive)"
+    return 0
+  fi
+
   local pub_key="${HOME}/.ssh/id_ed25519.pub"
   local key_title
   key_title="$(awk '{print $3}' "${pub_key}")"
 
-  # Ensure gh is authenticated — run interactive login if not.
-  if ! gh auth status >/dev/null 2>&1; then
-    # Non-interactive (no TTY on stdin) — skip rather than hang waiting for auth.
-    if [[ ! -t 0 ]]; then
-      core::log INFO "gh not authenticated and no TTY — skipping GitHub key push"
-      core::summary "    — skipped GitHub key push (non-interactive)"
-      return 0
-    fi
+  # Check auth status and scope in one call.
+  local auth_output
+  auth_output="$(gh auth status 2>&1)" || {
     core::log INFO "gh not authenticated — starting interactive login"
-    # --skip-ssh-key: prevent gh from prompting to upload SSH key during login.
-    # We handle key upload ourselves in the code below (gh ssh-key add) with an
-    # auto-generated title from the key comment, avoiding a manual title prompt.
     if ! gh auth login --skip-ssh-key; then
       core::log WARN "GitHub authentication failed — skipping key push"
       core::summary "    — skipped GitHub key push (auth failed)"
+      return 0
+    fi
+    auth_output="$(gh auth status 2>&1)"
+  }
+
+  # Ensure gh has the admin:public_key scope (required for SSH key operations).
+  if [[ "${auth_output}" != *"admin:public_key"* ]]; then
+    core::log INFO "Requesting admin:public_key scope from GitHub"
+    if ! gh auth refresh -h github.com -s admin:public_key; then
+      core::log WARN "Failed to refresh gh scope — skipping key push"
+      core::summary "    — skipped GitHub key push (scope refresh failed)"
       return 0
     fi
   fi
