@@ -288,6 +288,15 @@ _nvim::clone_config() {
 # Pre-install plugins and treesitter parsers in headless mode.
 # This makes the first interactive nvim launch fast (no waiting for downloads).
 _nvim::headless_init() {
+  # Safety check: LazyVim hangs in headless mode if neovim is too old
+  # ("Press any key to exit"). Fail early with a clear error.
+  local current
+  current="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+  if ! core::version_ge "${current}" "0.11.2"; then
+    core::log ERROR "Neovim ${current} too old for LazyVim (need >= 0.11.2) — skipping headless init"
+    return 1
+  fi
+
   # Restore plugins to exact versions pinned in lazy-lock.json (committed to repo).
   # The "!" makes Lazy wait until restore completes before proceeding.
   # See: https://lazy.folke.io/usage
