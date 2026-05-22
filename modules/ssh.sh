@@ -127,6 +127,39 @@ _ssh::generate_key() {
   fi
 }
 
+# Ensure ssh-agent is running for the current install session and write
+# persistent auto-start script. libgit2 (used by sheldon, cargo, etc.)
+# requires a running agent — unlike system OpenSSH which reads keys from disk.
+_ssh::ensure_agent() {
+  local agent_file="${DOTFILES_CONFIG_DIR}/ssh-agent.sh"
+
+  # Write persistent agent auto-start script (Linux only; macOS has launchd agent).
+  mkdir -p "${DOTFILES_CONFIG_DIR}"
+  cat >"${agent_file}" <<'AGENT'
+# ssh-agent.sh — auto-start ssh-agent on login (Linux only)
+#
+# macOS uses launchd's built-in agent; this script is a no-op there.
+# Guard prevents starting duplicate agents in subshells.
+
+if [[ "$(uname)" == "Linux" ]] && [[ -z "${SSH_AUTH_SOCK:-}" ]] && [[ -f "${HOME}/.ssh/id_ed25519" ]]; then
+  eval "$(ssh-agent -s)" >/dev/null 2>&1
+  ssh-add "${HOME}/.ssh/id_ed25519" 2>/dev/null
+fi
+AGENT
+  chmod 644 "${agent_file}"
+  core::log INFO "Wrote ssh-agent auto-start to ${agent_file}"
+  core::summary "    ✓ ssh-agent.sh → ~/.config/dotfiles/ssh-agent.sh"
+
+  # Start agent now for this install session (so subsequent modules can use SSH).
+  if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
+    eval "$(ssh-agent -s)" >/dev/null 2>&1
+    ssh-add "${HOME}/.ssh/id_ed25519" 2>/dev/null
+    export SSH_AUTH_SOCK
+    core::log INFO "Started ssh-agent for this install session"
+    core::summary "    ✓ ssh-agent started (install session)"
+  fi
+}
+
 # Push public key to GitHub via gh CLI. Authenticates interactively if needed.
 # Skipped entirely in non-interactive environments (CI) where no one can
 # complete the browser auth flow.
@@ -167,8 +200,7 @@ _ssh::push_key_to_github() {
   fi
 }
 
-# Write the ssh() wrapper function to ~/.config/dotfiles/ssh-wrapper.sh and
-# source it from .zshrc via a managed block.
+# Write the ssh() wrapper function to ~/.config/dotfiles/ssh-wrapper.sh.
 _ssh::install_wrapper() {
   local wrapper_file="${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
 
@@ -202,26 +234,31 @@ ssh() {
 WRAPPER
   chmod 644 "${wrapper_file}"
   core::log INFO "Wrote ssh wrapper to ${wrapper_file}"
-
-  core::ensure_block "${HOME}/.zshrc" "ssh" \
-    "source \"\${HOME}/.config/dotfiles/ssh-wrapper.sh\""
   core::summary "    ✓ ssh-wrapper.sh → ~/.config/dotfiles/ssh-wrapper.sh"
-  core::summary "    ✓ config → ~/.zshrc (source ssh-wrapper.sh)"
 }
 
 install() {
   _ssh::install_packages || return 1
   _ssh::setup_dirs_and_config || return 1
   _ssh::generate_key || return 1
+  _ssh::ensure_agent || return 1
   _ssh::push_key_to_github || return 1
   _ssh::install_wrapper || return 1
+
+  # Shell integration: single block sources both ssh module files.
+  # shellcheck disable=SC2016
+  core::ensure_block "${HOME}/.zshrc" "ssh" \
+    'source "${HOME}/.config/dotfiles/ssh-agent.sh"
+source "${HOME}/.config/dotfiles/ssh-wrapper.sh"'
+  core::summary "    ✓ config → ~/.zshrc (ssh-agent, ssh-wrapper)"
 }
 
 uninstall() {
-  # ssh-wrapper: remove file first, then the zshrc source line that references it.
+  rm -f "${DOTFILES_CONFIG_DIR}/ssh-agent.sh"
   rm -f "${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
-  core::log INFO "Removed ${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
-  core::summary "    ✓ removed ${DOTFILES_CONFIG_DIR}/ssh-wrapper.sh"
+  core::log INFO "Removed ${DOTFILES_CONFIG_DIR}/ssh-agent.sh and ssh-wrapper.sh"
+  core::summary "    ✓ removed ~/.config/dotfiles/ssh-agent.sh"
+  core::summary "    ✓ removed ~/.config/dotfiles/ssh-wrapper.sh"
 
   core::remove_block "${HOME}/.zshrc" "ssh"
   core::summary "    ✓ removed ssh block from ~/.zshrc"
