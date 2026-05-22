@@ -303,6 +303,7 @@ _nvim::headless_init() {
   #
   # Retry logic: Lazy! restore exits 0 even when plugins fail to clone (network
   # issues). We verify that every plugin is installed and retry up to 3 times.
+  local i
   for i in {1..3}; do
     core::run_cmd "Restoring Lazy plugins" nvim --headless "+Lazy! restore" +qa
     if nvim --headless \
