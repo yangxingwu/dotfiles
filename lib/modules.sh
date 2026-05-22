@@ -6,7 +6,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 DOTFILES_MODULES=(
-  homebrew             # mac only: .zprofile shellenv (must be first for brew PATH)
+  homebrew             # mac only: .zshenv shellenv (must be first for brew PATH)
   font-hack-nerd-font
   ssh              # before git: SSH key needed for git commit signing
   rust             # before git/nvim: cargo for delta, tree-sitter-cli

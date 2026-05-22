@@ -36,12 +36,12 @@ main() {
   detect::os
 
   # Ensure tools installed by modules (cargo, go, etc.) are on PATH.
-  # In a normal interactive shell .zprofile is sourced at login; here we
+  # In a normal interactive shell .zshenv is sourced automatically; here we
   # source it explicitly because uninstall.sh may run in a non-login
-  # process (e.g. CI, a plain bash invocation) where .zprofile was never
+  # process (e.g. CI, a plain bash invocation) where .zshenv was never
   # loaded.
   # shellcheck source=/dev/null
-  [[ -f "${HOME}/.zprofile" ]] && source "${HOME}/.zprofile"
+  [[ -f "${HOME}/.zshenv" ]] && source "${HOME}/.zshenv"
 
   local total=${#DOTFILES_SELECTED_MODULES[@]} i=0 name
   local failed=()

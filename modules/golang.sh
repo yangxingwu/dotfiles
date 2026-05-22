@@ -67,20 +67,30 @@ install() {
     core::summary "    ✓ config → go env (GOPROXY=goproxy.cn)"
   fi
 
-  # Content is single-quoted: written literally to .zprofile, expanded by zsh at login.
-  # shellcheck disable=SC2016
-  core::ensure_block "${HOME}/.zprofile" "golang" \
-    'export PATH="${PATH}:/usr/local/go/bin:${HOME}/go/bin"'
-  core::summary "    ✓ config → ~/.zprofile (Go PATH)"
+  # Content written literally to .zshenv, expanded by zsh at load.
+  local block_content
+  block_content=$(cat <<'EOF'
+case ":${PATH}:" in
+  *:/usr/local/go/bin:*) ;;
+  *) export PATH="/usr/local/go/bin:${PATH}" ;;
+esac
+case ":${PATH}:" in
+  *:"${HOME}/go/bin":*) ;;
+  *) export PATH="${HOME}/go/bin:${PATH}" ;;
+esac
+EOF
+  )
+  core::ensure_block "${HOME}/.zshenv" "golang" "${block_content}"
+  core::summary "    ✓ config → ~/.zshenv (Go PATH)"
 }
 
 uninstall() {
-  core::remove_block "${HOME}/.zprofile" "golang"
+  core::remove_block "${HOME}/.zshenv" "golang"
   # Reset Go env settings if configured.
   if command -v go >/dev/null 2>&1; then
     go env -u GO111MODULE 2>/dev/null || true
     go env -u GOPROXY 2>/dev/null || true
   fi
-  core::summary "    ✓ removed block from ~/.zprofile"
+  core::summary "    ✓ removed block from ~/.zshenv"
   core::summary "    ✓ reset go env (GO111MODULE, GOPROXY)"
 }

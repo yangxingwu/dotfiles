@@ -34,13 +34,8 @@ install() {
     core::summary "    ✓ fnm installed via cargo"
   fi
 
-  local block_content
-  block_content="eval \"\$(fnm env --use-on-cd)\""
+  # Activate mirror for the rest of this install run.
   if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
-    block_content="${block_content}
-export FNM_NODE_DIST_MIRROR=\"https://npmmirror.com/mirrors/node/\""
-
-    # Activate mirror for the rest of this install run.
     export FNM_NODE_DIST_MIRROR="https://npmmirror.com/mirrors/node/"
   fi
 
@@ -69,15 +64,26 @@ export FNM_NODE_DIST_MIRROR=\"https://npmmirror.com/mirrors/node/\""
   # Step 4: Shell integration.
   # eval "$(fnm env --use-on-cd)" activates fnm and enables automatic version
   # switching when entering a directory with .node-version or .nvmrc.
-  # shellcheck disable=SC2016
-  core::ensure_block "${HOME}/.zprofile" "nodejs" "${block_content}"
-  core::summary "    ✓ config → ~/.zprofile (fnm env)"
+  local block_content
+  block_content=$(cat <<'EOF'
+command -v fnm >/dev/null 2>&1 && eval "$(fnm env --use-on-cd)"
+EOF
+  )
+  if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
+    block_content=$(cat <<EOF
+export FNM_NODE_DIST_MIRROR="https://npmmirror.com/mirrors/node/"
+${block_content}
+EOF
+    )
+  fi
+  core::ensure_block "${HOME}/.zshenv" "nodejs" "${block_content}"
+  core::summary "    ✓ config → ~/.zshenv (fnm env)"
 }
 
 uninstall() {
   # Remove shell integration block.
-  core::remove_block "${HOME}/.zprofile" "nodejs"
-  core::summary "    ✓ removed nodejs block from ~/.zprofile"
+  core::remove_block "${HOME}/.zshenv" "nodejs"
+  core::summary "    ✓ removed nodejs block from ~/.zshenv"
 
   # Remove fnm-managed Node.js versions and global npm packages.
   # fnm stores everything under ~/.local/share/fnm/ — each Node version

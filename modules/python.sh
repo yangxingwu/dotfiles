@@ -33,11 +33,17 @@ _python::install_packages() {
 
 # Add ~/.local/bin to PATH (pip --user and pipx binaries).
 _python::configure_path() {
-  # shellcheck disable=SC2016
-  core::ensure_block "${HOME}/.zprofile" "python" \
-    '# Python: ~/.local/bin (pip --user and pipx binaries)
-export PATH="${HOME}/.local/bin:${PATH}"'
-  core::summary "    ✓ config → ~/.zprofile (PATH += ~/.local/bin)"
+  local block_content
+  block_content=$(cat <<'EOF'
+# Python: ~/.local/bin (pip --user and pipx binaries)
+case ":${PATH}:" in
+  *:"${HOME}/.local/bin":*) ;;
+  *) export PATH="${HOME}/.local/bin:${PATH}" ;;
+esac
+EOF
+  )
+  core::ensure_block "${HOME}/.zshenv" "python" "${block_content}"
+  core::summary "    ✓ config → ~/.zshenv (PATH += ~/.local/bin)"
 }
 
 install() {
@@ -46,7 +52,7 @@ install() {
 }
 
 uninstall() {
-  core::remove_block "${HOME}/.zprofile" "python"
-  core::log INFO "Removed python PATH block from ~/.zprofile"
-  core::summary "    ✓ removed PATH block from ~/.zprofile"
+  core::remove_block "${HOME}/.zshenv" "python"
+  core::log INFO "Removed python PATH block from ~/.zshenv"
+  core::summary "    ✓ removed PATH block from ~/.zshenv"
 }

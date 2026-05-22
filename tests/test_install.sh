@@ -75,10 +75,10 @@ printf '\n══ Phase 1: Running install.sh ══\n'
 
 # install.sh runs as a child process, so PATH changes made by modules
 # (e.g. rust sourcing ~/.cargo/env, golang exporting /usr/local/go/bin)
-# only affect that subprocess. Source ~/.zprofile here to pick them up
+# only affect that subprocess. Source ~/.zshenv here to pick them up
 # in the test process before Phase 2 checks for those binaries.
 # shellcheck source=/dev/null
-[[ -f "${HOME}/.zprofile" ]] && source "${HOME}/.zprofile"
+[[ -f "${HOME}/.zshenv" ]] && source "${HOME}/.zshenv"
 
 # ─── Phase 1b: Idempotency — run install.sh a second time ─────────
 printf '\n══ Phase 1b: Running install.sh again (idempotency check) ══\n'
@@ -99,13 +99,13 @@ for block_id in fzf zoxide sheldon atuin starship ssh lazygit; do
   fi
 done
 
-# Verify no duplicate managed blocks in .zprofile
-for block_id in rust golang homebrew python; do
+# Verify no duplicate managed blocks in .zshenv
+for block_id in rust golang homebrew python nodejs; do
   # homebrew block only exists on macOS
   if [[ "${block_id}" == "homebrew" && "${OS}" != "mac" ]]; then
     continue
   fi
-  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zprofile" 2>/dev/null)" || count=0
+  count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zshenv" 2>/dev/null)" || count=0
   if [[ "${count}" -gt 1 ]]; then
     printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}"
     FAILURES=$((FAILURES + 1))
@@ -147,13 +147,13 @@ assert_file_contains "${HOME}/.config/bat/config" "Catppuccin Mocha"
 assert_command python3
 assert_command pip3
 assert_command pipx
-assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:python"
+assert_file_contains "${HOME}/.zshenv" "BEGIN dotfiles:python"
 
 # nodejs module
 assert_command fnm
 assert_command node
 assert_command npm
-assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:nodejs"
+assert_file_contains "${HOME}/.zshenv" "BEGIN dotfiles:nodejs"
 
 # macOS-only binaries
 if [[ "${OS}" == "mac" ]]; then
@@ -245,10 +245,10 @@ assert_command atuin
 assert_file_exists "${HOME}/.config/atuin/config.toml"
 assert_file_contains "${HOME}/.config/atuin/config.toml" "auto_sync = false"
 
-# Shell init blocks in ~/.zprofile
-assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
+# Shell init blocks in ~/.zshenv
+assert_file_contains "${HOME}/.zshenv" "BEGIN dotfiles:rust"
 if [[ "${OS}" == "mac" ]]; then
-  assert_file_contains "${HOME}/.zprofile" "BEGIN dotfiles:homebrew"
+  assert_file_contains "${HOME}/.zshenv" "BEGIN dotfiles:homebrew"
 fi
 
 # ─── Phase 2b: Diagnostic dumps (uploaded as CI artifacts) ─────────
@@ -291,11 +291,11 @@ assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:zsh-config"
 # Atuin uninstall
 assert_file_missing "${HOME}/.config/atuin/config.toml"
 
-# Managed blocks removed from ~/.zprofile
-assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:rust"
-assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:python"
+# Managed blocks removed from ~/.zshenv
+assert_file_not_contains "${HOME}/.zshenv" "BEGIN dotfiles:rust"
+assert_file_not_contains "${HOME}/.zshenv" "BEGIN dotfiles:python"
 if [[ "${OS}" == "mac" ]]; then
-  assert_file_not_contains "${HOME}/.zprofile" "BEGIN dotfiles:homebrew"
+  assert_file_not_contains "${HOME}/.zshenv" "BEGIN dotfiles:homebrew"
 fi
 
 # Git config entries removed (identity preserved — user data)
