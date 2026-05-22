@@ -112,29 +112,29 @@ core::pkg_remove() {
     case "${DOTFILES_PKG_MANAGER}" in
     brew)
       if brew list "${package}" >/dev/null 2>&1; then
-        brew uninstall "${package}" || {
-          core::log ERROR "brew uninstall failed: ${package}"
-          return 1
-        }
-        core::log INFO "Removed: ${package}"
+        core::run_cmd "Removing ${package}" brew uninstall "${package}" || return 1
+        core::summary "    ✓ ${package} removed via brew"
+      else
+        core::log INFO "Not installed: ${package}"
+        core::summary "    ✓ ${package} not installed"
       fi
       ;;
     apt)
       if dpkg -s "${package}" >/dev/null 2>&1; then
-        sudo apt-get remove -y "${package}" || {
-          core::log ERROR "apt-get remove failed: ${package}"
-          return 1
-        }
-        core::log INFO "Removed: ${package}"
+        core::run_cmd "Removing ${package}" sudo apt-get remove -y "${package}" || return 1
+        core::summary "    ✓ ${package} removed via apt"
+      else
+        core::log INFO "Not installed: ${package}"
+        core::summary "    ✓ ${package} not installed"
       fi
       ;;
     dnf)
       if rpm -q "${package}" >/dev/null 2>&1; then
-        sudo dnf remove -y "${package}" || {
-          core::log ERROR "dnf remove failed: ${package}"
-          return 1
-        }
-        core::log INFO "Removed: ${package}"
+        core::run_cmd "Removing ${package}" sudo dnf remove -y "${package}" || return 1
+        core::summary "    ✓ ${package} removed via dnf"
+      else
+        core::log INFO "Not installed: ${package}"
+        core::summary "    ✓ ${package} not installed"
       fi
       ;;
     esac
