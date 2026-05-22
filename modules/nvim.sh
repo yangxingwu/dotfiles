@@ -79,9 +79,6 @@ _nvim::install_luarocks_from_src() {
   local url="https://luarocks.org/releases/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz"
   local src_dir="${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}"
 
-  # luarocks configure requires unzip on the system.
-  core::pkg_install unzip || return 1
-
   mkdir -p "${_NVIM_SRC_DIR}"
   core::run_cmd "Downloading luarocks ${_NVIM_LUAROCKS_VERSION}" curl -sSL "${url}" -o "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz" || return 1
   tar -xzf "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}.tar.gz" -C "${_NVIM_SRC_DIR}"

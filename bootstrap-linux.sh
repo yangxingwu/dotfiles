@@ -80,6 +80,7 @@ apt)
   sudo apt-get install -y \
     git \
     curl \
+    unzip \
     cmake \
     meson \
     ninja-build \
@@ -93,6 +94,7 @@ dnf)
   sudo dnf install -y \
     git \
     curl \
+    unzip \
     cmake \
     meson \
     ninja-build \
