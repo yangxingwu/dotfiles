@@ -154,7 +154,6 @@ AGENT
   if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
     eval "$(ssh-agent -s)" >/dev/null 2>&1
     ssh-add "${HOME}/.ssh/id_ed25519" 2>/dev/null
-    export SSH_AUTH_SOCK
     core::log INFO "Started ssh-agent for this install session"
     core::summary "    ✓ ssh-agent started (install session)"
   fi
