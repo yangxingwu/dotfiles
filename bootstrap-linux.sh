@@ -67,8 +67,12 @@ else
   if ! grep -qxF "${ZSH_PATH}" /etc/shells; then
     printf '%s\n' "${ZSH_PATH}" | sudo tee -a /etc/shells >/dev/null
   fi
-  sudo chsh -s "${ZSH_PATH}" "$(whoami)"
-  log "Login shell changed to zsh (takes effect on next login)"
+  if sudo chsh -s "${ZSH_PATH}" "$(whoami)"; then
+    log "Login shell changed to zsh (takes effect on next login)"
+  else
+    log "WARNING: chsh failed — account may not be in local /etc/passwd (LDAP/SSSD)"
+    log "  Workaround: use 'RemoteCommand ${ZSH_PATH} -l' in SSH config"
+  fi
 fi
 
 # ── 5. Install development tools ─────────────────────────────────────────
