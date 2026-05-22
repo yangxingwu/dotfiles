@@ -132,17 +132,31 @@ _ssh::generate_key() {
 # requires a running agent — unlike system OpenSSH which reads keys from disk.
 _ssh::ensure_agent() {
   local agent_file="${DOTFILES_CONFIG_DIR}/ssh-agent.sh"
+  local key_file="${HOME}/.ssh/id_ed25519"
 
-  # Write persistent agent auto-start script (Linux only; macOS has launchd agent).
+  # Write persistent agent auto-start script.
+  # Linux: start agent if not running, then add key.
+  # macOS: launchd always provides an agent, but it may be empty after reboot —
+  #        check whether the key is loaded and add it if not.
   mkdir -p "${DOTFILES_CONFIG_DIR}"
   cat >"${agent_file}" <<'AGENT'
-# ssh-agent.sh — auto-start ssh-agent on login (Linux only)
+# ssh-agent.sh — ensure ssh-agent has the default key loaded on login.
 #
-# macOS uses launchd's built-in agent; this script is a no-op there.
-# Guard prevents starting duplicate agents in subshells.
+# Linux: starts a new agent when SSH_AUTH_SOCK is unset (first login).
+# macOS: launchd provides the agent socket; only the key-add is needed.
+# In both cases, silently skips if the key file is missing or already loaded.
 
-if [[ "$(uname)" == "Linux" ]] && [[ -z "${SSH_AUTH_SOCK:-}" ]] && [[ -f "${HOME}/.ssh/id_ed25519" ]]; then
+if [[ ! -f "${HOME}/.ssh/id_ed25519" ]]; then
+  return 0
+fi
+
+# Linux: start agent if no socket exists.
+if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
   eval "$(ssh-agent -s)" >/dev/null 2>&1
+fi
+
+# Add key only if not already loaded (avoids passphrase prompt on every shell).
+if ! ssh-add -l 2>/dev/null | grep -q id_ed25519; then
   ssh-add "${HOME}/.ssh/id_ed25519" 2>/dev/null
 fi
 AGENT
@@ -150,12 +164,14 @@ AGENT
   core::log INFO "Wrote ssh-agent auto-start to ${agent_file}"
   core::summary "    ✓ ssh-agent.sh → ~/.config/dotfiles/ssh-agent.sh"
 
-  # Start agent now for this install session (so subsequent modules can use SSH).
-  if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
-    eval "$(ssh-agent -s)" >/dev/null 2>&1
-    ssh-add "${HOME}/.ssh/id_ed25519" 2>/dev/null
-    core::log INFO "Started ssh-agent for this install session"
-    core::summary "    ✓ ssh-agent started (install session)"
+  # Ensure key is loaded now (so subsequent modules can use SSH).
+  if [[ -f "${key_file}" ]] && ! ssh-add -l 2>/dev/null | grep -q id_ed25519; then
+    if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
+      eval "$(ssh-agent -s)" >/dev/null 2>&1
+    fi
+    ssh-add "${key_file}" 2>/dev/null
+    core::log INFO "Loaded SSH key into agent for this install session"
+    core::summary "    ✓ ssh key loaded into agent (install session)"
   fi
 }
 
