@@ -109,7 +109,17 @@ _nvim::install_deps() {
     # frecency/history (macOS has it built-in via system dylib).
     local sqlite_pkg="libsqlite3-dev"
     [[ "${DOTFILES_PKG_MANAGER}" == "dnf" ]] && sqlite_pkg="sqlite-devel"
-    core::pkg_install shfmt shellcheck "${sqlite_pkg}" || return 1
+    core::pkg_install shellcheck "${sqlite_pkg}" || return 1
+
+    # shfmt: not available in CentOS/RHEL repos. golang module is a
+    # dependency so go install is always available.
+    if core::check_installed shfmt; then
+      core::log INFO "shfmt already installed"
+      core::summary "    ✓ shfmt already installed"
+    else
+      core::run_cmd "Installing shfmt" go install mvdan.cc/sh/v3/cmd/shfmt@latest || return 1
+      core::summary "    ✓ shfmt installed via go install"
+    fi
     ;;
   esac
 
