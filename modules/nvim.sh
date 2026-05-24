@@ -345,17 +345,36 @@ _nvim::headless_init() {
       end" \
     -c "qa" || return 1
 
-  # NOTE: Mason LSP servers are NOT installed here.
-  # LazyVim uses mason-lspconfig which triggers async installation during normal
-  # nvim startup (in the config function via pkg:install()). There is no official
-  # synchronous headless command in the Mason/LazyVim ecosystem.
-  # Mason auto-installs missing servers on first real nvim launch (~10-20s background).
-  # This is acceptable because:
-  #   - lazyvim.json (committed to nvim config repo) declares which extras are
-  #     enabled, so mason-lspconfig knows what to install on first launch
-  #   - Lazy! sync already downloaded mason-lspconfig itself
-  #   - The user gets a fully functional editor immediately (LSP installs in background)
-  core::summary "    ✓ plugins and treesitter parsers installed (headless)"
+  # Install Mason tools declared in LazyVim extras (formatters, linters, DAP).
+  # mason-lspconfig skips ensure_installed in headless mode by design
+  # (checks platform.is_headless), so we read the merged tool list from
+  # mason.nvim opts and call MasonInstall manually, polling is_installed
+  # until all packages complete (same approach as mason-tool-installer.nvim).
+  core::run_cmd "Installing Mason tools" nvim --headless \
+    -c "lua
+      local plugin = require('lazy.core.plugin')
+      local config = require('lazy.core.config')
+      local registry = require('mason-registry')
+      local opts = plugin.values(config.plugins['mason.nvim'], 'opts', false)
+      local pending = {}
+      for _, name in ipairs(opts.ensure_installed or {}) do
+        if not registry.is_installed(name) then
+          pending[#pending + 1] = name
+        end
+      end
+      if #pending > 0 then
+        vim.cmd('MasonInstall ' .. table.concat(pending, ' '))
+        local MAX_TIMEOUT = 2^31 - 1
+        vim.wait(MAX_TIMEOUT, function()
+          for _, name in ipairs(pending) do
+            if not registry.is_installed(name) then return false end
+          end
+          return true
+        end, 1000)
+      end" \
+    -c "qa" || return 1
+
+  core::summary "    ✓ plugins, treesitter parsers, and Mason tools installed (headless)"
 }
 
 install() {
