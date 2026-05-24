@@ -322,9 +322,28 @@ _nvim::headless_init() {
     sleep 3
   done
 
-  # Compile treesitter parsers declared in ensure_installed.
+  # Force-load all plugins to trigger build hooks and config functions.
+  # This ensures native libraries (blink_cmp_fuzzy), Mason-managed formatters
+  # (gofumpt, goimports), and other lazy-loaded plugin setup complete before
+  # we proceed to treesitter installation.
+  core::run_cmd "Loading all plugins" nvim --headless "+Lazy! load all" +qa || return 1
+
+  # Install treesitter parsers declared in LazyVim's ensure_installed.
+  # TSUpdate is async and exits immediately in headless mode, so we use the
+  # lua API directly: read the merged ensure_installed list from LazyVim's
+  # plugin opts, then call install() with force=true and :wait() to block
+  # until all parsers are downloaded and compiled.
   # See: https://github.com/nvim-treesitter/nvim-treesitter#commands
-  core::run_cmd "Compiling treesitter parsers" nvim --headless "+TSUpdate" +qa || return 1
+  core::run_cmd "Installing treesitter parsers" nvim --headless \
+    -c "lua
+      local plugin = require('lazy.core.plugin')
+      local config = require('lazy.core.config')
+      local opts = plugin.values(config.plugins['nvim-treesitter'], 'opts', false)
+      local parsers = opts.ensure_installed or {}
+      if #parsers > 0 then
+        require('nvim-treesitter.install').install(parsers, {force=true, summary=true}):wait()
+      end" \
+    -c "qa" || return 1
 
   # NOTE: Mason LSP servers are NOT installed here.
   # LazyVim uses mason-lspconfig which triggers async installation during normal
