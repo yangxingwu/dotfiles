@@ -250,9 +250,10 @@ fi
 # ─── Phase 2b: Diagnostic dumps (uploaded as CI artifacts) ─────────
 printf '\n══ Phase 2b: Diagnostic dumps ══\n'
 
-# nvim checkhealth — capture full output for review
-nvim --headless -c "checkhealth" -c "w! /tmp/dotfiles-diagnostics/nvim-checkhealth.txt" -c "qa" 2>/dev/null || true
-printf '  ✓ nvim checkhealth saved to /tmp/dotfiles-diagnostics/nvim-checkhealth.txt\n'
+# Equivalent to :LazyHealth — force-loads all plugins then runs checkhealth.
+# This captures the full health state including lazy-loaded plugin checks.
+nvim --headless -c "Lazy! load all" -c "checkhealth" -c "w! /tmp/dotfiles-diagnostics/nvim-health.txt" -c "qa" 2>/dev/null || true
+printf '  ✓ nvim LazyHealth saved to /tmp/dotfiles-diagnostics/nvim-health.txt\n'
 
 # ─── Phase 3: Uninstall ────────────────────────────────────────────
 printf '\n══ Phase 3: Running uninstall.sh ══\n'
