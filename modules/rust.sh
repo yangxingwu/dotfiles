@@ -53,6 +53,11 @@ install() {
     core::run_cmd "Setting default Rust toolchain" rustup default stable || return 1
   fi
 
+  # rust-analyzer is required by rustaceanvim (Rust LSP in nvim). The rustup
+  # proxy shim at ~/.cargo/bin/rust-analyzer exists by default but fails with
+  # "Unknown binary" unless the component is explicitly installed.
+  rustup component add rust-analyzer >/dev/null 2>&1 || true
+
   # Persist for future shells.
   local block_content
   block_content=$(cat <<'EOF'
