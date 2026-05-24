@@ -100,11 +100,7 @@ for block_id in fzf zoxide sheldon atuin starship ssh lazygit; do
 done
 
 # Verify no duplicate managed blocks in .zshenv
-for block_id in rust golang homebrew python nodejs; do
-  # homebrew block only exists on macOS
-  if [[ "${block_id}" == "homebrew" && "${OS}" != "mac" ]]; then
-    continue
-  fi
+for block_id in rust golang python nodejs; do
   count="$(grep -c "BEGIN dotfiles:${block_id}" "${HOME}/.zshenv" 2>/dev/null)" || count=0
   if [[ "${count}" -gt 1 ]]; then
     printf '  ✗ duplicate block: %s (count: %s)\n' "${block_id}" "${count}"
@@ -248,7 +244,7 @@ assert_file_contains "${HOME}/.config/atuin/config.toml" "auto_sync = false"
 # Shell init blocks in ~/.zshenv
 assert_file_contains "${HOME}/.zshenv" "BEGIN dotfiles:rust"
 if [[ "${OS}" == "mac" ]]; then
-  assert_file_contains "${HOME}/.zshenv" "BEGIN dotfiles:homebrew"
+  assert_file_contains "${HOME}/.zshrc" "BEGIN dotfiles:homebrew"
 fi
 
 # ─── Phase 2b: Diagnostic dumps (uploaded as CI artifacts) ─────────
@@ -295,7 +291,7 @@ assert_file_missing "${HOME}/.config/atuin/config.toml"
 assert_file_not_contains "${HOME}/.zshenv" "BEGIN dotfiles:rust"
 assert_file_not_contains "${HOME}/.zshenv" "BEGIN dotfiles:python"
 if [[ "${OS}" == "mac" ]]; then
-  assert_file_not_contains "${HOME}/.zshenv" "BEGIN dotfiles:homebrew"
+  assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:homebrew"
 fi
 
 # Git config entries removed (identity preserved — user data)
