@@ -322,11 +322,19 @@ _nvim::headless_init() {
     sleep 3
   done
 
-  # Force-load all plugins to trigger build hooks and config functions.
-  # This ensures native libraries (blink_cmp_fuzzy), Mason-managed formatters
-  # (gofumpt, goimports), and other lazy-loaded plugin setup complete before
-  # we proceed to treesitter installation.
-  core::run_cmd "Loading all plugins" nvim --headless "+Lazy! load all" +qa || return 1
+  # Force-load all plugins to trigger config functions and runtime downloads.
+  # blink.cmp downloads a pre-built native fuzzy matching library from GitHub
+  # releases when loaded — this is async, so we must wait for it to complete
+  # before exiting. pcall(require, 'blink.cmp.fuzzy.rust') returns true once
+  # the .so/.dylib is downloaded and loadable.
+  core::run_cmd "Loading plugins and downloading native libs" nvim --headless \
+    -c "lua
+      vim.cmd('Lazy! load all')
+      local MAX_TIMEOUT = 2^31 - 1
+      vim.wait(MAX_TIMEOUT, function()
+        return pcall(require, 'blink.cmp.fuzzy.rust')
+      end, 1000)" \
+    -c "qa" || return 1
 
   # Install treesitter parsers declared in LazyVim's ensure_installed.
   # TSUpdate is async and exits immediately in headless mode, so we use the
