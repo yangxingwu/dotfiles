@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# modules/homebrew.sh — Homebrew shell environment (.zshenv block)
+# modules/homebrew.sh — Homebrew shell environment (.zshrc block)
 # Platform: mac
 # shellcheck disable=SC2034  # module interface vars are read by the installer when sourced
 set -euo pipefail
@@ -23,7 +23,10 @@ install() {
   # Activate for the rest of this install run.
   eval "$("${brew_prefix}/bin/brew" shellenv)"
 
-  # Persist for future shells.
+  # Persist for future interactive shells.
+  # Written to .zshrc (not .zshenv) because macOS /etc/zprofile runs path_helper
+  # which reorders PATH — anything set in .zshenv gets pushed behind /usr/bin.
+  # .zshrc loads after /etc/zprofile, so the brew prefix stays in front.
   # See: https://mirrors.ustc.edu.cn/help/brew.git.html
   #      https://mirrors.ustc.edu.cn/help/homebrew-bottles.html
   local block_content
@@ -51,11 +54,11 @@ export HOMEBREW_API_DOMAIN=\"${api_domain}\""
     export HOMEBREW_API_DOMAIN="${api_domain}"
     core::log INFO "Using USTC mirror for Homebrew"
   fi
-  core::ensure_block "${HOME}/.zshenv" "homebrew" "${block_content}"
-  core::summary "    ✓ config → ~/.zshenv (brew shellenv)"
+  core::ensure_block "${HOME}/.zshrc" "homebrew" "${block_content}" "prepend"
+  core::summary "    ✓ config → ~/.zshrc (brew shellenv)"
 }
 
 uninstall() {
-  core::remove_block "${HOME}/.zshenv" "homebrew"
-  core::summary "    ✓ removed homebrew block from ~/.zshenv"
+  core::remove_block "${HOME}/.zshrc" "homebrew"
+  core::summary "    ✓ removed homebrew block from ~/.zshrc"
 }
