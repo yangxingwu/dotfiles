@@ -348,8 +348,8 @@ _nvim::headless_init() {
   # Install Mason tools declared in LazyVim extras (formatters, linters, DAP).
   # mason-lspconfig skips ensure_installed in headless mode by design
   # (checks platform.is_headless), so we read the merged tool list from
-  # mason.nvim opts and call MasonInstall manually, polling is_installed
-  # until all packages complete (same approach as mason-tool-installer.nvim).
+  # mason.nvim opts and call MasonInstall manually, using event callbacks
+  # to wait for completion (same approach as mason-tool-installer.nvim).
   core::run_cmd "Installing Mason tools" nvim --headless \
     -c "lua
       local plugin = require('lazy.core.plugin')
@@ -358,18 +358,19 @@ _nvim::headless_init() {
       local opts = plugin.values(config.plugins['mason.nvim'], 'opts', false)
       local pending = {}
       for _, name in ipairs(opts.ensure_installed or {}) do
-        if not registry.is_installed(name) then
+        local ok, pkg = pcall(registry.get_package, name)
+        if ok and not pkg:is_installed() then
           pending[#pending + 1] = name
         end
       end
       if #pending > 0 then
-        vim.cmd('MasonInstall ' .. table.concat(pending, ' '))
         local MAX_TIMEOUT = 2^31 - 1
+        local completed = 0
+        registry:on('package:install:success', function() completed = completed + 1 end)
+        registry:on('package:install:failed', function() completed = completed + 1 end)
+        vim.cmd('MasonInstall ' .. table.concat(pending, ' '))
         vim.wait(MAX_TIMEOUT, function()
-          for _, name in ipairs(pending) do
-            if not registry.is_installed(name) then return false end
-          end
-          return true
+          return completed >= #pending
         end, 1000)
       end" \
     -c "qa" || return 1
