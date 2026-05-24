@@ -466,6 +466,30 @@ tldr --list
 
 ---
 
+### ast-grep
+
+**What it is:** [ast-grep](https://ast-grep.github.io/) is a structural search and
+replace tool based on abstract syntax trees (AST). Unlike ripgrep's text matching,
+it understands code structure — it knows what's a function name, argument, or variable.
+
+**Why this tool:** Precisely match code patterns during refactoring without false
+positives from comments or string literals. Used in nvim via grug-far (`<leader>sr`)
+as a second search engine alongside ripgrep.
+
+**Common usage:**
+
+```bash
+# Search all fmt.Println calls
+ast-grep -p 'fmt.Println($$$)' -l go
+
+# Replace fmt.Println(x) with log.Info(x)
+ast-grep -p 'fmt.Println($ARG)' -r 'log.Info($ARG)' -l go
+
+# In nvim: <leader>sr opens grug-far, switch engine to ast-grep
+```
+
+---
+
 ## Git and Version Control
 
 ### delta

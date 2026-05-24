@@ -9,6 +9,7 @@
 #   fd-find   — find replacement, user-friendly syntax (Rust)
 #   jq        — JSON processor (C; installed via package manager)
 #   tealdeer  — tldr client, concise command examples (Rust)
+#   ast-grep  — structural search/replace based on AST (Rust; used by grug-far in nvim)
 #
 # Optional tools NOT installed by this module (install manually if desired):
 #   dust      — du replacement, tree visualization — cargo install du-dust
@@ -33,8 +34,8 @@ MODULE_DEPS=("rust")
 _CLI_BAT_THEME="Catppuccin Mocha"
 # Parallel arrays: crate name → binary name. Used by install (cargo install)
 # and uninstall (retained-binaries notice).
-_CLI_CARGO_CRATES=("bat" "eza" "ripgrep" "fd-find" "tealdeer")
-_CLI_CARGO_BINARIES=("bat" "eza" "rg" "fd" "tldr")
+_CLI_CARGO_CRATES=("bat" "eza" "ripgrep" "fd-find" "tealdeer" "ast-grep")
+_CLI_CARGO_BINARIES=("bat" "eza" "rg" "fd" "tldr" "ast-grep")
 # Tools installed via package manager (not cargo).
 _CLI_PKG_TOOLS=("jq")
 

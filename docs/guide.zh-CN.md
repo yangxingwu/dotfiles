@@ -444,6 +444,26 @@ tldr --list
 
 ---
 
+### ast-grep (结构化搜索替换)
+
+**是什么**: [ast-grep](https://ast-grep.github.io/) 是基于语法树（AST）的搜索替换工具。与 ripgrep 的纯文本匹配不同，它理解代码结构——知道什么是函数名、参数、变量。
+
+**为什么选它**: 重构时精确匹配代码模式，不会误匹配注释或字符串里的内容；在 nvim 中通过 grug-far 插件（`<leader>sr`）使用，作为 ripgrep 之外的第二个搜索引擎。
+
+**常用命令**:
+
+```bash
+# 搜索所有 fmt.Println 调用
+ast-grep -p 'fmt.Println($$$)' -l go
+
+# 把 fmt.Println(x) 替换为 log.Info(x)
+ast-grep -p 'fmt.Println($ARG)' -r 'log.Info($ARG)' -l go
+
+# 在 nvim 中使用：<leader>sr 打开 grug-far，切换引擎为 ast-grep
+```
+
+---
+
 ## 4. Git 与版本控制
 
 ### delta (diff pager)
