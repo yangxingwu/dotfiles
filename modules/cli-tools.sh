@@ -73,11 +73,9 @@ _cli::configure_bat() {
 
 # Populate tealdeer page cache for offline usage.
 _cli::update_tealdeer_cache() {
-  if tldr --update >/dev/null 2>&1; then
-    core::log INFO "Updated tealdeer page cache"
+  if core::run_cmd "Updating tealdeer page cache" tldr --update; then
     core::summary "    ✓ tealdeer cache updated"
   else
-    core::log WARN "Failed to update tealdeer cache (network issue?) — skipping"
     core::summary "    — tealdeer cache update skipped (network)"
   fi
 }
