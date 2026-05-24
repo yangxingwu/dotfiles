@@ -222,6 +222,21 @@ _git::configure_workflow() {
     core::summary "    — skipped SSH signing (git ${git_version} < 2.34)"
   fi
 
+  # Built-in fsmonitor daemon (git >= 2.37): watches filesystem events in the
+  # background so git-status only checks actually-changed files instead of
+  # stat'ing the entire worktree. Reduces git-status from seconds to
+  # milliseconds on large repos (e.g. Linux kernel with ~80k files).
+  # untrackedcache: caches directory scan results for untracked files — if a
+  # directory's mtime hasn't changed, skip re-scanning it. Complements fsmonitor.
+  if core::version_ge "${git_version}" "2.37"; then
+    git config --global core.fsmonitor true
+    git config --global core.untrackedcache true
+    core::summary "    ✓ config → fsmonitor + untrackedcache (git ${git_version})"
+  else
+    core::log WARN "Git ${git_version} < 2.37 — skipping fsmonitor/untrackedcache"
+    core::summary "    — skipped fsmonitor (git ${git_version} < 2.37)"
+  fi
+
   # -- Global gitignore --
   # Shared ignore rules for OS/editor/language junk across all repos
   git config --global core.excludesFile "${_GIT_GLOBAL_IGNORE}"
