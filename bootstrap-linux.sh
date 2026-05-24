@@ -84,6 +84,7 @@ apt)
   sudo apt-get install -y \
     git \
     curl \
+    wget \
     unzip \
     cmake \
     meson \
@@ -103,6 +104,7 @@ dnf)
   sudo dnf install -y \
     git \
     curl \
+    wget \
     unzip \
     cmake \
     meson \

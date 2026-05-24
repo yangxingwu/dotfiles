@@ -166,7 +166,7 @@ fi
 # ── 8. Install dev tools ─────────────────────────────────────────────────
 
 log "Installing development tools via Homebrew..."
-"${BREW}" install cmake meson ninja gettext 2>/dev/null || true
+"${BREW}" install cmake meson ninja gettext wget 2>/dev/null || true
 log "Development tools installed"
 
 # ── 9. Create shell init files ────────────────────────────────────────────
