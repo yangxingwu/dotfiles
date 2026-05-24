@@ -166,6 +166,8 @@ fi
 # ── 8. Install dev tools ─────────────────────────────────────────────────
 
 log "Installing development tools via Homebrew..."
+# Note: clangd is provided by Xcode Command Line Tools (/usr/bin/clangd),
+# no brew install needed.
 "${BREW}" install cmake meson ninja gettext wget 2>/dev/null || true
 log "Development tools installed"
 
