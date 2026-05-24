@@ -117,7 +117,7 @@ printf '\n══ Phase 2: Verifying install ══\n'
 assert_command git
 assert_command zsh
 assert_command nvim
-assert_command tmux
+assert_command zellij
 assert_command fzf
 assert_dir_exists "${HOME}/.local/share/fzf/catppuccin"
 assert_file_exists "${HOME}/.config/dotfiles/fzf.zsh"
@@ -214,9 +214,9 @@ assert_dir_exists "${HOME}/.config/nvim/.git"
 assert_dir_exists "${HOME}/.local/share/nvim/lazy"
 assert_command luarocks
 
-# tmux (oh-my-tmux)
-assert_dir_exists "${HOME}/.local/share/tmux/oh-my-tmux"
-assert "tmux.conf is a symlink" test -L "${HOME}/.config/tmux/tmux.conf"
+# zellij
+assert_file_exists "${HOME}/.config/zellij/config.kdl"
+assert_file_contains "${HOME}/.config/zellij/config.kdl" "catppuccin-mocha"
 
 # Module status file
 assert_file_exists "${HOME}/.config/dotfiles/installed-modules"
@@ -269,10 +269,8 @@ fi
 assert_file_missing "${HOME}/.config/starship.toml"
 assert_dir_missing "${HOME}/.config/nvim"
 
-# tmux cleanup
-assert_dir_missing "${HOME}/.local/share/tmux/oh-my-tmux"
-assert "tmux.conf symlink removed" test ! -L "${HOME}/.config/tmux/tmux.conf"
-assert_file_missing "${HOME}/.config/tmux/tmux.conf.local"
+# zellij cleanup
+assert_dir_missing "${HOME}/.config/zellij"
 
 # Managed blocks removed from ~/.zshrc
 assert_file_not_contains "${HOME}/.zshrc" "BEGIN dotfiles:fzf"

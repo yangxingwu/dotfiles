@@ -48,7 +48,7 @@ Declare script-level constants with `readonly` **only in entry-point scripts**
 
 ```bash
 readonly DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly _MODULES=(ghostty git rust nvim tmux zsh)
+readonly _MODULES=(ghostty git rust nvim zellij zsh)
 ```
 
 Do **not** use `readonly` in `lib/*.sh` or `modules/*.sh`. Those files must be

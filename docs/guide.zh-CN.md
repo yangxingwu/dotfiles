@@ -736,44 +736,157 @@ fnm list
 
 ---
 
-### tmux (终端复用器)
+### Zellij (终端复用器)
 
-**是什么**: [tmux](https://github.com/tmux/tmux) 让你在一个终端窗口中管理多个会话、窗口和面板。断开连接后会话保持运行。
+**是什么**: [Zellij](https://zellij.dev/) 是一个现代终端复用器（Rust 编写），让你在一个终端窗口中管理多个会话、标签页和面板。断开连接后会话保持运行。
 
-**为什么选它**: SSH 远程工作必备；窗口分割；会话持久化；oh-my-tmux 提供开箱即用的美观配置。
+**为什么选它（取代 tmux）**:
+- Bell 通知默认透传 — Claude Code 完成任务后 Ghostty 能正常弹通知
+- 鼠标选择 pane-aware — 选中文本不会跨越 pane 边界
+- 自带快捷键提示栏 — 底部始终显示当前模式可用的操作，无需背快捷键
+- 配置简单 — KDL 格式，默认值就很好用
 
-**配置框架**: [oh-my-tmux](https://github.com/gpakosz/.tmux) — 美观的默认配置 + 易于自定义。
+**核心概念**:
 
-**常用操作**（前缀键默认 `Ctrl+b`）:
+```
+Session (会话)
+ └── Tab (标签页)
+      └── Pane (面板)
+```
+
+- **Session**: 一个独立的工作环境，包含多个 tab。支持命名和持久化。
+- **Tab**: 类似浏览器标签页，每个 tab 有独立的 pane 布局。
+- **Pane**: 一个独立的终端实例，可以水平/垂直分割。
+
+**模式系统**: Zellij 使用模式来组织快捷键。进入某个模式后，单个按键触发操作。底部状态栏会实时提示当前可用的操作。
+
+**常用快捷键**:
 
 | 操作 | 快捷键 |
 |---|---|
-| 新建窗口 | `Ctrl+b c` |
-| 切换窗口 | `Ctrl+b 0-9` |
-| 水平分割 | `Ctrl+b "` |
-| 垂直分割 | `Ctrl+b %` |
-| 切换面板 | `Ctrl+b 方向键` |
-| 断开会话 | `Ctrl+b d` |
-| 查看所有会话 | `Ctrl+b s` |
+| **Pane 操作** | |
+| 进入 Pane 模式 | `Ctrl+p` |
+| 新建 pane（向下） | `Ctrl+p` → `d` |
+| 新建 pane（向右） | `Ctrl+p` → `r` |
+| 关闭当前 pane | `Ctrl+p` → `x` |
+| 切换 pane 焦点 | `Ctrl+p` → `方向键` |
+| 全屏切换 | `Ctrl+p` → `f` |
+| 浮动面板开关 | `Ctrl+p` → `w` |
+| **Tab 操作** | |
+| 进入 Tab 模式 | `Ctrl+t` |
+| 新建 tab | `Ctrl+t` → `n` |
+| 关闭 tab | `Ctrl+t` → `x` |
+| 切换 tab | `Ctrl+t` → `方向键` |
+| 重命名 tab | `Ctrl+t` → `r` |
+| **Session 操作** | |
+| 进入 Session 模式 | `Ctrl+o` |
+| 断开 session | `Ctrl+o` → `d` |
+| **滚动/复制** | |
+| 进入 Scroll 模式 | `Ctrl+s` |
+| 上下滚动 | `Ctrl+s` → `方向键/PgUp/PgDn` |
+| 进入选择 | `Ctrl+s` → `e`（编辑器打开滚动缓冲区） |
+| **调整大小** | |
+| 进入 Resize 模式 | `Ctrl+n` |
+| 调整大小 | `Ctrl+n` → `方向键` |
+
+**典型工作流**:
+
+**A. 日常开发三板斧:**
+
+```
+┌──────────────────────┬─────────────────┐
+│                      │   terminal      │
+│   editor (nvim)      ├─────────────────┤
+│                      │   Claude Code   │
+└──────────────────────┴─────────────────┘
+```
 
 ```bash
-# 新建命名会话
-tmux new -s work
+# 创建项目 session
+zellij --session myproject
 
-# 列出会话
-tmux ls
+# 向右分屏（Ctrl+p → r），再在右侧向下分屏（Ctrl+p → d）
+# 左侧跑 nvim，右上跑终端，右下跑 Claude Code
+# Claude Code 完成任务时 bell 通知会正常到达 Ghostty
+```
 
-# 重新连接
-tmux attach -t work
+**B. SSH 远程开发:**
 
-# 终止会话
-tmux kill-session -t work
+```bash
+# 连接远程服务器并创建命名 session
+ssh myserver
+zellij --session work
+
+# 正常工作...如果 SSH 断开，session 继续在服务器运行
+
+# 重连后恢复现场
+ssh myserver
+zellij attach work
+# 所有 pane、滚动历史、运行中的进程完整恢复
+```
+
+**C. 浮动窗口快速查阅:**
+
+正在写代码，突然需要查个文档或跑个快速命令：
+
+```
+Ctrl+p → w    打开浮动面板（覆盖在当前布局之上）
+              执行你需要的操作（man page、git log、curl 等）
+Ctrl+p → w    再按一次，关闭浮动面板
+              主布局纹丝不动，继续写代码
+```
+
+不需要重新排列你精心调好的分屏布局。
+
+**D. 多项目并行切换:**
+
+```bash
+# 为每个项目创建独立 session
+zellij --session dotfiles
+# 工作一会后断开：Ctrl+o → d
+
+zellij --session linux-kernel
+# 工作一会后断开：Ctrl+o → d
+
+# 查看所有 session
+zellij ls
+
+# 随时跳回任意项目
+zellij attach dotfiles
+
+# 项目结束后清理
+zellij kill-session linux-kernel
+```
+
+每个 session 有独立的 tab、pane 和工作目录。切换是瞬间完成的。
+
+**CLI 命令速查**:
+
+```bash
+zellij                        # 启动新的匿名 session
+zellij --session <name>       # 启动命名 session
+zellij ls                     # 列出所有运行中的 session
+zellij attach <name>          # 连接到已有 session
+zellij kill-session <name>    # 终止 session
 ```
 
 **配置文件位置**:
-- `~/.config/tmux/tmux.conf` — 指向 oh-my-tmux 的符号链接
-- `~/.config/tmux/tmux.conf.local` — 个人覆盖配置（在此文件中自定义）
-- `~/.local/share/tmux/oh-my-tmux/` — oh-my-tmux 仓库
+- `~/.config/zellij/config.kdl` — Zellij 配置文件
+
+**从 tmux 迁移对照表**:
+
+| tmux | Zellij | 说明 |
+|---|---|---|
+| `tmux new -s work` | `zellij --session work` | 创建命名 session |
+| `tmux ls` | `zellij ls` | 列出 session |
+| `tmux attach -t work` | `zellij attach work` | 连接 session |
+| `tmux kill-session -t work` | `zellij kill-session work` | 终止 session |
+| `Ctrl+b d` | `Ctrl+o → d` | 断开 session |
+| `Ctrl+b "` | `Ctrl+p → d` | 水平分屏 |
+| `Ctrl+b %` | `Ctrl+p → r` | 垂直分屏 |
+| `Ctrl+b 方向键` | `Ctrl+p → 方向键` | 切换 pane |
+| `Ctrl+b c` | `Ctrl+t → n` | 新建 tab/window |
+| `Ctrl+b [` | `Ctrl+s` | 进入滚动/复制模式 |
 
 ---
 
@@ -935,8 +1048,7 @@ cd ~/.local/share/lazygit/catppuccin && git pull
 | `~/.config/ghostty/config` | ghostty | 终端配置（仅 macOS） |
 | `~/.config/lazygit/config.yml` | git | lazygit 配置 |
 | `~/.config/git/ignore` | git | 全局 gitignore |
-| `~/.config/tmux/tmux.conf` | tmux | tmux 配置（符号链接） |
-| `~/.config/tmux/tmux.conf.local` | tmux | tmux 个人覆盖 |
+| `~/.config/zellij/config.kdl` | zellij | Zellij 配置 |
 | `~/.config/nvim/` | nvim | Neovim 配置仓库 |
 | `~/.config/dotfiles/fzf.zsh` | fzf | fzf 完整配置 |
 | `~/.config/dotfiles/ssh-wrapper.sh` | ssh | ssh wrapper 函数 |
@@ -1011,7 +1123,7 @@ git pull
 ./uninstall.sh
 
 # 只卸载特定模块
-./uninstall.sh --only nvim,tmux
+./uninstall.sh --only nvim,zellij
 
 # 跳过特定模块的卸载
 ./uninstall.sh --skip ssh,git
@@ -1026,7 +1138,7 @@ git pull
 ```
 homebrew → font-hack-nerd-font → ssh → rust → golang → git →
 cli-tools → python → nodejs → fzf → zoxide → sheldon → atuin →
-starship → ghostty → nvim → tmux → zsh-config
+starship → ghostty → nvim → zellij → zsh-config
 ```
 
 `--only` 和 `--skip` 不改变执行顺序，只决定哪些模块参与运行。

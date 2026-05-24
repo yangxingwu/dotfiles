@@ -765,49 +765,91 @@ built-in catppuccin themes.
 
 ---
 
-### tmux
+### Zellij
 
-**What it is:** A terminal multiplexer — run multiple terminal sessions in one
-window, detach and reattach sessions, split panes.
+**What it is:** A modern terminal multiplexer (written in Rust) — run multiple
+terminal sessions in one window, detach and reattach sessions, split panes.
 
-**Why this tool:** tmux lets you maintain persistent terminal sessions that
-survive disconnects (critical for remote work), split your terminal into panes,
-and switch between "windows" (virtual tabs) without using your terminal emulator's
-tab feature.
+**Why this tool (replacing tmux):**
+- Bell notifications pass through transparently — Claude Code notifications work
+- Mouse selection is pane-aware — no text bleeding across pane boundaries
+- Discoverable UI — bottom bar always shows available keys for the current mode
+- Simple configuration — KDL format, excellent defaults out of the box
 
-**Configuration:** Uses [oh-my-tmux](https://github.com/gpakosz/.tmux), a
-self-contained tmux configuration with sensible defaults, vim-style bindings,
-and a powerline-style status bar.
+**Core concepts:**
+
+```
+Session (workspace)
+ └── Tab (like browser tabs)
+      └── Pane (terminal instance)
+```
+
+**Mode system:** Zellij organizes keybindings into modes. Enter a mode, then
+press a single key to perform an action. The bottom status bar shows available
+actions in real time.
+
+**Common keybindings:**
+
+| Action | Keys |
+|---|---|
+| Enter Pane mode | `Ctrl+p` |
+| New pane (down) | `Ctrl+p` → `d` |
+| New pane (right) | `Ctrl+p` → `r` |
+| Close pane | `Ctrl+p` → `x` |
+| Toggle floating pane | `Ctrl+p` → `w` |
+| Fullscreen toggle | `Ctrl+p` → `f` |
+| Enter Tab mode | `Ctrl+t` |
+| New tab | `Ctrl+t` → `n` |
+| Enter Session mode | `Ctrl+o` |
+| Detach session | `Ctrl+o` → `d` |
+| Enter Scroll mode | `Ctrl+s` |
+| Enter Resize mode | `Ctrl+n` |
 
 **Common usage:**
 
 ```bash
 # Start a new named session
-tmux new -s work
-
-# Detach from session (inside tmux)
-# Press: Ctrl+b then d
+zellij --session work
 
 # List sessions
-tmux ls
+zellij ls
 
 # Reattach to a session
-tmux attach -t work
+zellij attach work
 
-# Inside tmux (prefix is Ctrl+b by default):
-#   Ctrl+b c     — new window
-#   Ctrl+b n/p   — next/previous window
-#   Ctrl+b |     — split pane vertically (oh-my-tmux)
-#   Ctrl+b -     — split pane horizontally (oh-my-tmux)
-#   Ctrl+b h/j/k/l — navigate panes (vim-style, oh-my-tmux)
-#   Ctrl+b z     — zoom (maximize) current pane
-#   Ctrl+b [     — enter copy mode (vim keys to navigate/select)
+# Kill a session
+zellij kill-session work
 ```
 
+**Typical workflows:**
+
+- **Daily dev layout:** Create a session, split right (`Ctrl+p` → `r`), split
+  bottom in the right pane (`Ctrl+p` → `d`). Editor left, terminal top-right,
+  Claude Code bottom-right.
+- **SSH persistence:** Run `zellij --session work` on the remote server. If
+  disconnected, reconnect and `zellij attach work` — everything is intact.
+- **Floating pane:** `Ctrl+p` → `w` for a quick overlay pane (docs, git log),
+  press again to dismiss without disturbing your layout.
+- **Multi-project:** Use named sessions per project, detach/attach to switch
+  instantly.
+
 **Config location:**
-- `~/.config/tmux/tmux.conf` — symlink to oh-my-tmux (do not edit)
-- `~/.config/tmux/tmux.conf.local` — your overrides go here
-- `~/.local/share/tmux/oh-my-tmux/` — upstream clone
+- `~/.config/zellij/config.kdl` — Zellij configuration
+
+**Migrating from tmux:**
+
+| tmux | Zellij | Action |
+|---|---|---|
+| `tmux new -s work` | `zellij --session work` | Create named session |
+| `tmux ls` | `zellij ls` | List sessions |
+| `tmux attach -t work` | `zellij attach work` | Attach to session |
+| `tmux kill-session -t work` | `zellij kill-session work` | Kill session |
+| `Ctrl+b d` | `Ctrl+o` → `d` | Detach session |
+| `Ctrl+b "` | `Ctrl+p` → `d` | Split horizontal |
+| `Ctrl+b %` | `Ctrl+p` → `r` | Split vertical |
+| `Ctrl+b arrow` | `Ctrl+p` → `arrow` | Navigate panes |
+| `Ctrl+b c` | `Ctrl+t` → `n` | New tab/window |
+| `Ctrl+b [` | `Ctrl+s` | Scroll/copy mode |
 
 ---
 
@@ -1004,8 +1046,7 @@ Running `./install.sh` again updates them idempotently.
 | `~/.config/nvim/` | nvim | LazyVim configuration (cloned repo) |
 | `~/.config/sheldon/plugins.toml` | sheldon | Declarative plugin list |
 | `~/.config/starship.toml` | starship | Prompt configuration (catppuccin-powerline) |
-| `~/.config/tmux/tmux.conf` | tmux | Symlink to oh-my-tmux |
-| `~/.config/tmux/tmux.conf.local` | tmux | User overrides |
+| `~/.config/zellij/config.kdl` | zellij | Zellij configuration |
 
 ### Git configuration
 
@@ -1036,7 +1077,7 @@ Running `./install.sh` again updates them idempotently.
 | `~/.local/share/fzf/catppuccin/` | fzf | Catppuccin fzf theme (git clone) |
 | `~/.local/share/lazygit/catppuccin/` | git | Catppuccin lazygit theme (git clone) |
 | `~/.local/share/sheldon/` | sheldon | Downloaded plugin repositories |
-| `~/.local/share/tmux/oh-my-tmux/` | tmux | oh-my-tmux upstream clone |
+| `~/.config/zellij/` | zellij | Zellij config directory |
 | `~/.local/share/zoxide/db.zo` | zoxide | Directory frecency database |
 
 ---
@@ -1058,7 +1099,7 @@ git pull
 
 ```bash
 # Install only specific modules
-./install.sh --only git,nvim,tmux
+./install.sh --only git,nvim,zellij
 
 # Install everything except certain modules
 ./install.sh --skip ghostty,font-hack-nerd-font
@@ -1100,7 +1141,7 @@ See the project README for full details on each mirror configuration.
 **What uninstall does:**
 - Removes managed blocks from `~/.zshrc` and `~/.zprofile`
 - Removes configuration files written by each module
-- Removes cloned repositories (oh-my-tmux, catppuccin themes, nvim config)
+- Removes cloned repositories (catppuccin themes, nvim config)
 - Does NOT remove installed binaries (brew/apt/cargo/go packages stay)
 - Does NOT remove user data (SSH keys, git identity, zoxide database)
 
@@ -1124,7 +1165,7 @@ Modules run in dependency order. The full sequence is:
 14. starship
 15. ghostty (macOS only)
 16. nvim
-17. tmux
+17. zellij
 18. zsh-config
 
 ### Troubleshooting

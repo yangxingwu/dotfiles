@@ -68,7 +68,7 @@ After bootstrap, run `./install.sh` to install modules.
 | `starship` | all | Starship prompt (catppuccin-powerline preset) |
 | `ghostty` | macOS | Ghostty terminal emulator + config |
 | `nvim` | all | Neovim + LazyVim configuration |
-| `tmux` | all | tmux + oh-my-tmux |
+| `zellij` | all | Zellij terminal multiplexer (catppuccin) |
 | `zsh-config` | all | Shell environment, history, options, eza/bat aliases |
 
 Modules run in the order listed above. Platform-gated modules (macOS only) are
@@ -106,7 +106,7 @@ automatically skipped on Linux.
 ./uninstall.sh
 
 # Uninstall specific modules only
-./uninstall.sh --only tmux,nvim
+./uninstall.sh --only zellij,nvim
 
 # Show installed modules and timestamps
 ./install.sh --status

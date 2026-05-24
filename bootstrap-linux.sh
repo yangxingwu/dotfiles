@@ -95,6 +95,11 @@ apt)
     build-essential
   ;;
 dnf)
+  # Perl core: Fedora 41+ splits core Perl modules into separate packages.
+  # Crates like zellij vendor OpenSSL (openssl-sys with features = ["vendored"])
+  # which builds OpenSSL from source — its build scripts need various Perl
+  # modules (FindBin, Time::Piece, IPC::Cmd, etc.). Ubuntu/macOS include these
+  # in their base perl package; Fedora does not.
   sudo dnf install -y \
     git \
     curl \
@@ -105,7 +110,8 @@ dnf)
     gettext \
     pkg-config \
     openssl-devel \
-    clang-devel
+    clang-devel \
+    perl-core
   sudo dnf install -y @development-tools
   ;;
 esac
