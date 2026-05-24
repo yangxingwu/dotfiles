@@ -93,6 +93,30 @@ _nvim::install_luarocks_from_src() {
   core::summary "    ✓ luarocks ${_NVIM_LUAROCKS_VERSION} installed to /usr/local"
 }
 
+# Build muon from source and install to ~/.local (no sudo needed).
+# Uses bootstrap.sh since distro meson may be too old (muon requires
+# meson >=1.3.0 but Ubuntu 22.04 ships 0.61.2).
+_nvim::install_muon_from_src() {
+  local muon_src="${_NVIM_SRC_DIR}/muon"
+
+  rm -rf "${muon_src}"
+  mkdir -p "${_NVIM_SRC_DIR}"
+
+  core::run_cmd "Cloning muon" git clone --quiet https://github.com/annacrombie/muon.git "${muon_src}" || return 1
+
+  (
+    cd "${muon_src}"
+    # Stage 1: bootstrap binary
+    core::run_cmd "Bootstrapping muon" ./bootstrap.sh build || exit 1
+    # Stage 2: build final binary and install to ~/.local
+    build/muon-bootstrap setup -Dprefix="${HOME}/.local" build || exit 1
+    build/muon-bootstrap -C build samu || exit 1
+    build/muon -C build install || exit 1
+  ) || return 1
+
+  core::summary "    ✓ muon built from source → ~/.local/bin/muon"
+}
+
 # Install LazyVim requirements.
 # https://www.lazyvim.org/ — Requirements section.
 _nvim::install_deps() {
@@ -165,6 +189,23 @@ _nvim::install_deps() {
     core::summary "    ✓ neovim npm package already installed"
   else
     core::run_cmd "Installing neovim npm package" fnm exec --using=lts-latest npm install -g neovim || return 1
+  fi
+
+  # muon: Meson-compatible build system with LSP support for meson.build files.
+  # macOS: available via brew. Linux: not in default repos, build from source
+  # (requires C99 compiler, pkg-config, libarchive — all provided by bootstrap).
+  if core::check_installed muon; then
+    core::log INFO "muon already installed"
+    core::summary "    ✓ muon already installed"
+  else
+    case "${DOTFILES_OS}" in
+    mac)
+      core::pkg_install muon || return 1
+      ;;
+    linux)
+      _nvim::install_muon_from_src || return 1
+      ;;
+    esac
   fi
 }
 
@@ -431,4 +472,14 @@ uninstall() {
   # Remove source directories (only ours).
   rm -rf "${_NVIM_SRC_DIR}/lua-${_NVIM_LUA_VERSION}"
   rm -rf "${_NVIM_SRC_DIR}/luarocks-${_NVIM_LUAROCKS_VERSION}"
+
+  # muon: remove binary and source (only if installed from source).
+  if [[ -f "${HOME}/.local/bin/muon" ]]; then
+    rm -f "${HOME}/.local/bin/muon"
+    core::summary "    ✓ removed ~/.local/bin/muon"
+  fi
+  if [[ -d "${_NVIM_SRC_DIR}/muon" ]]; then
+    rm -rf "${_NVIM_SRC_DIR}/muon"
+    core::summary "    ✓ removed muon source"
+  fi
 }

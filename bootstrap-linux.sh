@@ -93,6 +93,7 @@ apt)
     pkg-config \
     libssl-dev \
     libclang-dev \
+    libarchive-dev \
     build-essential
   ;;
 dnf)
@@ -113,6 +114,7 @@ dnf)
     pkg-config \
     openssl-devel \
     clang-devel \
+    libarchive-devel \
     perl-core
   sudo dnf install -y @development-tools
   ;;
