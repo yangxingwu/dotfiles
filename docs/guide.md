@@ -886,6 +886,28 @@ zellij attach work
 zellij kill-session work
 ```
 
+**Copying text from panes:**
+
+There are two ways to copy text from a Zellij pane:
+
+**Method 1: Via $EDITOR (keyboard-driven)**
+
+1. `Ctrl+s` — enter Scroll mode
+2. Press `e` — opens the entire scrollback buffer in `$EDITOR` (i.e. nvim)
+3. Use your editor's native selection and copy (in vim: `v` to enter Visual mode, select text, `"+y` to copy to system clipboard)
+4. Exit the editor (`:q` in vim)
+
+Note: your `$EDITOR` must have system clipboard integration configured. In Neovim, ensure `clipboard = "unnamedplus"` is set — otherwise copied text stays in the editor's internal register only.
+
+**Method 2: Mouse selection**
+
+| Action | Effect |
+|---|---|
+| Mouse drag | Copies to Zellij's internal clipboard (paste with system paste key) |
+| `Shift` + mouse drag | Bypasses Zellij, uses terminal emulator's native selection → system clipboard |
+
+For quickly copying a small snippet of text, `Shift` + mouse drag is the easiest approach.
+
 **Typical workflows:**
 
 - **Daily dev layout:** Create a session, split right (`Ctrl+p` → `r`), split
