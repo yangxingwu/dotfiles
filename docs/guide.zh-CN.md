@@ -560,6 +560,41 @@ gh ssh-key list
 
 ---
 
+### fsmonitor（按仓库启用的性能优化）
+
+**是什么**: Git 内置的文件系统监控守护进程。利用操作系统的文件事件机制（macOS FSEvents / Linux inotify）追踪变更文件，让 `git status` 只需检查有变动的文件，无需遍历整棵工作树。在大仓库（如 Linux 内核 8 万文件）上能将 `git status` 从数秒降至数十毫秒。
+
+**本项目不全局启用**。原因：每个 daemon 占约 12 线程、5 MB 内存且永不退出。如果全局开启，Neovim lazy.nvim 同步 40+ 插件时会产生 40+ 个空闲 daemon。经过数小时不活动后，macOS 会压缩（memory compression）甚至换出（swap out）这些进程的页面。下次 `git status` 查询时需要解压/换入页面才能响应，延迟可能超过 Starship 的 500ms 超时阈值，导致终端启动时出现 `Executing command "/usr/bin/git" timed out` 警告。
+
+**适合启用的场景**:
+
+- 跟踪文件数 > 10k 的大仓库，且 `git status` 明显缓慢
+- 正在活跃开发的仓库（不是只读克隆或插件目录）
+
+**按仓库启用**:
+
+```bash
+# 在特定大仓库中启用
+git -C /path/to/large-repo config core.fsmonitor true
+
+# 检查 daemon 是否运行
+git -C /path/to/large-repo fsmonitor--daemon status
+
+# 停止某个仓库的 daemon
+git -C /path/to/large-repo fsmonitor--daemon stop
+
+# 杀掉所有 daemon（全系统清理）
+pkill -f 'fsmonitor--daemon'
+```
+
+**不适合启用的场景**:
+
+- 小仓库（< 1k 文件）— `git status` 本身已足够快
+- 只读克隆（包管理器插件、vendor 依赖）
+- 不常操作的仓库
+
+---
+
 ### 工作流默认值
 
 以下配置写入 `~/.gitconfig`，优化日常 Git 工作流：

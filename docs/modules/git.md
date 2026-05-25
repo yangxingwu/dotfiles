@@ -57,6 +57,46 @@ user.signingkey=~/.ssh/id_ed25519.pub
 
 **Gitignore:** core.excludesFile=~/.config/git/ignore
 
+**Performance:** core.untrackedcache=true (global), core.fsmonitor intentionally
+NOT set globally (see below)
+
+## fsmonitor guide
+
+`core.fsmonitor=true` enables a built-in daemon that watches filesystem events
+via FSEvents (macOS) / inotify (Linux), so `git status` only stat's changed
+files. Huge speedup on large repos (80k+ files), but each daemon costs ~12
+threads and ~5 MB RSS and **never exits** once started.
+
+### Why NOT global
+
+If enabled globally, any tool that touches git repos (e.g. Neovim lazy.nvim
+syncing 40+ plugins) spawns 40+ persistent daemons. After hours of idle, macOS
+memory-compresses their pages. Next `git status` must decompress/page-in the
+daemon before it can respond — easily exceeds Starship's 500ms timeout,
+producing `Executing command "/usr/bin/git" timed out` warnings.
+
+### Recommended usage
+
+Enable per-repo only on large codebases where `git status` is noticeably slow:
+
+```bash
+# Enable on a specific large repo
+git -C /path/to/large-repo config core.fsmonitor true
+
+# Verify daemon is running
+git -C /path/to/large-repo fsmonitor--daemon status
+
+# Stop daemon for a repo
+git -C /path/to/large-repo fsmonitor--daemon stop
+
+# Kill all daemons system-wide (useful for cleanup)
+pkill -f 'fsmonitor--daemon'
+```
+
+Good candidates: repos with 10k+ tracked files (Linux kernel, Chromium, large
+monorepos). Bad candidates: small repos (<1k files), read-only clones (package
+manager plugins), repos you rarely touch.
+
 ## Notes
 
 - Module runs after ssh (needs SSH key for signing), rust (needs cargo for

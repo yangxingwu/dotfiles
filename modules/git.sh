@@ -226,15 +226,27 @@ _git::configure_workflow() {
   # background so git-status only checks actually-changed files instead of
   # stat'ing the entire worktree. Reduces git-status from seconds to
   # milliseconds on large repos (e.g. Linux kernel with ~80k files).
+  #
+  # WARNING: do NOT enable fsmonitor globally. Any git command in any repo
+  # spawns a persistent daemon (~12 threads, ~5 MB RSS) that never exits.
+  # Tools like Neovim lazy.nvim run git in 40+ plugin directories during sync,
+  # creating 40+ orphan daemons (529 threads, 210 MB RSS) whose pages get
+  # memory-compressed by macOS. When later queried, the cold daemon takes
+  # >500ms to respond (decompress + process backlog), causing Starship prompt
+  # timeouts. Enable fsmonitor per-repo only on large codebases where the
+  # speedup justifies the daemon overhead:
+  #   git -C /path/to/large-repo config core.fsmonitor true
+  #
   # untrackedcache: caches directory scan results for untracked files — if a
-  # directory's mtime hasn't changed, skip re-scanning it. Complements fsmonitor.
+  # directory's mtime hasn't changed, skip re-scanning it. Safe to enable
+  # globally as it adds no background processes.
   if core::version_ge "${git_version}" "2.37"; then
-    git config --global core.fsmonitor true
     git config --global core.untrackedcache true
-    core::summary "    ✓ config → fsmonitor + untrackedcache (git ${git_version})"
+    core::summary "    ✓ config → untrackedcache (git ${git_version})"
+    core::summary "      ℹ fsmonitor not set globally — enable per-repo on large codebases"
   else
-    core::log WARN "Git ${git_version} < 2.37 — skipping fsmonitor/untrackedcache"
-    core::summary "    — skipped fsmonitor (git ${git_version} < 2.37)"
+    core::log WARN "Git ${git_version} < 2.37 — skipping untrackedcache"
+    core::summary "    — skipped untrackedcache (git ${git_version} < 2.37)"
   fi
 
   # -- Global gitignore --
@@ -348,6 +360,9 @@ uninstall() {
   git config --global --unset tag.gpgsign 2>/dev/null || true
   git config --global --unset gpg.format 2>/dev/null || true
   git config --global --unset user.signingkey 2>/dev/null || true
+
+  # Fsmonitor / untrackedcache
+  git config --global --unset core.untrackedcache 2>/dev/null || true
 
   # Gitignore
   git config --global --unset core.excludesFile 2>/dev/null || true

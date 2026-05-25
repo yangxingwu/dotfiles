@@ -596,6 +596,47 @@ to every project):
 
 **Config location:** `~/.config/git/ignore`
 
+### fsmonitor (per-repo performance optimization)
+
+Git's built-in fsmonitor daemon uses OS filesystem events (FSEvents on macOS,
+inotify on Linux) to track which files changed, so `git status` only needs to
+stat those files instead of walking the entire worktree. This reduces `git status`
+from seconds to milliseconds on large repos (e.g. Linux kernel with 80k+ files).
+
+**This is NOT enabled globally** — each daemon is persistent (~12 threads, ~5 MB
+RSS) and never exits once started. If enabled globally, tools that touch many
+repos (e.g. Neovim lazy.nvim syncing 40+ plugins) will spawn dozens of idle
+daemons. After hours of inactivity, macOS memory-compresses (or swaps out) their
+pages. The next `git status` must decompress/page-in the daemon before it can
+respond — easily exceeding prompt timeouts.
+
+**When to enable:**
+
+- Repos with 10k+ tracked files where `git status` is noticeably slow
+- Repos you actively develop in (not read-only clones or plugin directories)
+
+**How to enable per-repo:**
+
+```bash
+# Enable on a specific large repo
+git -C /path/to/large-repo config core.fsmonitor true
+
+# Check if daemon is running
+git -C /path/to/large-repo fsmonitor--daemon status
+
+# Stop daemon for a repo
+git -C /path/to/large-repo fsmonitor--daemon stop
+
+# Kill all daemons system-wide (cleanup)
+pkill -f 'fsmonitor--daemon'
+```
+
+**When NOT to enable:**
+
+- Small repos (< 1k files) — `git status` is already fast enough
+- Read-only clones (package manager plugins, vendored dependencies)
+- Repos you rarely touch
+
 ---
 
 ## Programming Languages
