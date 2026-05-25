@@ -231,7 +231,7 @@ _nvim::install_from_src() {
   core::summary "    ✓ Neovim built from source (stable)"
 }
 
-# Install Neovim. Requires >= 0.8.0 for LazyVim.
+# Install Neovim. Requires >= 0.11.2 for LazyVim.
 # See: https://www.lazyvim.org/ — Requirements section.
 _nvim::install_nvim() {
   local min_version="0.11.2"
