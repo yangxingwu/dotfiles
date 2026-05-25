@@ -109,9 +109,9 @@ _nvim::install_muon_from_src() {
     # Stage 1: bootstrap binary
     core::run_cmd "Bootstrapping muon" ./bootstrap.sh build || exit 1
     # Stage 2: build final binary and install to ~/.local
-    build/muon-bootstrap setup -Dprefix="${HOME}/.local" build || exit 1
-    build/muon-bootstrap -C build samu || exit 1
-    build/muon -C build install || exit 1
+    core::run_cmd "Configuring muon" build/muon-bootstrap setup -Dprefix="${HOME}/.local" build || exit 1
+    core::run_cmd "Compiling muon" build/muon-bootstrap -C build samu || exit 1
+    core::run_cmd "Installing muon" build/muon -C build install || exit 1
   ) || return 1
 
   core::summary "    ✓ muon built from source → ~/.local/bin/muon"
