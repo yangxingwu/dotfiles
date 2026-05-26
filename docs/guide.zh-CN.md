@@ -562,16 +562,25 @@ gh ssh-key list
 
 ### fsmonitor（按仓库启用的性能优化）
 
-**是什么**: Git 内置的文件系统监控守护进程。利用操作系统的文件事件机制（macOS FSEvents / Linux inotify）追踪变更文件，让 `git status` 只需检查有变动的文件，无需遍历整棵工作树。在大仓库（如 Linux 内核 8 万文件）上能将 `git status` 从数秒降至数十毫秒。
+**是什么**: Git 的文件系统监控功能。利用操作系统的文件事件机制追踪变更文件，让 `git status` 只需检查有变动的文件，无需遍历整棵工作树。在大仓库（如 Linux 内核 8 万文件）上能将 `git status` 从数秒降至数十毫秒。
 
-**本项目不全局启用**。原因：每个 daemon 占约 12 线程、5 MB 内存且永不退出。如果全局开启，Neovim lazy.nvim 同步 40+ 插件时会产生 40+ 个空闲 daemon。经过数小时不活动后，macOS 会压缩（memory compression）甚至换出（swap out）这些进程的页面。下次 `git status` 查询时需要解压/换入页面才能响应，延迟可能超过 Starship 的 500ms 超时阈值，导致终端启动时出现 `Executing command "/usr/bin/git" timed out` 警告。
+**平台支持：**
+
+| 平台 | 方式 | 状态 |
+|------|------|------|
+| macOS | 内置 daemon（FSEvents） | 开箱即用 |
+| Windows | 内置 daemon（ReadDirectoryChangesW） | 开箱即用 |
+| Linux | 内置 daemon | **不支持**（大多数发行版） |
+| Linux | Watchman + hook（见下文） | 需手动配置 |
+
+**本项目不全局启用**。原因：在 macOS/Windows 上每个 daemon 占约 12 线程、5 MB 内存且永不退出。如果全局开启，Neovim lazy.nvim 同步 40+ 插件时会产生 40+ 个空闲 daemon。经过数小时不活动后，macOS 会压缩（memory compression）甚至换出（swap out）这些进程的页面。下次 `git status` 查询时需要解压/换入页面才能响应，延迟可能超过 Starship 的 500ms 超时阈值，导致终端启动时出现 `Executing command "/usr/bin/git" timed out` 警告。
 
 **适合启用的场景**:
 
 - 跟踪文件数 > 10k 的大仓库，且 `git status` 明显缓慢
 - 正在活跃开发的仓库（不是只读克隆或插件目录）
 
-**按仓库启用**:
+**macOS 启用方式（内置 daemon）：**
 
 ```bash
 # 在特定大仓库中启用
@@ -587,11 +596,41 @@ git -C /path/to/large-repo fsmonitor--daemon stop
 pkill -f 'fsmonitor--daemon'
 ```
 
+**Linux 启用方式（Watchman + hook）：**
+
+Linux 上内置的 `fsmonitor--daemon` 不可用（会报 `not supported on this platform`）。
+替代方案是使用 [Facebook Watchman](https://facebook.github.io/watchman/) 配合 Git
+自带的示例钩子脚本（`fsmonitor-watchman.sample`，位于 `.git/hooks/`）：
+
+```bash
+# 1. 安装 Watchman — 参见 https://facebook.github.io/watchman/docs/install
+#    Fedora/RHEL: dnf install watchman
+#    Ubuntu/Debian: 从 GitHub Releases 安装或源码编译
+
+# 2. 在仓库中激活 hook
+cd /path/to/large-repo
+cp .git/hooks/fsmonitor-watchman.sample .git/hooks/query-watchman
+git config core.fsmonitor .git/hooks/query-watchman
+
+# 3. 验证 Watchman 正在监控
+watchman watch-list
+```
+
+> 该 hook 是一个 Perl 脚本（依赖 `JSON::PP` 或 `JSON::XS`），通过查询 Watchman
+> daemon 获取自上次 token 以来变更的文件，提供与内置 daemon 相同的加速效果，
+> 无需内核层面的特殊支持。
+
 **不适合启用的场景**:
 
 - 小仓库（< 1k 文件）— `git status` 本身已足够快
 - 只读克隆（包管理器插件、vendor 依赖）
 - 不常操作的仓库
+
+**参考链接：**
+
+- [git-config: core.fsmonitor](https://git-scm.com/docs/git-config#Documentation/git-config.txt-corefsmonitor)
+- [githooks: fsmonitor-watchman](https://git-scm.com/docs/githooks#_fsmonitor_watchman)
+- [Facebook Watchman](https://facebook.github.io/watchman/)
 
 ---
 

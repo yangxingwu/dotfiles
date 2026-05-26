@@ -598,24 +598,34 @@ to every project):
 
 ### fsmonitor (per-repo performance optimization)
 
-Git's built-in fsmonitor daemon uses OS filesystem events (FSEvents on macOS,
-inotify on Linux) to track which files changed, so `git status` only needs to
-stat those files instead of walking the entire worktree. This reduces `git status`
-from seconds to milliseconds on large repos (e.g. Linux kernel with 80k+ files).
+Git's fsmonitor feature uses OS filesystem events to track which files changed,
+so `git status` only needs to stat those files instead of walking the entire
+worktree. This reduces `git status` from seconds to milliseconds on large repos
+(e.g. Linux kernel with 80k+ files).
 
-**This is NOT enabled globally** — each daemon is persistent (~12 threads, ~5 MB
-RSS) and never exits once started. If enabled globally, tools that touch many
-repos (e.g. Neovim lazy.nvim syncing 40+ plugins) will spawn dozens of idle
-daemons. After hours of inactivity, macOS memory-compresses (or swaps out) their
-pages. The next `git status` must decompress/page-in the daemon before it can
-respond — easily exceeding prompt timeouts.
+**Platform support:**
+
+| Platform | Method | Status |
+|----------|--------|--------|
+| macOS | Built-in daemon (FSEvents) | Works out of the box |
+| Windows | Built-in daemon (ReadDirectoryChangesW) | Works out of the box |
+| Linux | Built-in daemon | **NOT supported** on most distros |
+| Linux | Watchman + hook (see below) | Works with manual setup |
+
+**This is NOT enabled globally** — on macOS/Windows each daemon is persistent
+(~12 threads, ~5 MB RSS) and never exits once started. If enabled globally,
+tools that touch many repos (e.g. Neovim lazy.nvim syncing 40+ plugins) will
+spawn dozens of idle daemons. After hours of inactivity, macOS
+memory-compresses (or swaps out) their pages. The next `git status` must
+decompress/page-in the daemon before it can respond — easily exceeding prompt
+timeouts.
 
 **When to enable:**
 
 - Repos with 10k+ tracked files where `git status` is noticeably slow
 - Repos you actively develop in (not read-only clones or plugin directories)
 
-**How to enable per-repo:**
+**How to enable — macOS (built-in daemon):**
 
 ```bash
 # Enable on a specific large repo
@@ -631,11 +641,41 @@ git -C /path/to/large-repo fsmonitor--daemon stop
 pkill -f 'fsmonitor--daemon'
 ```
 
+**How to enable — Linux (Watchman + hook):**
+
+The built-in `fsmonitor--daemon` is not available on Linux. Instead, use
+[Facebook Watchman](https://facebook.github.io/watchman/) with the sample hook
+script that ships with Git (`fsmonitor-watchman.sample` in `.git/hooks/`):
+
+```bash
+# 1. Install Watchman — see https://facebook.github.io/watchman/docs/install
+#    Fedora/RHEL: dnf install watchman
+#    Ubuntu/Debian: install from GitHub releases or build from source
+
+# 2. Activate the hook in your repo
+cd /path/to/large-repo
+cp .git/hooks/fsmonitor-watchman.sample .git/hooks/query-watchman
+git config core.fsmonitor .git/hooks/query-watchman
+
+# 3. Verify Watchman is watching
+watchman watch-list
+```
+
+> The hook is a Perl script (requires `JSON::PP` or `JSON::XS`). It queries the
+> Watchman daemon for files changed since the last token, providing the same
+> speedup as the built-in daemon without requiring kernel-level support.
+
 **When NOT to enable:**
 
 - Small repos (< 1k files) — `git status` is already fast enough
 - Read-only clones (package manager plugins, vendored dependencies)
 - Repos you rarely touch
+
+**References:**
+
+- [git-config: core.fsmonitor](https://git-scm.com/docs/git-config#Documentation/git-config.txt-corefsmonitor)
+- [githooks: fsmonitor-watchman](https://git-scm.com/docs/githooks#_fsmonitor_watchman)
+- [Facebook Watchman](https://facebook.github.io/watchman/)
 
 ---
 

@@ -62,10 +62,21 @@ NOT set globally (see below)
 
 ## fsmonitor guide
 
-`core.fsmonitor=true` enables a built-in daemon that watches filesystem events
-via FSEvents (macOS) / inotify (Linux), so `git status` only stat's changed
-files. Huge speedup on large repos (80k+ files), but each daemon costs ~12
-threads and ~5 MB RSS and **never exits** once started.
+Git's fsmonitor feature watches filesystem events so `git status` only stat's
+changed files. Huge speedup on large repos (80k+ files), but setup differs by
+platform.
+
+**Platform support:**
+
+| Platform | Method | Status |
+|----------|--------|--------|
+| macOS | `core.fsmonitor=true` (built-in daemon via FSEvents) | Works out of the box |
+| Windows | `core.fsmonitor=true` (built-in daemon via ReadDirectoryChangesW) | Works out of the box |
+| Linux | Built-in daemon | **NOT supported** (reports `not supported on this platform`) |
+| Linux | Watchman + hook | Works with manual setup (see below) |
+
+On macOS/Windows each daemon costs ~12 threads and ~5 MB RSS and **never exits**
+once started.
 
 ### Why NOT global
 
@@ -75,7 +86,7 @@ memory-compresses their pages. Next `git status` must decompress/page-in the
 daemon before it can respond — easily exceeds Starship's 500ms timeout,
 producing `Executing command "/usr/bin/git" timed out` warnings.
 
-### Recommended usage
+### Recommended usage — macOS
 
 Enable per-repo only on large codebases where `git status` is noticeably slow:
 
@@ -93,9 +104,41 @@ git -C /path/to/large-repo fsmonitor--daemon stop
 pkill -f 'fsmonitor--daemon'
 ```
 
+### Recommended usage — Linux (Watchman + hook)
+
+The built-in `fsmonitor--daemon` is not available on Linux. Use
+[Facebook Watchman](https://facebook.github.io/watchman/) with the sample hook
+script that Git ships in every repo (`fsmonitor-watchman.sample`):
+
+```bash
+# 1. Install Watchman — https://facebook.github.io/watchman/docs/install
+#    Fedora/RHEL: dnf install watchman
+#    Ubuntu/Debian: install from GitHub releases or build from source
+
+# 2. Activate the hook in your repo
+cd /path/to/large-repo
+cp .git/hooks/fsmonitor-watchman.sample .git/hooks/query-watchman
+git config core.fsmonitor .git/hooks/query-watchman
+
+# 3. Verify Watchman is watching
+watchman watch-list
+```
+
+The hook is a Perl script (requires `JSON::PP` or `JSON::XS`) that queries the
+Watchman daemon for files changed since the last token — same speedup as the
+built-in daemon, no kernel-level support required.
+
+### When to enable / not enable
+
 Good candidates: repos with 10k+ tracked files (Linux kernel, Chromium, large
 monorepos). Bad candidates: small repos (<1k files), read-only clones (package
 manager plugins), repos you rarely touch.
+
+### References
+
+- [git-config: core.fsmonitor](https://git-scm.com/docs/git-config#Documentation/git-config.txt-corefsmonitor)
+- [githooks: fsmonitor-watchman](https://git-scm.com/docs/githooks#_fsmonitor_watchman)
+- [Facebook Watchman](https://facebook.github.io/watchman/)
 
 ## Notes
 
