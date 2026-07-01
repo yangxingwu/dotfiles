@@ -64,9 +64,13 @@ install() {
   # Step 4: Shell integration.
   # eval "$(fnm env --use-on-cd)" activates fnm and enables automatic version
   # switching when entering a directory with .node-version or .nvmrc.
+  # Invoke fnm by its absolute cargo path rather than a bare `command -v fnm`:
+  # ~/.cargo/bin is only added to PATH by the rust block, and .zshenv block
+  # order isn't guaranteed, so a bare probe can run before cargo's PATH exists
+  # and silently skip activation (breaking `fnm current`).
   local block_content
   block_content=$(cat <<'EOF'
-command -v fnm >/dev/null 2>&1 && eval "$(fnm env --use-on-cd)"
+[[ -x "${HOME}/.cargo/bin/fnm" ]] && eval "$("${HOME}/.cargo/bin/fnm" env --use-on-cd)"
 EOF
   )
   if [[ "${_CORE_MIRROR_CN}" == "true" ]]; then
