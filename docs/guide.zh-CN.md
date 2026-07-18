@@ -450,7 +450,7 @@ tldr --list
 
 **是什么**: [ast-grep](https://ast-grep.github.io/) 是基于语法树（AST）的搜索替换工具。与 ripgrep 的纯文本匹配不同，它理解代码结构——知道什么是函数名、参数、变量。
 
-**为什么选它**: 重构时精确匹配代码模式，不会误匹配注释或字符串里的内容；在 nvim 中通过 grug-far 插件（`<leader>sr`）使用，作为 ripgrep 之外的第二个搜索引擎。
+**为什么选它**: 重构时精确匹配代码模式，不会误匹配注释或字符串里的内容；在 nvim 中通过 grug-far 插件（`<leader>sr`）使用，且已设为**默认**搜索引擎（在 grug-far 窗口内按 `<localleader>e`（`<localleader>` 默认是 `\`）可循环切换引擎：ripgrep / astgrep / astgrep-rules）。注意 ast-grep 不支持 grug-far 的 Sync 系列操作（`\s`、`\l` 等）——需要用 Sync 时切回 ripgrep。
 
 **常用命令**:
 
@@ -461,7 +461,7 @@ ast-grep -p 'fmt.Println($$$)' -l go
 # 把 fmt.Println(x) 替换为 log.Info(x)
 ast-grep -p 'fmt.Println($ARG)' -r 'log.Info($ARG)' -l go
 
-# 在 nvim 中使用：<leader>sr 打开 grug-far，切换引擎为 ast-grep
+# 在 nvim 中使用：<leader>sr 打开 grug-far（默认引擎已是 ast-grep）
 ```
 
 ---

@@ -475,8 +475,11 @@ replace tool based on abstract syntax trees (AST). Unlike ripgrep's text matchin
 it understands code structure — it knows what's a function name, argument, or variable.
 
 **Why this tool:** Precisely match code patterns during refactoring without false
-positives from comments or string literals. Used in nvim via grug-far (`<leader>sr`)
-as a second search engine alongside ripgrep.
+positives from comments or string literals. In nvim it's wired into grug-far
+(`<leader>sr`) as the **default** search engine. Inside the grug-far window,
+`<localleader>e` (localleader defaults to `\`) cycles engines: ripgrep / astgrep /
+astgrep-rules. Note ast-grep does not support grug-far's Sync operations (`\s`,
+`\l`, …) — switch back to ripgrep for those.
 
 **Common usage:**
 
@@ -487,7 +490,7 @@ ast-grep -p 'fmt.Println($$$)' -l go
 # Replace fmt.Println(x) with log.Info(x)
 ast-grep -p 'fmt.Println($ARG)' -r 'log.Info($ARG)' -l go
 
-# In nvim: <leader>sr opens grug-far, switch engine to ast-grep
+# In nvim: <leader>sr opens grug-far (ast-grep is the default engine)
 ```
 
 ---
