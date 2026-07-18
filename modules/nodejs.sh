@@ -30,7 +30,7 @@ install() {
     core::log INFO "fnm already installed"
     core::summary "    ✓ fnm already installed"
   else
-    core::run_cmd "Installing fnm" cargo install fnm || return 1
+    core::run_cmd "Installing fnm" cargo install --locked fnm || return 1
     core::summary "    ✓ fnm installed via cargo"
   fi
 

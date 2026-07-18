@@ -48,7 +48,7 @@ _cli::install_cargo_tools() {
       core::log INFO "Already installed: ${_CLI_CARGO_BINARIES[${i}]}"
       core::summary "    ✓ ${_CLI_CARGO_BINARIES[${i}]} already installed"
     else
-      core::run_cmd "Installing ${_CLI_CARGO_CRATES[${i}]}" cargo install "${_CLI_CARGO_CRATES[${i}]}" || return 1
+      core::run_cmd "Installing ${_CLI_CARGO_CRATES[${i}]}" cargo install --locked "${_CLI_CARGO_CRATES[${i}]}" || return 1
       core::summary "    ✓ ${_CLI_CARGO_BINARIES[${i}]} installed via cargo"
     fi
   done

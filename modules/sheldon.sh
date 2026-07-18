@@ -20,7 +20,7 @@ install() {
       core::log ERROR "cargo not found — install the rust module first"
       return 1
     fi
-    core::run_cmd "Installing sheldon" cargo install sheldon --locked || return 1
+    core::run_cmd "Installing sheldon" cargo install --locked sheldon || return 1
     core::summary "    ✓ installed via cargo"
   else
     core::log INFO "sheldon already installed"

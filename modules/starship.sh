@@ -23,7 +23,7 @@ _STARSHIP_THEME_URL="https://raw.githubusercontent.com/catppuccin/starship/main/
 # Fetch the official catppuccin/starship config and write the zsh init block.
 install() {
   if ! core::check_installed starship; then
-    core::run_cmd "Installing starship" cargo install starship || return 1
+    core::run_cmd "Installing starship" cargo install --locked starship || return 1
     core::summary "    ✓ installed via cargo"
   else
     core::log INFO "starship already installed"

@@ -70,7 +70,7 @@ _git::install_tools() {
     core::log INFO "Already installed: delta"
     core::summary "    ✓ delta already installed"
   else
-    core::run_cmd "Installing git-delta" cargo install git-delta || return 1
+    core::run_cmd "Installing git-delta" cargo install --locked git-delta || return 1
     core::summary "    ✓ delta installed via cargo"
   fi
 
