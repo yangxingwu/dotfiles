@@ -83,16 +83,42 @@ _git::install_tools() {
   fi
 }
 
+# Resolve the latest catppuccin/lazygit release tag (highest semver).
+# Tracks releases rather than main, so the theme never picks up unreleased
+# mid-branch commits. sort -V matches the version ordering core::version_ge uses.
+_git::latest_theme_tag() {
+  git ls-remote --tags --refs "${_GIT_LAZYGIT_THEME_REPO}" |
+    awk -F/ '{print $NF}' | sort -V | tail -1
+}
+
 # Clone catppuccin theme repo, write lazygit config, and set up shell alias.
 _git::configure_lazygit() {
-  # Clone or update catppuccin/lazygit theme repository.
-  if [[ -d "${_GIT_LAZYGIT_THEME_DIR}" ]]; then
-    core::run_cmd "Updating lazygit catppuccin theme" git -C "${_GIT_LAZYGIT_THEME_DIR}" pull --quiet || return 1
+  # Pin the catppuccin/lazygit theme to the latest release tag (shallow clone).
+  # Tracking a tag avoids main-branch drift; resolving "latest" each run keeps
+  # updates automatic without a hardcoded version.
+  local ref
+  ref="$(_git::latest_theme_tag)"
+  if [[ -z "${ref}" ]]; then
+    core::log ERROR "Could not resolve latest catppuccin/lazygit release tag"
+    return 1
+  fi
+
+  if [[ -d "${_GIT_LAZYGIT_THEME_DIR}/.git" ]]; then
+    # Already at the latest tag — nothing to do (describe fails → re-align below).
+    if [[ "$(git -C "${_GIT_LAZYGIT_THEME_DIR}" describe --tags --exact-match 2>/dev/null)" == "${ref}" ]]; then
+      core::log INFO "lazygit catppuccin theme already at ${ref}"
+    else
+      core::run_cmd "Updating lazygit catppuccin theme to ${ref}" \
+        git -C "${_GIT_LAZYGIT_THEME_DIR}" fetch --quiet --depth 1 origin tag "${ref}" || return 1
+      core::run_cmd "Checking out lazygit catppuccin theme ${ref}" \
+        git -C "${_GIT_LAZYGIT_THEME_DIR}" checkout --quiet "${ref}" || return 1
+    fi
   else
     mkdir -p "$(dirname "${_GIT_LAZYGIT_THEME_DIR}")"
-    core::run_cmd "Cloning lazygit catppuccin theme" git clone --quiet "${_GIT_LAZYGIT_THEME_REPO}" "${_GIT_LAZYGIT_THEME_DIR}" || return 1
+    core::run_cmd "Cloning lazygit catppuccin theme ${ref}" \
+      git clone --quiet --depth 1 --branch "${ref}" "${_GIT_LAZYGIT_THEME_REPO}" "${_GIT_LAZYGIT_THEME_DIR}" || return 1
   fi
-  core::summary "    ✓ catppuccin theme → ~/.local/share/lazygit/catppuccin"
+  core::summary "    ✓ catppuccin theme → ~/.local/share/lazygit/catppuccin (${ref})"
 
   # Write minimal lazygit config (theme is merged via --use-config-file).
   mkdir -p "$(dirname "${_GIT_LAZYGIT_CONFIG}")"

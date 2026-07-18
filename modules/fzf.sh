@@ -26,12 +26,14 @@ _FZF_THEME_DIR="${HOME}/.local/share/fzf/catppuccin"
 _FZF_INIT_SCRIPT="${DOTFILES_CONFIG_DIR}/fzf.zsh"
 
 # Clone or update catppuccin/fzf theme repository.
+# catppuccin/fzf publishes no release tags, so we track main (theme drift is
+# low-risk — colours only) but shallow-clone (--depth 1) to minimise download.
 _fzf::clone_theme() {
   if [[ -d "${_FZF_THEME_DIR}" ]]; then
     core::run_cmd "Updating fzf catppuccin theme" git -C "${_FZF_THEME_DIR}" pull --quiet || return 1
   else
     mkdir -p "$(dirname "${_FZF_THEME_DIR}")"
-    core::run_cmd "Cloning fzf catppuccin theme" git clone --quiet "${_FZF_THEME_REPO}" "${_FZF_THEME_DIR}" || return 1
+    core::run_cmd "Cloning fzf catppuccin theme" git clone --quiet --depth 1 "${_FZF_THEME_REPO}" "${_FZF_THEME_DIR}" || return 1
   fi
   core::summary "    ✓ catppuccin theme → ~/.local/share/fzf/catppuccin"
 }
