@@ -1,5 +1,7 @@
 # Dotfiles User Guide
 
+> **English** | [中文](guide.zh-CN.md)
+
 A detailed reference for everything installed and configured by this dotfiles project.
 After running `./install.sh`, this guide tells you what you got, how to use it, and
 where to find configuration files.
