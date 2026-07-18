@@ -245,4 +245,4 @@ The following are **not** removed — clean up manually if desired:
 ## Documentation
 
 - [User Guide (English)](docs/guide.md) — what you get after install, how to use each tool
-- [User Guide (中文)](docs/guide.zh-CN.md) — 安装后使用指南
+- [User Guide (中文)](docs/guide.zh-CN.md) — the same guide, in Chinese

@@ -204,5 +204,5 @@ GitHub 访问不在处理范围内——若 GitHub 较慢，请在运行前设�
 
 ## 文档
 
-- [用户指南（English）](docs/guide.md) —— 安装后你得到了什么、每个工具怎么用
-- [用户指南（中文）](docs/guide.zh-CN.md) —— 安装后使用指南
+- [用户指南（English）](docs/guide.md) —— 同一份指南的英文版
+- [用户指南（中文）](docs/guide.zh-CN.md) —— 安装后你得到了什么、每个工具怎么用
