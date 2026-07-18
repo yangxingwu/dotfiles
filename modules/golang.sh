@@ -33,6 +33,29 @@ _golang::latest_version() {
   curl -fsSL "${base_url}/VERSION?m=text" | head -1 | sed 's/^go//'
 }
 
+# Fetch the sha256 published for a tarball in the Go download API.
+# The API is served by both go.dev and golang.google.cn, so it honours
+# --mirror-cn. Parsed with awk rather than jq because golang installs before
+# cli-tools (which is where jq comes from) — jq is not on PATH yet. Each file
+# object lists "sha256" right after "filename", so we latch onto the matching
+# filename and print the first sha256 that follows.
+_golang::expected_sha256() {
+  local tarball="${1}" base_url="${2}"
+  curl -fsSL "${base_url}/dl/?mode=json" | awk -v f="\"filename\": \"${tarball}\"" '
+    index($0, f)                 { found = 1 }
+    found && /"sha256":/          { gsub(/[",]/, ""); print $2; exit }
+  '
+}
+
+# Compute the sha256 of a local file. Branches on OS like core::file_mode:
+# macOS ships shasum (Perl), Linux ships sha256sum (coreutils).
+_golang::file_sha256() {
+  case "${DOTFILES_OS}" in
+  mac) shasum -a 256 "${1}" | awk '{print $1}' ;;
+  linux) sha256sum "${1}" | awk '{print $1}' ;;
+  esac
+}
+
 install() {
   if ! core::check_installed go; then
     local version tarball url base_url
@@ -45,6 +68,25 @@ install() {
 
     core::log INFO "Installing Go ${version} from ${url}"
     core::run_cmd "Downloading Go ${version}" curl -fsSL "${url}" -o "/tmp/${tarball}" || return 1
+
+    # Verify the download against the published sha256 before extracting into
+    # /usr/local (a sudo operation) — HTTPS alone does not attest the bytes.
+    local expected actual
+    expected="$(_golang::expected_sha256 "${tarball}" "${base_url}")"
+    if [[ -z "${expected}" ]]; then
+      core::log ERROR "Could not fetch published sha256 for ${tarball}"
+      rm -f "/tmp/${tarball}"
+      return 1
+    fi
+    actual="$(_golang::file_sha256 "/tmp/${tarball}")"
+    if [[ "${actual}" != "${expected}" ]]; then
+      core::log ERROR "Checksum mismatch for ${tarball} (expected ${expected}, got ${actual})"
+      rm -f "/tmp/${tarball}"
+      return 1
+    fi
+    core::log INFO "Verified sha256: ${tarball}"
+    core::summary "    ✓ verified sha256 (${tarball})"
+
     sudo rm -rf /usr/local/go
     core::run_cmd "Extracting Go ${version}" sudo tar -C /usr/local -xzf "/tmp/${tarball}" || return 1
     rm "/tmp/${tarball}"
