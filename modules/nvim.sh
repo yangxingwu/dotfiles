@@ -482,4 +482,24 @@ uninstall() {
     rm -rf "${_NVIM_SRC_DIR}/muon"
     core::summary "    ✓ removed muon source"
   fi
+
+  # Intentionally retained (per the project's "modules leave binaries in place"
+  # contract — see the closing note printed by uninstall.sh). Only this module's
+  # own config and its from-source builds (nvim, lua, luarocks, muon) are removed
+  # above; everything below is shared with other modules or is user data:
+  #
+  #   - Dependency binaries: shfmt, shellcheck, tree-sitter-cli (cargo), pynvim
+  #     (pipx) or python3-neovim (dnf), the neovim npm package, and dev headers
+  #     (readline, sqlite). Also muon/neovim themselves when they came from the
+  #     system package manager rather than a source build.
+  #   - Neovim runtime data: ~/.local/share/nvim, ~/.local/state/nvim, and
+  #     ~/.cache/nvim (lazy.nvim plugins, Mason tools, treesitter parsers, shada,
+  #     undo history). Kept so a reinstall is fast and user state survives; the
+  #     install-time backups (see _nvim::clone_config) live alongside these.
+  #
+  # For a full wipe: rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim
+  core::log INFO "Retained dep binaries: shfmt, shellcheck, tree-sitter-cli, pynvim, neovim npm (+ muon/neovim if pkg-managed)"
+  core::log INFO "Retained nvim data: ~/.local/share/nvim, ~/.local/state/nvim, ~/.cache/nvim"
+  core::summary "    — retained dep binaries: shfmt, shellcheck, tree-sitter-cli, pynvim, neovim npm (+ muon/neovim if pkg-managed)"
+  core::summary "    — retained nvim data: ~/.local/share/nvim, ~/.local/state/nvim, ~/.cache/nvim"
 }

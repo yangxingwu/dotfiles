@@ -9,7 +9,7 @@
 | Hook | Action |
 |---|---|
 | `install` | install deps (node, shfmt, shellcheck, tree-sitter-cli, lua 5.1, luarocks, pynvim, neovim npm package); install nvim (brew or pkg/source); clone/update config repo; headless plugin sync + treesitter compile |
-| `uninstall` | remove source-built nvim (if applicable); remove ~/.config/nvim |
+| `uninstall` | remove ~/.config/nvim and from-source builds (nvim, lua 5.1, luarocks, muon); **retain** dep binaries (shfmt, shellcheck, tree-sitter-cli, pynvim, neovim npm; muon/neovim if pkg-managed) and nvim runtime data (~/.local/share/nvim, ~/.local/state/nvim, ~/.cache/nvim) |
 
 ## Install behavior
 
