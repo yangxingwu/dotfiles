@@ -160,9 +160,9 @@ atuin stats
 
 **是什么**: [starship](https://starship.rs/) 是用 Rust 编写的跨 shell 提示符，显示当前目录、Git 分支状态、编程语言版本等上下文信息。
 
-**为什么选它**: 极快的渲染速度（Rust 实现）；信息密度高（只在相关时显示模块）；Catppuccin Mocha 主题风格统一。
+**为什么选它**: 极快的渲染速度（Rust 实现）；信息密度高（只在相关时显示模块）；Catppuccin 主题风格统一。
 
-**使用的预设**: `catppuccin-powerline` — Catppuccin Mocha 配色 + Powerline 分隔符风格。
+**配置来源**: 直接取自官方 [catppuccin/starship](https://github.com/catppuccin/starship) 仓库（macchiato flavor），而非本地 preset 生成。
 
 提示符会自动显示：
 - 当前目录
@@ -172,7 +172,7 @@ atuin stats
 - 上一条命令的退出状态
 
 **配置文件位置**:
-- `~/.config/starship.toml` — 完整配置（由 preset 生成，每次 install 重新写入）
+- `~/.config/starship.toml` — 完整配置（每次 install 从 catppuccin/starship 拉取覆盖）
 - `~/.zshrc` 中的 `starship` block — `eval "$(starship init zsh)"`
 
 ---
@@ -1111,7 +1111,7 @@ ssh server1.example.com
 | bat | `~/.config/bat/config` 中 `--theme="Catppuccin Mocha"` |
 | fzf | 加载 `~/.local/share/fzf/catppuccin/themes/catppuccin-fzf-mocha.sh` |
 | lazygit | 启动时 `--use-config-file` 合并 `~/.local/share/lazygit/catppuccin/themes-mergable/mocha/blue.yml` |
-| starship | `~/.config/starship.toml` 使用 `catppuccin-powerline` preset |
+| starship | `~/.config/starship.toml`（catppuccin/starship，macchiato）|
 | ghostty | `~/.config/ghostty/config` 中 `theme = catppuccin-mocha` |
 
 **更新主题**:

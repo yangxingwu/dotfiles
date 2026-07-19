@@ -170,8 +170,9 @@ information (git branch, language versions, command duration, exit status) with
 minimal latency.
 
 **Why this tool:** Starship renders in under 10ms, works identically across
-shells, and supports every dev ecosystem out of the box. The catppuccin-powerline
-preset gives a clean, informative prompt with consistent theming.
+shells, and supports every dev ecosystem out of the box. Its config is pulled
+straight from the official [catppuccin/starship](https://github.com/catppuccin/starship)
+repo (macchiato flavor) — not generated from a local preset.
 
 **What you see in your prompt:**
 
@@ -187,8 +188,9 @@ preset gives a clean, informative prompt with consistent theming.
 # The prompt configures itself automatically. To customize:
 nvim ~/.config/starship.toml
 
-# Regenerate from the preset (overwrites customizations)
-starship preset catppuccin-powerline --output ~/.config/starship.toml
+# Re-fetch the catppuccin config (overwrites customizations)
+curl -fsSL https://raw.githubusercontent.com/catppuccin/starship/main/starship.toml \
+  -o ~/.config/starship.toml
 ```
 
 **Config location:** `~/.config/starship.toml`
@@ -1119,7 +1121,7 @@ same palette for visual consistency.
 | bat | Built-in `Catppuccin Mocha` theme (bat 0.25+) |
 | fzf | Cloned from `catppuccin/fzf` (shell vars) |
 | lazygit | Cloned from `catppuccin/lazygit` (merged via alias) |
-| starship | `catppuccin-powerline` preset |
+| starship | catppuccin/starship config (macchiato) |
 
 **Updating themes:**
 
@@ -1130,8 +1132,8 @@ cd ~/.local/share/fzf/catppuccin && git pull
 # lazygit catppuccin theme
 cd ~/.local/share/lazygit/catppuccin && git pull
 
-# starship preset (regenerates config — overwrites customizations)
-starship preset catppuccin-powerline --output ~/.config/starship.toml
+# starship catppuccin config (macchiato — re-fetch overwrites customizations)
+curl -fsSL https://raw.githubusercontent.com/catppuccin/starship/main/starship.toml -o ~/.config/starship.toml
 ```
 
 ---
@@ -1177,7 +1179,7 @@ Running `./install.sh` again updates them idempotently.
 | `~/.config/lazygit/config.yml` | git | Nerd Font icons setting |
 | `~/.config/nvim/` | nvim | LazyVim configuration (cloned repo) |
 | `~/.config/sheldon/plugins.toml` | sheldon | Declarative plugin list |
-| `~/.config/starship.toml` | starship | Prompt configuration (catppuccin-powerline) |
+| `~/.config/starship.toml` | starship | Prompt configuration (catppuccin/starship, macchiato) |
 | `~/.config/zellij/config.kdl` | zellij | Zellij configuration |
 
 ### Git configuration
