@@ -255,6 +255,13 @@ printf '\n══ Phase 2b: Diagnostic dumps ══\n'
 nvim --headless -c "Lazy! load all" -c "checkhealth" -c "w! /tmp/dotfiles-diagnostics/nvim-health.txt" -c "qa" 2>/dev/null || true
 printf '  ✓ nvim LazyHealth saved to /tmp/dotfiles-diagnostics/nvim-health.txt\n'
 
+# ─── Phase 2c: --list overview smoke test ─────────────────────────
+printf '\n══ Phase 2c: --list overview ══\n'
+"${DOTFILES_ROOT}/install.sh" --list >/tmp/dotfiles-list.txt 2>&1
+assert_file_contains /tmp/dotfiles-list.txt "MODULE"
+assert_file_contains /tmp/dotfiles-list.txt "installed"
+assert "--list marks nvim installed" grep -qE "nvim .*✓" /tmp/dotfiles-list.txt
+
 # ─── Phase 3: Uninstall ────────────────────────────────────────────
 printf '\n══ Phase 3: Running uninstall.sh ══\n'
 

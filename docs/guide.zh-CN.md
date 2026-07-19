@@ -1214,7 +1214,7 @@ git pull
 # 跳过指定模块
 ./install.sh --skip nvim,ghostty
 
-# 查看所有可用模块
+# 查看所有模块及安装状态
 ./install.sh --list
 ```
 

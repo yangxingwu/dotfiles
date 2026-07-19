@@ -120,7 +120,7 @@ Bootstrap 完成后，运行 `./install.sh` 安装模块。
 # 组合使用
 ./install.sh --verbose --summary --only nvim
 
-# 列出可用模块
+# 列出模块及平台、安装状态
 ./install.sh --list
 
 # 卸载所有模块配置
@@ -128,9 +128,6 @@ Bootstrap 完成后，运行 `./install.sh` 安装模块。
 
 # 仅卸载指定模块
 ./uninstall.sh --only zellij,nvim
-
-# 显示已安装模块及时间戳
-./install.sh --status
 ```
 
 ### Git 身份

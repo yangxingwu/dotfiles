@@ -325,19 +325,6 @@ core::module_uninstalled() {
   mv "${_CORE_STATUS_FILE}.tmp" "${_CORE_STATUS_FILE}"
 }
 
-# core::show_status — display installed modules from status file.
-core::show_status() {
-  if [[ ! -f "${_CORE_STATUS_FILE}" ]]; then
-    printf 'No modules installed (status file not found).\n'
-    return 0
-  fi
-  printf 'Installed modules:\n'
-  local name timestamp
-  while IFS=' ' read -r name timestamp; do
-    printf '  %-20s %s\n' "${name}" "${timestamp}"
-  done <"${_CORE_STATUS_FILE}"
-}
-
 # ── Argument parsing for install.sh / uninstall.sh ─────────────────────
 
 # core::usage — print usage information.
@@ -350,8 +337,7 @@ core::usage() {
   printf '  --mirror-cn        Use China mirrors (USTC, rsproxy.cn, goproxy.cn)\n'
   printf '  -v, --verbose      Show full command output (default: progress only)\n'
   printf '  --summary          Show detailed summary after completion\n'
-  printf '  --status           Show installed modules and timestamps\n'
-  printf '  --list, -l         List available modules\n'
+  printf '  --list, -l         List modules with platform and install status\n'
   printf '  --help, -h         Show this help\n'
 }
 
@@ -371,10 +357,6 @@ core::parse_args() {
       ;;
     --list | -l)
       modules::list_modules
-      exit 0
-      ;;
-    --status)
-      core::show_status
       exit 0
       ;;
     --only | --skip)

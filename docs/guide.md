@@ -1238,7 +1238,7 @@ git pull
 # Install everything except certain modules
 ./install.sh --skip ghostty,font-hack-nerd-font
 
-# List all available modules
+# List modules with platform and install status
 ./install.sh --list
 ```
 

@@ -134,7 +134,7 @@ in the correct order.
 # Combine flags
 ./install.sh --verbose --summary --only nvim
 
-# List available modules
+# List modules with platform and install status
 ./install.sh --list
 
 # Uninstall all module configurations
@@ -142,9 +142,6 @@ in the correct order.
 
 # Uninstall specific modules only
 ./uninstall.sh --only zellij,nvim
-
-# Show installed modules and timestamps
-./install.sh --status
 ```
 
 ### Git Identity

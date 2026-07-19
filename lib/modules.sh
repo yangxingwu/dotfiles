@@ -6,25 +6,25 @@ set -euo pipefail
 IFS=$'\n\t'
 
 DOTFILES_MODULES=(
-  homebrew             # mac only: .zshrc shellenv (must be first for brew PATH)
+  homebrew # mac only: .zshrc shellenv (must be first for brew PATH)
   font-hack-nerd-font
-  ssh              # before git: SSH key needed for git commit signing
-  rust             # before git/nvim: cargo for delta, tree-sitter-cli
-  golang           # before git/nvim: go install lazygit
-  git              # after ssh/rust/golang: needs SSH key, cargo, go
-  cli-tools        # after rust/golang: cargo tools; before fzf: fzf preview uses bat/fd
-  python           # after cli-tools: no hard deps; before fzf: logical grouping
-  nodejs           # after rust (cargo install fnm); before nvim (npm install -g neovim)
-  fzf              # before zoxide: zi interactive mode uses fzf
-                   # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
+  ssh       # before git: SSH key needed for git commit signing
+  rust      # before git/nvim: cargo for delta, tree-sitter-cli
+  golang    # before git/nvim: go install lazygit
+  git       # after ssh/rust/golang: needs SSH key, cargo, go
+  cli-tools # after rust/golang: cargo tools; before fzf: fzf preview uses bat/fd
+  python    # after cli-tools: no hard deps; before fzf: logical grouping
+  nodejs    # after rust (cargo install fnm); before nvim (npm install -g neovim)
+  fzf       # before zoxide: zi interactive mode uses fzf
+  # before sheldon: sheldon's fzf-tab plugin requires the fzf binary
   zoxide
   sheldon
-  atuin            # after rust (cargo), after sheldon (replaces its history-substring-search)
+  atuin # after rust (cargo), after sheldon (replaces its history-substring-search)
   starship
-  ghostty          # after font/sheldon/zoxide/starship: config assumes these are installed
-  nvim             # after rust (cargo), golang, git (lazygit), cli-tools (rg, fd)
+  ghostty # after font/sheldon/zoxide/starship: config assumes these are installed
+  nvim    # after rust (cargo), golang, git (lazygit), cli-tools (rg, fd)
   zellij
-  zsh-config       # last: aliases depend on cli-tools (eza, bat), EDITOR depends on nvim
+  zsh-config # last: aliases depend on cli-tools (eza, bat), EDITOR depends on nvim
 )
 
 # DOTFILES_SELECTED_MODULES — modules actually scheduled for this run, in
@@ -34,12 +34,41 @@ DOTFILES_MODULES=(
 # (used by --list and any future reporting).
 DOTFILES_SELECTED_MODULES=("${DOTFILES_MODULES[@]}")
 
-# modules::list_modules — print all available module names.
+# modules::list_modules — print every module with its platform and install status.
+# MODULE_PLATFORM is read by sourcing each module in a subshell, so the module's
+# variables and install/uninstall definitions don't leak into this shell. The
+# timestamp comes from the status file written by core::module_installed; it is
+# refreshed on every successful install, so it reflects the most recent
+# install/update time.
+# shellcheck disable=SC2154  # DOTFILES_ROOT (entrypoint) and _CORE_STATUS_FILE (core.sh) are set before this runs
 modules::list_modules() {
-  printf 'Available modules:\n'
-  local name
+  local total=${#DOTFILES_MODULES[@]} installed=0
+  local name platform ts disp
+  local -a rows=()
+
   for name in "${DOTFILES_MODULES[@]}"; do
-    printf '  %s\n' "${name}"
+    platform="$(
+      # shellcheck source=/dev/null
+      source "${DOTFILES_ROOT}/modules/${name}.sh" >/dev/null 2>&1
+      printf '%s' "${MODULE_PLATFORM:-?}"
+    )"
+
+    ts="$(grep "^${name} " "${_CORE_STATUS_FILE}" 2>/dev/null | awk '{print $2}')"
+    if [[ -n "${ts}" ]]; then
+      installed=$((installed + 1))
+      disp="${ts/T/ }"  # ISO 'T' → space
+      disp="${disp%:*}" # drop seconds
+      rows+=("$(printf '  %-20s %-9s ✓ %s' "${name}" "${platform}" "${disp}")")
+    else
+      rows+=("$(printf '  %-20s %-9s — not installed' "${name}" "${platform}")")
+    fi
+  done
+
+  printf 'Modules (%d / %d installed) — ✓ shows the last install/update time\n\n' "${installed}" "${total}"
+  printf '  %-20s %-9s %s\n' "MODULE" "PLATFORM" "STATUS"
+  local row
+  for row in "${rows[@]}"; do
+    printf '%s\n' "${row}"
   done
 }
 
