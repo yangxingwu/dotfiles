@@ -86,7 +86,7 @@
 
 ---
 
-### sheldon (插件管理器)
+### sheldon （插件管理器）
 
 **是什么**: [sheldon](https://github.com/rossmacarthur/sheldon) 是一个用 Rust 编写的 zsh 插件管理器，通过声明式 TOML 配置管理插件。
 
@@ -122,7 +122,7 @@ cat ~/.config/sheldon/plugins.toml
 
 ---
 
-### atuin (历史搜索)
+### atuin （历史搜索）
 
 **是什么**: [atuin](https://github.com/atuinsh/atuin) 用 SQLite 数据库替代 zsh 的纯文本历史文件，提供全屏模糊搜索界面。
 
@@ -156,7 +156,7 @@ atuin stats
 
 ---
 
-### starship (提示符)
+### starship （提示符）
 
 **是什么**: [starship](https://starship.rs/) 是用 Rust 编写的跨 shell 提示符，显示当前目录、Git 分支状态、编程语言版本等上下文信息。
 
@@ -179,7 +179,7 @@ atuin stats
 
 ## 2. 模糊搜索与导航
 
-### fzf (模糊搜索)
+### fzf （模糊搜索）
 
 **是什么**: [fzf](https://github.com/junegunn/fzf) 是一个通用的命令行模糊搜索工具。它能对任何文本列表进行交互式过滤，并与 shell 深度集成。
 
@@ -226,7 +226,7 @@ git log --oneline | fzf
 
 ---
 
-### zoxide (智能目录跳转)
+### zoxide （智能目录跳转）
 
 **是什么**: [zoxide](https://github.com/ajeetdsouza/zoxide) 是一个学习你访问频率的 `cd` 替代工具。它记录你去过的目录，之后只需输入目录名的片段就能跳转。
 
@@ -258,7 +258,7 @@ cd /tmp           # 同时会被 zoxide 记录
 
 本项目用现代 Rust 工具替代传统 Unix 命令。这些工具更快、输出更美观、默认行为更合理。
 
-### bat (cat 替代)
+### bat （cat 替代）
 
 **是什么**: [bat](https://github.com/sharkdp/bat) 是带语法高亮和 Git 集成的 `cat` 替代品。
 
@@ -290,7 +290,7 @@ bat --diff file1.txt file2.txt
 
 ---
 
-### eza (ls 替代)
+### eza （ls 替代）
 
 **是什么**: [eza](https://github.com/eza-community/eza) 是现代化的 `ls` 替代品，支持 Git 状态显示、文件图标、树形视图。
 
@@ -321,7 +321,7 @@ eza -D
 
 ---
 
-### ripgrep / rg (grep 替代)
+### ripgrep / rg （grep 替代）
 
 **是什么**: [ripgrep](https://github.com/BurntSushi/ripgrep) 是极快的文件内容搜索工具，默认递归搜索、遵守 `.gitignore`。
 
@@ -360,7 +360,7 @@ rg "old_name" --replace "new_name"
 
 ---
 
-### fd (find 替代)
+### fd （find 替代）
 
 **是什么**: [fd](https://github.com/sharkdp/fd) 是更友好的 `find` 替代品，语法简单、速度快、默认遵守 `.gitignore`。
 
@@ -393,7 +393,7 @@ fd --exclude node_modules "index"
 
 ---
 
-### jq (JSON 处理器)
+### jq （JSON 处理器）
 
 **是什么**: [jq](https://github.com/jqlang/jq) 是命令行 JSON 处理器，类似于 JSON 的 `sed`/`awk`。
 
@@ -423,7 +423,7 @@ cat list.json | jq '. | length'
 
 ---
 
-### tldr (命令速查)
+### tldr （命令速查）
 
 **是什么**: [tealdeer](https://github.com/dbrgn/tealdeer) 是 tldr-pages 的 Rust 客户端，为常用命令提供简洁的用法示例（比 man page 实用得多）。
 
@@ -446,7 +446,7 @@ tldr --list
 
 ---
 
-### ast-grep (结构化搜索替换)
+### ast-grep （结构化搜索替换）
 
 **是什么**: [ast-grep](https://ast-grep.github.io/) 是基于语法树（AST）的搜索替换工具。与 ripgrep 的纯文本匹配不同，它理解代码结构——知道什么是函数名、参数、变量。
 
@@ -816,7 +816,7 @@ fnm list
 
 ## 6. 终端与编辑器
 
-### Ghostty (终端模拟器, 仅 macOS)
+### Ghostty （终端模拟器，仅 macOS）
 
 **是什么**: [Ghostty](https://ghostty.org/) 是一个用 Zig 编写的现代终端模拟器，注重速度和正确性。
 
@@ -832,7 +832,7 @@ fnm list
 
 ---
 
-### Zellij (终端复用器)
+### Zellij （终端复用器）
 
 **是什么**: [Zellij](https://zellij.dev/) 是一个现代终端复用器（Rust 编写），让你在一个终端窗口中管理多个会话、标签页和面板。断开连接后会话保持运行。
 
@@ -1008,7 +1008,7 @@ zellij kill-session <name>    # 终止 session
 
 ---
 
-### Neovim (编辑器)
+### Neovim （编辑器）
 
 **是什么**: [Neovim](https://neovim.io/) 是 Vim 的现代分支，使用 [LazyVim](https://www.lazyvim.org/) 发行版配置，提供 IDE 级别的编辑体验。
 
