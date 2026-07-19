@@ -1129,8 +1129,8 @@ same palette for visual consistency.
 # fzf catppuccin theme
 cd ~/.local/share/fzf/catppuccin && git pull
 
-# lazygit catppuccin theme
-cd ~/.local/share/lazygit/catppuccin && git pull
+# lazygit catppuccin theme (pinned to the latest release tag; re-run to re-align)
+./install.sh --only git
 
 # starship catppuccin config (macchiato — re-fetch overwrites customizations)
 curl -fsSL https://raw.githubusercontent.com/catppuccin/starship/main/starship.toml -o ~/.config/starship.toml

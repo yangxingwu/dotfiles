@@ -1120,8 +1120,8 @@ ssh server1.example.com
 # 更新 fzf 主题
 cd ~/.local/share/fzf/catppuccin && git pull
 
-# 更新 lazygit 主题
-cd ~/.local/share/lazygit/catppuccin && git pull
+# 更新 lazygit 主题（已锁定到最新 release tag，重跑以对齐）
+./install.sh --only git
 
 # starship 主题在每次 ./install.sh 运行时重新生成
 ```
