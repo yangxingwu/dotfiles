@@ -195,6 +195,32 @@ through **managed blocks** delimited by `# BEGIN dotfiles:<id>` / `# END dotfile
 markers. These blocks are automatically updated or removed without affecting
 surrounding content.
 
+## Updating
+
+To pull in the latest configuration, update the repo and re-run the installer:
+
+```bash
+cd ~/.dotfiles
+git pull
+./install.sh
+```
+
+Re-running `install.sh` is idempotent and refreshes **all managed configuration** to
+match the current repo:
+
+- Managed shell blocks (`# BEGIN/END dotfiles:*`) are rewritten
+- Config files (starship, bat, fzf, lazygit, ghostty, zellij, git, SSH defaults, …)
+  are overwritten
+- External configs are pulled to latest: the Neovim config repo, catppuccin themes,
+  and sheldon plugins
+
+Use `--only` to refresh a single module, e.g. `./install.sh --only starship`.
+
+**Binaries are not auto-upgraded.** Tools installed via cargo / go / rustup / package
+managers stay at their installed version (re-running skips already-installed tools).
+Upgrade them with their native commands when needed — for example `rustup update`,
+`cargo install --force <tool>`, `brew upgrade`, or `:Lazy update` in Neovim.
+
 ## Troubleshooting
 
 **`error: bash >= 4.3 required`** — the system bash is too old (macOS ships 3.2).

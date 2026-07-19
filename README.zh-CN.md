@@ -175,6 +175,26 @@ GitHub 访问不在处理范围内——若 GitHub 较慢，请在运行前设�
 
 安装器是幂等的——重复运行始终安全。配置通过 **managed block**（托管块）管理，由 `# BEGIN dotfiles:<id>` / `# END dotfiles:<id>` 标记界定。这些块会被自动更新或移除，不影响周围内容。
 
+## 更新
+
+要拉取最新配置，更新仓库并重跑安装器即可:
+
+```bash
+cd ~/.dotfiles
+git pull
+./install.sh
+```
+
+重跑 `install.sh` 是幂等的，会把**所有受管配置**刷新为仓库当前的版本:
+
+- 受管 shell 块（`# BEGIN/END dotfiles:*`）会被重写
+- 配置文件（starship、bat、fzf、lazygit、ghostty、zellij、git、SSH 默认项……）会被覆盖
+- 外部配置会拉取到最新:Neovim 配置仓库、catppuccin 主题、sheldon 插件
+
+用 `--only` 可只刷新单个模块，例如 `./install.sh --only starship`。
+
+**二进制不会自动升级。** 通过 cargo / go / rustup / 包管理器安装的工具会停留在已安装的版本（重跑会跳过已安装的工具）。需要升级时用它们各自的原生命令——例如 `rustup update`、`cargo install --force <工具>`、`brew upgrade`，或在 Neovim 里 `:Lazy update`。
+
 ## 故障排查
 
 **`error: bash >= 4.3 required`** —— 系统 bash 太旧（macOS 自带 3.2）。先运行 `./bootstrap-macos.sh`，然后在当前终端执行 `eval "$(brew shellenv)"` 或直接新开一个终端，再运行 `./install.sh`。
