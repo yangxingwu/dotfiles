@@ -53,7 +53,14 @@ modules::list_modules() {
       printf '%s' "${MODULE_PLATFORM:-?}"
     )"
 
-    ts="$(grep "^${name} " "${_CORE_STATUS_FILE}" 2>/dev/null | awk '{print $2}')"
+    # awk (not grep | awk): a not-installed module has no match, and grep would
+    # return 1 there — under the entrypoint's set -e + pipefail that aborts --list.
+    # awk matches to empty and exits 0. The -f guard uses `if` (not `&&`) so a
+    # missing status file also can't trip set -e.
+    ts=""
+    if [[ -f "${_CORE_STATUS_FILE}" ]]; then
+      ts="$(awk -v m="${name}" '$1 == m {print $2}' "${_CORE_STATUS_FILE}")"
+    fi
     if [[ -n "${ts}" ]]; then
       installed=$((installed + 1))
       disp="${ts/T/ }"  # ISO 'T' → space
